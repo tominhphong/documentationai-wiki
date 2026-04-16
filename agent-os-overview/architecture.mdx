@@ -1,0 +1,166 @@
+---
+title: "Architecture"
+description: "Kiến trúc 4 lớp của Phong AI Agent Operating System — từ Claude Desktop đến external services."
+---
+
+## Tổng quan kiến trúc
+
+Hệ thống hoạt động theo mô hình 4 lớp, từ trung tâm ra ngoài:
+
+**Lớp 1 — Claude Desktop (Cowork mode)** là bộ não trung tâm. Mọi task bắt đầu và kết thúc tại đây. Claude nhận yêu cầu từ Phong, quyết định dùng tool nào, thực thi, và trả kết quả.
+
+**Lớp 2 — MCP Servers** mở rộng khả năng của Claude. Mỗi MCP server kết nối Claude với một dịch vụ bên ngoài qua giao thức chuẩn (Model Context Protocol). Claude gọi MCP tools như gọi hàm — truyền tham số, nhận kết quả.
+
+**Lớp 3 — Plugins và Skills** cung cấp quy trình chuyên biệt. Plugins đóng gói nhiều skills liên quan thành một bộ. Mỗi skill là một tập hướng dẫn chi tiết mà Claude đọc và thực thi theo.
+
+**Lớp 4 — External Services** là các nền tảng SaaS mà hệ thống tương tác qua API hoặc MCP: HubSpot CRM, Zernio (social media), Documentation.AI, và các dịch vụ khác.
+
+
+## Lớp 1 — Claude Desktop (Cowork mode)
+
+Claude Desktop chạy trên Mac mini M4 của Phong ở chế độ Cowork mode với Plan Max 20x.
+
+**Vai trò:**
+
+- Nhận task từ Phong qua conversation
+- Đọc skills và quy trình từ plugins
+- Gọi MCP tools để tương tác với external services
+- Đọc/ghi file trên máy (content, templates, media)
+- Chạy shell commands trong sandbox Linux
+- Quản lý memory qua auto-memory system
+
+**Quy tắc vận hành:**
+
+- Luôn search Agent OS qua MCP trước khi thực thi task mới
+- Luôn search Realtor Knowledge Base khi task liên quan bất động sản
+- Research-first: dùng Perplexity/WebSearch trước khi đề xuất giải pháp
+- Trả lời bằng tiếng Việt, trừ khi Phong yêu cầu tiếng Anh
+
+
+## Lớp 2 — MCP Servers
+
+MCP servers là cầu nối giữa Claude và external services. Mỗi server cung cấp một bộ tools mà Claude có thể gọi trực tiếp.
+
+### MCP servers đang hoạt động
+
+**Desktop Commander** — Điều khiển máy Mac: chạy process, đọc/ghi file, tìm kiếm file trên hệ thống. Dùng khi cần thao tác trực tiếp trên máy ngoài sandbox.
+
+**Perplexity API** — Tìm kiếm thông tin chất lượng cao với tổng hợp thông minh. Tool ưu tiên số 1 cho research tasks.
+
+**Exa** — Semantic search và crawl nội dung web. Dùng khi cần tìm kiếm theo ngữ nghĩa hoặc đọc full content từ URL.
+
+**Playwright** — Browser automation. Dùng cho screenshot, web scraping, và tự động hóa thao tác trên web.
+
+**Zernio** — Social media scheduling và management. Đăng bài, lên lịch, quản lý comments, analytics cho tất cả platforms.
+
+**HubSpot** — CRM integration. Quản lý contacts, deals, pipeline, và campaign analytics.
+
+**Google Calendar** — Quản lý lịch hẹn và events.
+
+**Gmail** — Đọc, tìm kiếm, soạn, và gửi email.
+
+**Documentation.AI** — Search documentation qua MCP endpoint. Hai sites:
+- Agent OS: `antigravity-memory-palace.documentationai.com/_mcp` — tài liệu vận hành hệ thống
+- Realtor Knowledge Base: `phong-to.documentationai.com/_mcp` — kiến thức bất động sản
+
+**Canva** — Thiết kế hình ảnh, templates, và brand assets.
+
+**Supabase** — Database và backend services.
+
+**Cloudflare** — Workers, R2 storage, D1 database.
+
+**Vercel** — Hosting và deployment cho web projects.
+
+**Netlify** — Hosting thay thế cho một số projects.
+
+### Cách Claude chọn MCP tool
+
+Khi nhận task, Claude chọn tool theo thứ tự ưu tiên:
+
+1. MCP chuyên dụng cho service đó (VD: Zernio cho social media, HubSpot cho CRM)
+2. Chrome MCP cho web apps không có MCP riêng
+3. Computer use cho native desktop apps
+4. Playwright cho browser automation phức tạp
+
+
+## Lớp 3 — Plugins và Skills
+
+Plugins là các gói mở rộng cài trên Claude Desktop, mỗi plugin chứa nhiều skills và agents.
+
+### Plugins chính
+
+**ClaudeKit Engineer** — Bộ skills kỹ thuật: lập kế hoạch, debug, deploy, code review, frontend/backend development, Git workflow, MCP management.
+
+**ClaudeKit Marketing** — Bộ skills marketing: SEO, content marketing, email campaigns, social media, analytics, brand management, video production.
+
+**ECC All Skills** — Bộ sưu tập skills bổ sung: research, coding standards, deployment patterns, security review, và nhiều skills chuyên ngành khác.
+
+**Platform-specific plugins:**
+- Activepieces Automation — workflow automation
+- Boomerangme Automation — loyalty cards và push notifications
+- Browse AI Automation — web scraping và monitoring
+- CX Genie Automation — chatbot management
+- DeftForm Automation — form builder
+- Diaflow Mastery — AI workflow builder
+- ElkQR Automation — QR code management
+- FeedGuardians Automation — social media comment monitoring
+- Late (Zernio) Automation — social media scheduling
+- TidyCal Automation — appointment scheduling
+- GoClaw Assistant — AI agent gateway
+
+### Cách skills hoạt động
+
+Khi Claude nhận task phù hợp với một skill, quy trình như sau:
+
+1. Claude kích hoạt skill (đọc file SKILL.md)
+2. Skill cung cấp hướng dẫn chi tiết, templates, và quy tắc
+3. Claude thực thi theo hướng dẫn, gọi MCP tools khi cần
+4. Kết quả được trả về cho Phong
+
+
+## Lớp 4 — External Services
+
+External services là các nền tảng SaaS mà hệ thống kết nối qua MCP hoặc API.
+
+### Services theo chức năng
+
+**CRM và Sales:** HubSpot — quản lý contacts, deals, pipeline cho real estate business.
+
+**Social Media:** Zernio — đăng bài và lên lịch cho Facebook, Instagram, TikTok, YouTube, LinkedIn, X, Google Business.
+
+**Documentation:** Documentation.AI — host và serve docs site với MCP endpoint cho AI agents.
+
+**Communication:** Gmail — email, Google Calendar — lịch hẹn, iMessage — tin nhắn.
+
+**Design:** Canva — tạo hình ảnh và templates cho marketing content.
+
+**Infrastructure:** Supabase (database), Cloudflare (workers/storage), Vercel/Netlify (hosting).
+
+**Scheduling:** TidyCal — đặt lịch hẹn xem nhà, tư vấn.
+
+**Forms:** DeftForm — thu thập leads, đăng ký events.
+
+**QR Codes:** ElkQR — QR codes cho listings, open houses, menus nhà hàng Việt.
+
+**Monitoring:** FeedGuardians — theo dõi comments trên social media, Browse AI — web scraping.
+
+
+## Luồng dữ liệu
+
+Một task điển hình đi qua hệ thống như sau:
+
+1. Phong gửi yêu cầu cho Claude Desktop
+2. Claude search Agent OS qua MCP để tìm quy trình
+3. Claude kích hoạt skill phù hợp (nếu có)
+4. Claude gọi MCP tools để tương tác với external services
+5. Claude xử lý kết quả, tạo output (file, message, hoặc action)
+6. Claude trả kết quả cho Phong, lưu memory nếu cần
+
+Nếu task liên quan bất động sản, Claude search thêm Realtor Knowledge Base ở bước 2.
+
+Nếu task cần thông tin mới nhất, Claude research qua Perplexity/WebSearch trước khi thực thi.
+
+
+## Read next
+
+Trang tiếp theo liệt kê chi tiết từng component và tool trong hệ thống — cấu hình, use cases, và cách agents sử dụng chúng.

@@ -22,6 +22,11 @@
                 "title": "What This System Is",
                 "path": "agent-os-overview/introduction",
                 "icon": "home"
+              },
+              {
+                "title": "Architecture",
+                "path": "agent-os-overview/architecture",
+                "icon": "git-branch"
               }
             ]
           }
