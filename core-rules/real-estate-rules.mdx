@@ -1,0 +1,159 @@
+---
+title: "Real Estate Rules"
+description: "Luật bắt buộc khi task liên quan bất động sản — search RKB, TREC compliance, giao tiếp với client Việt, và nguồn sự thật cho quy trình RE."
+---
+
+## Phạm vi áp dụng
+
+Trang này áp dụng khi task có liên quan đến **bất kỳ chủ đề bất động sản nào**: mua bán nhà, khách hàng, CRM, hợp đồng, thị trường North Texas/Sherman, commission, open house, listing, buyer/seller, mortgage, tư vấn tài chính RE.
+
+Các luật ở trang này bổ sung cho Global Operating Rules — không thay thế.
+
+
+## Luật 1 — Realtor Knowledge Base là nguồn sự thật
+
+### Phải search RKB trước khi trả lời
+
+Khi task liên quan bất động sản, agent **phải** search Realtor Knowledge Base (RKB) qua MCP trước khi trả lời:
+
+```
+search_documentation("từ khóa tiếng Việt hoặc tiếng Anh")
+```
+
+Endpoint: `phong-to.documentationai.com/_mcp`
+
+RKB chứa quy trình, scripts, templates, và kiến thức đã được Phong duyệt. Agent không được tự ý đề xuất quy trình khác nếu RKB đã có.
+
+### 10 phòng ban trong RKB
+
+| Phòng | Nội dung chính |
+|-------|---------------|
+| 01 — Sales and CRM | Pipeline HubSpot, follow-up system, scripts tư vấn, xử lý phản đối |
+| 02 — Marketing and Content | Social media, video scripts, email templates, outreach cộng đồng Việt |
+| 03 — Market Intelligence | Dữ liệu thị trường North Texas/Sherman TX, CMA, xu hướng giá |
+| 04 — Transaction Management | Option period, earnest money, closing checklist, transaction timeline |
+| 05 — Finance and Accounting | eXp 80/20 commission, commission tracker, khấu trừ thuế |
+| 06 — Legal and Compliance | TREC license, Fair Housing, Texas disclosure laws |
+| 07 — Client Communication | Scripts re-engagement, breakup messages, drip sequences |
+| 08 — Listing Marketing | Photography SOP, MLS listing, open house promo |
+| 09 — Buyer Journey | Buyer consultation SOP, Conventional vs FHA, BMA-1 |
+| 10 — Quality and Reviews | Post-closing survey, Google Review strategy, KPIs |
+
+### Cách chọn phòng ban để search
+
+- Câu hỏi về pipeline, lead, follow-up → search "sales CRM pipeline"
+- Viết email/tin nhắn cho client → search "client communication scripts"
+- Hỏi về option period, closing → search "transaction management"
+- Hỏi về thị trường Sherman → search "market intelligence Sherman"
+- Cần checklist open house → search "listing marketing open house"
+
+### Trích dẫn
+
+Khi dùng thông tin từ RKB, agent phải trích dẫn phòng ban và tên section. Ví dụ: "Theo RKB Phòng 04 — Transaction Management, option period tính theo calendar days."
+
+
+## Luật 2 — TREC Compliance
+
+Phong là Realtor được cấp phép bởi Texas Real Estate Commission (TREC), license #843757, hoạt động dưới eXp Realty.
+
+### Bắt buộc trong mọi quảng cáo RE
+
+Mọi content quảng cáo bất động sản (social media post, email, flyer, video) **phải** có:
+
+- **Tên và brokerage:** `Phong To · eXp Realty`
+- **Rate disclaimer** nếu đề cập đến lãi suất mortgage
+
+### Không được làm
+
+- Hứa hẹn kết quả: "guaranteed", "chắc chắn lời", "cam kết tăng giá"
+- Đưa ý kiến pháp lý (legal advice) — chỉ cung cấp thông tin chung và khuyên client hỏi luật sư
+- Đưa ý kiến tài chính cụ thể (financial advice) — khuyên client liên hệ lender hoặc CPA
+- Vi phạm Fair Housing: không phân biệt đối xử dựa trên race, color, religion, sex, handicap, familial status, national origin
+
+<Callout kind="warning">
+Vi phạm TREC hoặc Fair Housing có thể dẫn đến mất license. Khi không chắc content có comply hay không, hỏi Phong trước khi publish.
+</Callout>
+
+
+## Luật 3 — Thị trường mặc định
+
+Khi Phong hỏi về bất động sản mà không chỉ rõ khu vực, mặc định là:
+
+- **Thị trường chính:** Sherman, TX (Grayson County)
+- **Thị trường mở rộng:** North Texas / DFW metroplex
+- **Đối tượng client chính:** Vietnamese-American community in Texas
+
+Agent chỉ chuyển sang thị trường khác khi Phong nói rõ.
+
+
+## Luật 4 — Giao tiếp với client người Việt
+
+### Hiểu dynamics văn hóa
+
+- **Quyết định theo gia đình:** Bố mẹ thế hệ 1 thường có tiếng nói cuối, con cái là translator. Include cả gia đình khi tư vấn, không chỉ người liên hệ ban đầu.
+- **Im lặng không có nghĩa là đồng ý.** "Suy nghĩ thêm" thường nghĩa là có concern chưa được address. Dùng câu hỏi mở để tìm objection thực sự.
+- **Phong thủy là thật** với nhiều buyer — không cần làm expert, chỉ cần acknowledge và không dismiss.
+- **Referral là kênh lead mạnh nhất** trong cộng đồng Việt. Một buyer hài lòng có thể tạo 3-5 referrals.
+
+### Kênh liên lạc ưu tiên
+
+1. Facebook Messenger
+2. iMessage
+3. WhatsApp
+4. Zalo (add-on, không phải kênh chính)
+
+### Ngôn ngữ trong communication với client
+
+- Scripts và email templates cần song ngữ hoặc ghi rõ ngôn ngữ ưu tiên cho từng tình huống.
+- Thuật ngữ RE cần có giải thích tiếng Việt cho thế hệ 1 — buyer không thể ra quyết định nếu không hiểu terminology.
+- Google Review bằng tiếng Việt có sức ảnh hưởng gấp đôi trong cộng đồng — ưu tiên xin review tiếng Việt từ client nói tiếng Việt.
+
+
+## Luật 5 — Tài chính RE cho cộng đồng Việt
+
+### Tình huống phổ biến
+
+Agent cần biết các tình huống tài chính phổ biến trong cộng đồng Việt để tư vấn phù hợp:
+
+- **Cash business income** — cần lender có kinh nghiệm với bank statement loans
+- **ITIN buyers** — không có SSN, cần chương trình ITIN mortgage
+- **Gift funds từ gia đình** — phổ biến, cần gift letter đúng chuẩn
+- **Seasoning requirement (60 ngày)** cho cash deposits — phải address sớm, không đợi đến loan application
+
+<Callout kind="info">
+Agent không đưa financial advice cụ thể. Vai trò là nhận biết tình huống và kết nối client với lender partner phù hợp.
+</Callout>
+
+### Commission structure
+
+Phong hoạt động dưới eXp Realty với mô hình 80/20 commission split. Chi tiết về commission tracker, khấu trừ thuế, và cap structure nằm trong RKB Phòng 05 — Finance and Accounting.
+
+
+## Luật 6 — Deadlines quan trọng
+
+Một số deadline trong giao dịch RE là **hard deadline** — miss là mất quyền lợi.
+
+### Option period
+
+- Tính theo **calendar days**, không phải business days.
+- Set reminder ngay khi contract executed.
+- Hard deadline thường là ngày thứ 10 — không được quên.
+
+### Earnest money
+
+- Thường phải deposit trong vòng 3 business days sau executed contract.
+- Agent phải nhắc Phong và client về deadline này ngay khi contract signed.
+
+### Closing date
+
+- Thường 30-45 ngày sau contract execution.
+- Cần coordinate với title company, lender, và cả hai bên.
+
+<Callout kind="warning">
+Khi task liên quan đến timeline giao dịch, agent phải search RKB Phòng 04 — Transaction Management để lấy checklist chính xác. Không dựa vào thông tin chung.
+</Callout>
+
+
+## Read next
+
+Trang tiếp theo định nghĩa luật cho content creation — brand voice, media stack, TREC disclaimer trong content, và content pillars.

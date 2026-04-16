@@ -43,6 +43,11 @@
                 "title": "Global Operating Rules",
                 "path": "core-rules/global-operating-rules",
                 "icon": "shield"
+              },
+              {
+                "title": "Real Estate Rules",
+                "path": "core-rules/real-estate-rules",
+                "icon": "home"
               }
             ]
           }
