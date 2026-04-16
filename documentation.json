@@ -34,6 +34,17 @@
                 "icon": "wrench"
               }
             ]
+          },
+          {
+            "group": "Core Rules",
+            "icon": "shield",
+            "pages": [
+              {
+                "title": "Global Operating Rules",
+                "path": "core-rules/global-operating-rules",
+                "icon": "shield"
+              }
+            ]
           }
         ]
       },
