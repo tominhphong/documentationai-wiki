@@ -1,0 +1,77 @@
+---
+title: "What This System Is"
+description: "Phong AI Agent Operating System — hệ thống vận hành AI agents cho công việc Realtor và Content Creator tại North Texas."
+---
+
+## Overview
+
+Phong AI Agent Operating System (Agent OS) là tài liệu vận hành trung tâm cho toàn bộ hệ thống AI agents phục vụ công việc hàng ngày của Phong To — Realtor tại North Texas và Content Creator phục vụ cộng đồng Việt.
+
+Site này không phải blog, không phải tutorial, và không phải marketing material. Đây là **tài liệu vận hành** — viết để AI agents và Phong có thể tra cứu nhanh, thực thi đúng, và không cần hỏi lại những gì đã được ghi nhận.
+
+
+## Ai sử dụng site này
+
+### AI Agents (người dùng chính)
+
+Claude Desktop (Cowork mode) và các AI agents kết nối qua MCP là người đọc chính của site này. Mọi nội dung được viết theo hướng: agent đọc → hiểu context → thực thi task mà không cần Phong giải thích thêm.
+
+Khi agent cần tra cứu thông tin, nó search qua MCP endpoint của site này để lấy đúng quy trình, template, hoặc cấu hình cần thiết.
+
+### Phong To (người vận hành)
+
+Phong sử dụng site này để review quy trình, cập nhật cấu hình, và đảm bảo các agents hoạt động đúng theo ý định. Khi onboard công cụ mới hoặc thay đổi workflow, Phong cập nhật site trước — agents tự động nhận thông tin mới qua MCP.
+
+
+## Site này chứa gì
+
+Agent OS document ba lớp thông tin chính:
+
+**Kiến trúc hệ thống** — Cách các thành phần kết nối với nhau: Claude Desktop ở trung tâm, MCP servers mở rộng khả năng, plugins cung cấp skills chuyên biệt, và external services xử lý tác vụ cụ thể.
+
+**Quy trình vận hành** — Cách agents thực hiện các công việc hàng ngày: đăng bài social media, quản lý leads, tạo content, lên lịch hẹn, và các workflow tự động hóa khác.
+
+**Cấu hình và tham chiếu** — Thông tin cấu hình của từng tool, API credentials cần thiết, và các quy tắc agents phải tuân theo khi thực thi task.
+
+
+## Site này KHÔNG chứa gì
+
+**Không chứa kiến thức bất động sản.** Quy trình mua bán nhà, scripts tư vấn khách hàng, và market data nằm trong Realtor Knowledge Base — một site riêng trên Documentation.AI. Agent OS chỉ document cách agents truy cập và sử dụng Knowledge Base đó.
+
+**Không chứa nội dung marketing đã tạo.** Bài đăng, video, hình ảnh nằm trong thư mục Content trên máy. Site này chỉ document quy trình tạo content và pipeline sản xuất.
+
+**Không chứa dữ liệu khách hàng.** Thông tin khách hàng nằm trong HubSpot CRM. Site này chỉ document cách agents tương tác với CRM.
+
+
+## Cách AI agents sử dụng site này
+
+Khi nhận task từ Phong, agent thực hiện theo thứ tự:
+
+1. Search Agent OS qua MCP để tìm quy trình liên quan
+2. Đọc page tương ứng để hiểu context, tools cần dùng, và output mong đợi
+3. Thực thi task theo quy trình đã document
+4. Nếu quy trình chưa có hoặc đã lỗi thời, báo lại để Phong cập nhật
+
+Agent OS là nguồn sự thật (source of truth) cho cách hệ thống hoạt động. Nếu thông tin trong Agent OS khác với giả định của agent, luôn ưu tiên Agent OS.
+
+
+## Nguyên tắc viết nội dung
+
+Mọi page trong site này tuân theo các nguyên tắc:
+
+### Viết cho agent trước, human đọc được
+
+Câu ngắn, cấu trúc rõ ràng, không dùng ngôn ngữ mơ hồ. Mỗi page trả lời được câu hỏi: "Agent cần biết gì để thực hiện task này?"
+
+### Thực tế hơn lý thuyết
+
+Không giải thích tại sao nên dùng tool X. Chỉ ghi: tool X làm gì, cấu hình ra sao, và dùng trong tình huống nào.
+
+### Cập nhật khi thay đổi
+
+Khi Phong thêm tool mới, thay đổi workflow, hoặc phát hiện quy trình cũ không còn đúng — cập nhật site trước, dùng sau.
+
+
+## Read next
+
+Trang tiếp theo mô tả kiến trúc tổng thể của hệ thống — cách Claude Desktop, MCP servers, plugins, và external services kết nối thành một hệ thống vận hành thống nhất.
