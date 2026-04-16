@@ -1,0 +1,219 @@
+---
+title: "Components and Tools"
+description: "Danh sách chi tiết từng component và tool trong hệ thống — chức năng, use cases, và cách agents sử dụng."
+---
+
+## MCP Servers
+
+Mỗi MCP server được liệt kê với: chức năng chính, tools quan trọng, và khi nào agent nên dùng.
+
+### Desktop Commander
+
+**Chức năng:** Điều khiển trực tiếp máy Mac mini M4 — chạy process, đọc/ghi file, tìm kiếm file.
+
+**Khi nào dùng:** Cần thao tác file ngoài sandbox (VD: lấy GitHub token bằng `gh auth token`), chạy process dài hạn, hoặc tìm file trên hệ thống.
+
+**Tools chính:** `start_process`, `read_file`, `write_file`, `list_directory`, `start_search`
+
+### Perplexity API
+
+**Chức năng:** Tìm kiếm thông tin chất lượng cao với tổng hợp AI. Trả về câu trả lời có trích dẫn nguồn.
+
+**Khi nào dùng:** Research-first rule — đây là tool ưu tiên số 1 khi cần thông tin mới về thị trường, công cụ, best practices. Nếu Perplexity đã đủ thông tin, không cần dùng thêm tool khác.
+
+**Tools chính:** `perplexity_search`, `perplexity_ask`, `perplexity_research`, `perplexity_reason`
+
+### Exa
+
+**Chức năng:** Semantic search và crawl nội dung web. Tìm kiếm theo ngữ nghĩa (không chỉ keyword) và đọc full content từ URL.
+
+**Khi nào dùng:** Cần tìm kiếm sâu theo chủ đề, tìm similar content, hoặc đọc toàn bộ nội dung một trang web.
+
+**Tools chính:** `web_search_exa`, `web_fetch_exa`
+
+### Playwright
+
+**Chức năng:** Browser automation headless. Điều khiển trình duyệt: navigate, click, fill form, screenshot, chạy JavaScript.
+
+**Khi nào dùng:** Screenshot HTML templates thành PNG, web scraping phức tạp, hoặc tự động hóa thao tác trên web apps không có MCP riêng.
+
+**Tools chính:** `browser_navigate`, `browser_click`, `browser_snapshot`, `browser_take_screenshot`, `browser_fill_form`
+
+### Zernio (Social Media)
+
+**Chức năng:** Quản lý social media đa nền tảng — đăng bài, lên lịch, quản lý comments, inbox, analytics.
+
+**Khi nào dùng:** Mọi task liên quan social media: tạo post, lên lịch đăng, xem analytics, quản lý comments/DMs, boost post.
+
+**Platforms:** Facebook, Instagram, TikTok, YouTube, LinkedIn, X (Twitter), Google Business, Pinterest, Reddit, Bluesky, Telegram, WhatsApp.
+
+**Tools chính:** `posts_create`, `posts_list`, `analytics_get_analytics`, `analytics_get_best_time_to_post`, `comments_list_inbox_comments`, `comments_reply_to_inbox_post`
+
+### HubSpot CRM
+
+**Chức năng:** Quản lý contacts, companies, deals, và marketing campaigns.
+
+**Khi nào dùng:** Mọi task liên quan khách hàng: tìm contact, cập nhật deal stage, xem pipeline, chạy campaign analytics.
+
+**Tools chính:** `search_crm_objects`, `manage_crm_objects`, `get_crm_objects`, `get_campaign_analytics`
+
+### Google Calendar
+
+**Chức năng:** Quản lý lịch hẹn, events, và tìm thời gian trống.
+
+**Khi nào dùng:** Xem lịch, tạo events, kiểm tra conflict, đề xuất thời gian họp.
+
+**Tools chính:** `list_events`, `create_event`, `suggest_time`, `update_event`
+
+### Gmail
+
+**Chức năng:** Đọc, tìm kiếm, soạn, và gửi email. Quản lý drafts và labels.
+
+**Khi nào dùng:** Gửi email cho khách hàng, tìm email cũ, soạn draft, theo dõi thread.
+
+**Tools chính:** `gmail_search_messages`, `gmail_read_message`, `gmail_send_message`, `gmail_create_draft`
+
+### Documentation.AI
+
+**Chức năng:** Search documentation qua MCP endpoint. Tìm kiếm hybrid (semantic + keyword).
+
+**Khi nào dùng:** Tra cứu quy trình trong Agent OS hoặc kiến thức bất động sản trong Realtor Knowledge Base.
+
+**Endpoints:**
+- Agent OS: `antigravity-memory-palace.documentationai.com/_mcp`
+- Realtor Knowledge Base: `phong-to.documentationai.com/_mcp`
+
+**Tools chính:** `search_documentation`
+
+### Canva
+
+**Chức năng:** Tạo và chỉnh sửa thiết kế — hình ảnh, templates, presentations, brand assets.
+
+**Khi nào dùng:** Cần tạo hình ảnh marketing, chỉnh sửa template, hoặc export design cho social media.
+
+**Tools chính:** `generate-design`, `search-designs`, `export-design`, `get-design`, `search-brand-templates`
+
+### Supabase
+
+**Chức năng:** Database, authentication, edge functions, và storage.
+
+**Khi nào dùng:** Query database, chạy migrations, deploy edge functions, hoặc quản lý projects.
+
+**Tools chính:** `execute_sql`, `list_tables`, `apply_migration`, `deploy_edge_function`
+
+### Cloudflare
+
+**Chức năng:** Workers (serverless), R2 (object storage), D1 (SQLite database), KV (key-value store).
+
+**Khi nào dùng:** Deploy serverless functions, lưu trữ files trên R2, hoặc query D1 database.
+
+**Tools chính:** `workers_list`, `r2_buckets_list`, `d1_database_query`, `search_cloudflare_documentation`
+
+### Vercel
+
+**Chức năng:** Hosting, deployment, và monitoring cho web projects.
+
+**Khi nào dùng:** Deploy web apps, kiểm tra deployment status, xem logs, quản lý domains.
+
+**Tools chính:** `list_projects`, `list_deployments`, `get_deployment_build_logs`, `deploy_to_vercel`
+
+### Netlify
+
+**Chức năng:** Hosting thay thế cho một số projects.
+
+**Khi nào dùng:** Deploy hoặc quản lý projects hosted trên Netlify.
+
+**Tools chính:** `netlify-project-services-reader`, `netlify-deploy-services-updater`
+
+### Computer Use
+
+**Chức năng:** Điều khiển desktop của Phong — screenshot, click, type, scroll trên native apps.
+
+**Khi nào dùng:** Thao tác trên native macOS apps (Finder, Notes, Maps, Photos, System Settings) hoặc cross-app workflows.
+
+**Tools chính:** `screenshot`, `left_click`, `type`, `scroll`, `open_application`
+
+### iMessage
+
+**Chức năng:** Đọc và gửi tin nhắn iMessage.
+
+**Khi nào dùng:** Gửi tin nhắn nhanh cho contacts, đọc tin nhắn chưa đọc.
+
+**Tools chính:** `send_imessage`, `read_imessages`, `get_unread_imessages`
+
+### Tavily
+
+**Chức năng:** Web search, crawl, extract, và research.
+
+**Khi nào dùng:** Bổ sung cho Perplexity khi cần crawl nhiều pages hoặc map site structure.
+
+**Tools chính:** `tavily_search`, `tavily_research`, `tavily_crawl`, `tavily_extract`
+
+
+## Plugins chi tiết
+
+### ClaudeKit Engineer
+
+Bộ skills kỹ thuật toàn diện cho development và operations.
+
+**Skills thường dùng:**
+- `ck-plan` — Lập kế hoạch implementation
+- `ck-debug` — Debug có hệ thống
+- `fix` — Sửa bugs
+- `git` — Git operations với conventional commits
+- `deploy` — Deploy lên hosting platforms
+- `mintlify` — Build documentation sites
+- `ai-multimodal` — Phân tích hình ảnh/audio/video, tạo media
+- `design` — Brand identity, logos, banners, social photos
+- `media-processing` — Xử lý video/audio với FFmpeg
+
+### ClaudeKit Marketing
+
+Bộ skills marketing toàn diện.
+
+**Skills thường dùng:**
+- `write` — Viết copy, blog posts, CRO content
+- `social` — Tạo social media content
+- `email` — Email campaigns và sequences
+- `seo` — SEO audit và optimization
+- `video` — Video scripts và production
+- `brand` — Brand voice và visual identity
+- `analytics` — Marketing analytics và reporting
+- `campaign` — Campaign planning và execution
+
+### Platform-specific plugins
+
+Mỗi plugin cung cấp knowledge base và commands cho một platform cụ thể.
+
+**Activepieces** — Tạo automation flows, kết nối apps, quản lý workflows. Commands: `tao-flow`, `ket-noi-ung-dung`, `quan-ly-flow`.
+
+**Boomerangme** — Tạo digital loyalty cards, push notifications, RFM segmentation. Commands: `tao-the`, `gui-push`, `rfm-segment`.
+
+**Browse AI** — Tạo robots scrape web, bulk extraction, monitoring. Commands: `tao-robot`, `chay-bulk`, `thiet-lap-monitor`.
+
+**CX Genie** — Tạo chatbots, quản lý knowledge base, deploy channels. Commands: `tao-bot`, `quan-ly-bot`.
+
+**DeftForm** — Tạo forms, quản lý responses, setup webhooks. Commands: `tao-form`, `quan-ly-responses`, `thiet-lap-webhook`.
+
+**Diaflow** — Tạo AI workflow JSON, debug flows. Commands: `new-flow`, `debug-flow`, `analyze-flow`.
+
+**ElkQR** — Tạo QR codes, quản lý dynamic QR, xem analytics. Commands: `tao-qr`, `quan-ly-qr`, `xem-analytics`.
+
+**FeedGuardians** — Monitor comments, setup webhooks. Commands: `monitor-comments`, `setup-webhook`.
+
+**Late (Zernio)** — Đăng bài, lên lịch, bulk schedule. Commands: `dang-bai`, `len-lich`, `bulk-schedule`.
+
+**TidyCal** — Tạo booking types, quản lý appointments. Commands: `tao-lich-hen`, `quan-ly-booking`.
+
+**GoClaw** — AI agent gateway setup, cấu hình channels, tools. Knowledge base toàn diện về GoClaw platform.
+
+
+## Hardware
+
+**Mac mini M4** — Máy chính chạy Claude Desktop, lưu trữ content và media files.
+
+**Synology NAS** — Network-attached storage cho backup và lưu trữ dài hạn.
+
+**GL-iNet Brume router** — Router với VPN cho bảo mật network.
+
+**Hidemium** — Multi-profile browser cho Facebook automation và community outreach.

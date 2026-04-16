@@ -27,6 +27,11 @@
                 "title": "Architecture",
                 "path": "agent-os-overview/architecture",
                 "icon": "git-branch"
+              },
+              {
+                "title": "Components and Tools",
+                "path": "agent-os-overview/components-and-tools",
+                "icon": "wrench"
               }
             ]
           }
