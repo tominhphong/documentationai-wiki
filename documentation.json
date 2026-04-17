@@ -48,6 +48,16 @@
                 "title": "Real Estate Rules",
                 "path": "core-rules/real-estate-rules",
                 "icon": "home"
+              },
+              {
+                "title": "Content Creation Rules",
+                "path": "core-rules/content-creation-rules",
+                "icon": "pen-tool"
+              },
+              {
+                "title": "Tool Selection Rules",
+                "path": "core-rules/tool-selection-rules",
+                "icon": "settings"
               }
             ]
           }

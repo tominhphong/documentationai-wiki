@@ -1,0 +1,156 @@
+---
+title: "Content Creation Rules"
+description: "Luật khi tạo content — brand voice chuyên gia tư vấn, media stack miễn phí, TREC disclaimer, content pillars, và emoji rules."
+---
+
+## Phạm vi áp dụng
+
+Trang này áp dụng khi agent tạo bất kỳ loại content nào: social media post, video script, email, blog, flyer, hoặc bất kỳ material marketing nào cho Phong.
+
+Các luật ở trang này bổ sung cho Global Operating Rules và Real Estate Rules — không thay thế.
+
+
+## Luật 1 — Brand Voice: Chuyên Gia Tư Vấn
+
+### Tone
+
+Chuyên nghiệp, am hiểu, data-driven, dễ tiếp cận. Phong là chuyên gia tư vấn bất động sản, không phải salesman.
+
+### Đại từ
+
+- Dùng: "Phong", "tôi", "bạn"
+- Không dùng: "mình", "em/anh", "ae ơi", "các bạn ơi"
+
+### Mở đầu
+
+Luôn mở đầu bằng data, insight, hoặc thông tin có giá trị. Không bao giờ mở đầu bằng:
+
+- "Xin chào các bạn!"
+- "Hello mọi người!"
+- "Bạn có biết...?" (dạng clickbait)
+
+### Ví dụ đúng
+
+"Giá nhà trung bình tại Sherman TX tháng 4/2026 là $285,000 — tăng 3.2% so với cùng kỳ năm trước. Đây là cơ hội cho first-time buyer vì..."
+
+### Ví dụ sai
+
+"Xin chào mọi người! Hôm nay Phong muốn chia sẻ với các bạn về thị trường nhà đất nhé! 🔥🎉"
+
+
+## Luật 2 — Ngôn ngữ Content
+
+### Mặc định
+
+Content 100% tiếng Việt. Hashtags được mix Việt + Anh.
+
+### Thuật ngữ
+
+Giữ nguyên tiếng Anh cho các thuật ngữ RE phổ biến mà cộng đồng Việt đã quen: "closing", "option period", "earnest money", "pre-approval", "listing", "open house".
+
+Thuật ngữ ít phổ biến cần có giải thích: "escrow (tài khoản ký quỹ)", "title insurance (bảo hiểm quyền sở hữu)".
+
+
+## Luật 3 — Emoji Rules
+
+### Trong content marketing
+
+- Tối đa 2-3 emoji functional mỗi post
+- Emoji cho phép: 📊 🏠 📞 ✅ 💰 📍 ⚠️
+- Không dùng: 🔥 🎉 😍 💯 🤩 👏 (quá casual, không đúng tone chuyên gia)
+
+### Trong conversation với Phong
+
+Không dùng emoji trừ khi Phong dùng trước.
+
+
+## Luật 4 — Content Pillars
+
+Mọi content phải thuộc một trong 4 pillars, theo tỷ lệ mục tiêu:
+
+| Pillar | Tỷ lệ | Ví dụ |
+|--------|--------|-------|
+| Giá trị (education) | 40% | Market update, tips mua nhà, so sánh khu vực |
+| Builder / Listing | 30% | Deals, incentives, new listings, open house |
+| Thương hiệu | 20% | Personal brand, testimonial, behind-the-scenes |
+| Văn hóa Việt | 10% | Cộng đồng, doanh nghiệp Việt, Tết, events |
+
+Khi Phong yêu cầu tạo content mà không chỉ rõ pillar, agent chọn pillar phù hợp nhất dựa trên chủ đề và tỷ lệ hiện tại.
+
+
+## Luật 5 — TREC Disclaimer trong Content
+
+### Bắt buộc
+
+Mọi post quảng cáo bất động sản phải có:
+
+```
+Phong To · eXp Realty
+```
+
+Vị trí: cuối post, trước hashtags.
+
+### Rate disclaimer
+
+Nếu content đề cập đến lãi suất mortgage, thêm disclaimer:
+
+```
+*Lãi suất có thể thay đổi. Liên hệ lender để biết rate chính xác cho trường hợp của bạn.*
+```
+
+### Content không cần disclaimer
+
+- Post văn hóa Việt thuần túy (Tết, community events) không đề cập RE
+- Personal brand content không quảng cáo dịch vụ RE cụ thể
+
+
+## Luật 6 — Media Stack
+
+### Pipeline sản xuất
+
+Agent sử dụng media stack miễn phí khi tạo visual content:
+
+1. **HTML template** (Inter font, brand colors) → thiết kế layout
+2. **Playwright screenshot** → xuất PNG cho ảnh tĩnh
+3. **Playwright recording + FFmpeg** → xuất MP4 cho video
+4. **Gemini TTS Charon** → voiceover tiếng Việt
+5. **FFmpeg amix** → ghép background music (10% volume)
+
+### Tài nguyên
+
+- Script tạo video: `Content/media/templates/create-video.py`
+- HTML templates: `Content/media/templates/*.html`
+- Thumbnail templates: `Content/media/templates/thumbnail-*.html`
+- Background music: `Content/media/music/`
+- Output: `Content/media/YYYY-MM/`
+
+### Không dùng
+
+- Gemini API image/video generation (quá đắt)
+- edge-tts (chất lượng thấp)
+- MiniMax TTS (không cần thiết)
+
+<Callout kind="info">
+Khi Phong yêu cầu tạo hình ảnh hoặc video, agent dùng pipeline trên. Nếu cần thiết kế phức tạp hơn (logo, brand kit), dùng Canva MCP.
+</Callout>
+
+
+## Luật 7 — CTA Library
+
+### CTA ưu tiên cho RE content
+
+- "Inbox Phong để được tư vấn miễn phí"
+- "Comment SHERMAN để nhận thông tin chi tiết"
+- "Gọi Phong: [số điện thoại]"
+- "Link đặt lịch tư vấn trong bio"
+
+### CTA tránh
+
+- "Like và share nha!" (không tạo conversion)
+- "Follow để không bỏ lỡ!" (generic)
+- "Mua ngay kẻo hết!" (urgency giả tạo, không đúng tone)
+
+
+## Read next
+
+Trang tiếp theo hướng dẫn cách chọn đúng tool cho từng loại task — thứ tự ưu tiên MCP, fallback logic, và bảng tra nhanh.

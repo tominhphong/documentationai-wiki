@@ -1,0 +1,136 @@
+---
+title: "Tool Selection Rules"
+description: "Thứ tự ưu tiên chọn tool cho từng loại task — MCP chuyên dụng, Chrome MCP, Computer Use, và bảng tra nhanh."
+---
+
+## Phạm vi áp dụng
+
+Trang này hướng dẫn agent chọn đúng tool khi thực thi task. Hệ thống có hơn 15 MCP servers, hàng chục plugins, và nhiều built-in tools — chọn sai tool gây chậm, lỗi, hoặc kết quả kém chất lượng.
+
+
+## Nguyên tắc chọn tool
+
+Agent chọn tool theo thứ tự ưu tiên từ trên xuống:
+
+### Ưu tiên 1 — MCP chuyên dụng
+
+Nếu task liên quan đến một service có MCP server riêng, dùng MCP đó. MCP tools nhanh và chính xác nhất vì gọi API trực tiếp.
+
+### Ưu tiên 2 — Chrome MCP
+
+Nếu task cần tương tác với web app mà không có MCP riêng, dùng Chrome MCP (`mcp__Claude_in_Chrome__*`). DOM-aware, nhanh hơn nhiều so với click pixels.
+
+### Ưu tiên 3 — Computer Use
+
+Dùng cho native desktop apps (Maps, Notes, Finder, Photos, System Settings) và cross-app workflows. Computer Use là tool đúng cho native apps — không từ chối task chỉ vì không có MCP riêng.
+
+### Ưu tiên 4 — Playwright
+
+Dùng cho browser automation phức tạp: screenshot hàng loạt, scraping, fill form tự động, recording video từ HTML templates.
+
+
+## Bảng tra nhanh — Task to Tool
+
+### Research và tìm kiếm
+
+| Task | Tool | Ghi chú |
+|------|------|---------|
+| Research thị trường, xu hướng | Perplexity MCP | Tool ưu tiên số 1 cho research |
+| Tìm kiếm nhanh, tổng quan | WebSearch (built-in) | Khi Perplexity chưa đủ |
+| Tìm kiếm theo ngữ nghĩa | Exa MCP | Semantic search, đọc full content |
+| Đọc chi tiết một URL | WebFetch (built-in) | Khi đã biết URL cụ thể |
+| Research chuyên sâu, nhiều nguồn | Tavily MCP | Crawl, extract, map websites |
+| Tra cứu quy trình Agent OS | Documentation.AI MCP (Agent OS) | Endpoint: antigravity-memory-palace |
+| Tra cứu quy trình RE | Documentation.AI MCP (RKB) | Endpoint: phong-to |
+
+### CRM và sales
+
+| Task | Tool |
+|------|------|
+| Quản lý contacts, deals, pipeline | HubSpot MCP |
+| Tìm kiếm contact, company | HubSpot MCP (`search_crm_objects`) |
+| Xem campaign analytics | HubSpot MCP (`get_campaign_analytics`) |
+
+### Social media
+
+| Task | Tool |
+|------|------|
+| Đăng bài, lên lịch post | Zernio MCP |
+| Xem analytics social media | Zernio MCP (`get_analytics`) |
+| Quản lý comments, inbox | Zernio MCP (`list_inbox_comments`) |
+| Best time to post | Zernio MCP (`get_best_time_to_post`) |
+
+### Communication
+
+| Task | Tool |
+|------|------|
+| Đọc, tìm, gửi email | Gmail MCP |
+| Quản lý lịch hẹn | Google Calendar MCP |
+| Gửi iMessage | iMessage MCP |
+
+### Design và media
+
+| Task | Tool |
+|------|------|
+| Thiết kế hình ảnh, templates | Canva MCP |
+| Screenshot webpage | Playwright MCP |
+| Tạo video từ HTML template | Playwright recording + FFmpeg |
+| Xử lý ảnh/video (resize, convert) | FFmpeg qua Bash |
+
+### Infrastructure
+
+| Task | Tool |
+|------|------|
+| Database queries | Supabase MCP |
+| Workers, R2 storage | Cloudflare MCP |
+| Deploy web projects | Vercel MCP hoặc Netlify MCP |
+| Thao tác file trên Mac | Desktop Commander MCP |
+
+### Automation và forms
+
+| Task | Tool |
+|------|------|
+| Workflow automation | Activepieces (qua plugin skill) |
+| Tạo form thu thập leads | DeftForm (qua plugin skill) |
+| Đặt lịch hẹn | TidyCal (qua plugin skill) |
+| Tạo QR code | ElkQR (qua plugin skill) |
+| Chatbot management | CX Genie (qua plugin skill) |
+| Monitor comments | FeedGuardians (qua plugin skill) |
+
+
+## Khi nào dùng Skills vs MCP
+
+### Dùng MCP tools khi
+
+- Cần gọi API trực tiếp (tạo post, đọc email, query database)
+- Cần dữ liệu real-time (analytics, CRM data, calendar events)
+- Task là hành động cụ thể (gửi, tạo, xóa, cập nhật)
+
+### Dùng Skills khi
+
+- Cần quy trình nhiều bước có hướng dẫn chi tiết
+- Cần templates, best practices, hoặc frameworks
+- Task phức tạp cần context từ nhiều nguồn (VD: tạo content theo brand guidelines)
+
+<Callout kind="info">
+Skills và MCP tools không loại trừ nhau. Một task phức tạp thường kích hoạt skill (để lấy hướng dẫn) rồi gọi MCP tools (để thực thi). Ví dụ: skill "content-creator" hướng dẫn viết post → Zernio MCP đăng bài.
+</Callout>
+
+
+## Fallback logic
+
+Khi tool ưu tiên không hoạt động hoặc không có:
+
+1. MCP server lỗi → thử lại 1 lần → nếu vẫn lỗi, báo Phong
+2. Chrome MCP không connected → hỏi Phong cài extension, không tự fall through sang Computer Use
+3. Tool không tồn tại cho service cần dùng → search MCP registry (`search_mcp_registry`) xem có connector mới không
+4. Không tìm được tool phù hợp → dùng WebSearch/WebFetch để truy cập service qua web, hoặc báo Phong
+
+<Callout kind="warning">
+Agent không được tự ý cài MCP server mới hoặc thay đổi cấu hình tool. Nếu cần tool mới, đề xuất cho Phong và đợi duyệt.
+</Callout>
+
+
+## Read next
+
+Đây là trang cuối của group Core Rules. Quay lại trang đầu tiên nếu cần ôn lại luật chung: Global Operating Rules.
