@@ -1,0 +1,74 @@
+---
+title: "Who Phong Is"
+description: "Profile chủ hệ thống — nghề nghiệp, thị trường, ngôn ngữ, phong cách làm việc để agent hiểu đúng context khi thực thi task."
+---
+
+## Vai trò chính
+
+Phong To là Realtor tại eXp Realty, chuyên phục vụ thị trường North Texas với trọng tâm Sherman, TX (Grayson County). Đồng thời là Content Creator sản xuất nội dung phục vụ cộng đồng người Việt tại DFW (Dallas-Fort Worth).
+
+TREC License: #843757
+
+## Thị trường hoạt động
+
+**Khu vực chính:** Sherman, TX — Grayson County. Đây là thị trường mặc định khi agent xử lý task bất động sản mà không có chỉ định cụ thể.
+
+**Khu vực mở rộng:** Dallas-Fort Worth metroplex — phục vụ cộng đồng Việt trải dài từ Garland, Richardson đến Arlington, Grand Prairie.
+
+**Đối tượng khách hàng chính:** Người Việt tại Texas — first-time buyers, gia đình thế hệ 1 và 2, small business owners.
+
+## Ngôn ngữ
+
+**Quy tắc bắt buộc:** Agent luôn trả lời bằng tiếng Việt trước. Chỉ dùng tiếng Anh khi Phong yêu cầu rõ ràng.
+
+**Content:** 100% tiếng Việt cho social media và marketing. Hashtags có thể mix Việt + Anh.
+
+**Giao tiếp với khách:** Song ngữ Việt-Anh tùy khách hàng. Ưu tiên tiếng Việt với khách thế hệ 1, tiếng Anh hoặc mix với thế hệ 2.
+
+## Phong cách làm việc
+
+**Trực tiếp, không dài dòng.** Phong không cần giải thích dài — cần kết quả. Khi agent trả lời, đi thẳng vào vấn đề.
+
+**Step-by-step khi hướng dẫn.** Phong không phải lập trình viên. Kiến thức code gần bằng 0. Khi task liên quan kỹ thuật, agent cần hướng dẫn từng bước rõ ràng.
+
+**Ưu tiên thực tế hơn lý thuyết.** Không cần phân tích pros/cons dài dòng. Đề xuất giải pháp cụ thể, giải thích ngắn gọn tại sao, và bắt tay vào làm.
+
+## Thiết bị và môi trường
+
+**Máy chính:** Mac mini M4 — nơi Claude Desktop (Cowork mode, Plan Max 20x) chạy.
+
+**Lưu trữ:** Synology NAS qua mạng nội bộ. File operations mặc định dùng local storage trước (hiệu suất tốt hơn NAS).
+
+**Mạng:** GL-iNet Brume router với VPN.
+
+**Browser automation:** Hidemium (multi-profile) cho Facebook group outreach.
+
+## Hai site Documentation.AI
+
+Phong vận hành hai knowledge base trên Documentation.AI, mỗi site phục vụ mục đích khác:
+
+**Agent OS** (`antigravity-memory-palace.documentationai.com`) — Site này. Tài liệu vận hành hệ thống AI agents. Agent đọc để biết cách hoạt động, quy tắc, và workflow.
+
+**Realtor Knowledge Base** (`phong-to.documentationai.com`) — Kiến thức bất động sản: quy trình mua bán, scripts tư vấn, market data, legal compliance. Agent search khi task liên quan real estate.
+
+<Callout kind="info">
+Khi task liên quan bất động sản, agent PHẢI search Realtor Knowledge Base qua MCP trước khi trả lời. Agent OS chỉ document cách vận hành, không chứa kiến thức ngành.
+</Callout>
+
+## Mục tiêu hiện tại
+
+**Ngắn hạn:** Chuẩn hóa automation workflows cho công việc Realtor và Content Creator cá nhân — từ lead handling, content production, đến client follow-up.
+
+**Trung hạn:** Dùng hệ thống thực tế 2-3 tháng, ghi nhận bài học, rồi generalize thành dịch vụ cho Realtors khác.
+
+**Dài hạn:** Cung cấp dịch vụ automation cho Vietnamese Realtors tại Texas, sau đó mở rộng ra national.
+
+## Khi nào agent cần hỏi Phong
+
+Agent tự quyết định hầu hết task dựa trên Agent OS và RKB. Nhưng **phải hỏi** trong các trường hợp:
+
+- Gửi email hoặc tin nhắn cho khách hàng thật
+- Thao tác liên quan tiền (commission, payment)
+- Thay đổi cấu hình hệ thống (MCP servers, plugins)
+- Task không có quy trình trong Agent OS hoặc RKB
+- Xóa hoặc sửa dữ liệu khách hàng trong CRM

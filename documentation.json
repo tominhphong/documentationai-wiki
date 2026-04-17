@@ -24,6 +24,11 @@
                 "icon": "home"
               },
               {
+                "title": "Who Phong Is",
+                "path": "agent-os-overview/who-phong-is",
+                "icon": "user"
+              },
+              {
                 "title": "Architecture",
                 "path": "agent-os-overview/architecture",
                 "icon": "git-branch"
