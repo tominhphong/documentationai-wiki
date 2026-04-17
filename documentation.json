@@ -65,6 +65,59 @@
                 "icon": "settings"
               }
             ]
+          },
+          {
+            "group": "Workflows",
+            "icon": "git-merge",
+            "pages": [
+              {
+                "title": "Content Workflow",
+                "path": "workflows/content-workflow",
+                "icon": "pen-tool"
+              },
+              {
+                "title": "Lead Handling Workflow",
+                "path": "workflows/lead-handling-workflow",
+                "icon": "user-plus"
+              },
+              {
+                "title": "Client Follow-Up Workflow",
+                "path": "workflows/client-follow-up-workflow",
+                "icon": "phone"
+              }
+            ]
+          },
+          {
+            "group": "Agent Instructions",
+            "icon": "terminal",
+            "pages": [
+              {
+                "title": "Claude Cowork Instructions",
+                "path": "agent-instructions/claude-cowork-instructions",
+                "icon": "monitor"
+              },
+              {
+                "title": "Universal Agent Prompt",
+                "path": "agent-instructions/universal-agent-prompt",
+                "icon": "file-text"
+              }
+            ]
+          },
+          {
+            "group": "Knowledge & QA",
+            "icon": "search",
+            "pages": [
+              {
+                "title": "Documentation MCP Usage",
+                "path": "knowledge-qa/documentation-mcp-usage",
+                "icon": "database"
+              },
+              {
+                "title": "Review Checklist",
+                "path": "knowledge-qa/review-checklist",
+                "icon": "check-square"
+              }
+            ]
           }
         ]
       },

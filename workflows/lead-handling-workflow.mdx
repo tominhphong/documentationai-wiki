@@ -1,0 +1,116 @@
+---
+title: "Lead Handling Workflow"
+description: "Quy trình xử lý lead mới từ khi nhận được đến khi chuyển thành client trong pipeline — phân loại, phản hồi, nhập CRM, follow-up."
+---
+
+## Tổng quan
+
+Khi có lead mới (từ form, social media, referral, hoặc direct contact), agent thực hiện quy trình này để đảm bảo không bỏ sót và phản hồi đúng thời điểm.
+
+Lead sources chính: DeftForm submissions, Facebook inbox, referral từ cộng đồng Việt, open house sign-in, website inquiry.
+
+<Callout kind="warning">
+Agent KHÔNG tự gửi tin nhắn hoặc email cho lead thật. Soạn sẵn nội dung, trình Phong duyệt trước khi gửi.
+</Callout>
+
+## Bước 1 — Nhận và Phân Loại Lead
+
+**Khi nhận lead mới, xác định:**
+
+| Tiêu chí | Phân loại |
+|-----------|-----------|
+| Đang tìm mua trong 1-3 tháng, có pre-approval | Hot |
+| Quan tâm nhưng chưa có timeline rõ | Warm |
+| Hỏi thông tin chung, chưa có nhu cầu cụ thể | Cold |
+| Referral từ client cũ hoặc người quen | Hot (mặc định) |
+
+**Thông tin cần thu thập:**
+- Tên, số điện thoại, email
+- Buyer hay Seller
+- Khu vực quan tâm (mặc định Sherman TX nếu không rõ)
+- Timeline mua/bán
+- Đã có pre-approval chưa (buyer) hoặc đã list chưa (seller)
+- Ngôn ngữ ưu tiên (Việt hay Anh)
+
+## Bước 2 — Phản Hồi Nhanh
+
+**Mục tiêu:** Phản hồi trong vòng 5 phút cho Hot leads, 1 giờ cho Warm, 24 giờ cho Cold.
+
+**Kênh phản hồi theo thứ tự ưu tiên:**
+1. Facebook Messenger (phổ biến nhất với cộng đồng Việt)
+2. iMessage / SMS
+3. WhatsApp
+4. Email
+5. Phone call
+
+**Agent soạn tin nhắn phản hồi đầu tiên:**
+- Tiếng Việt (mặc định) hoặc song ngữ tùy lead
+- Giới thiệu ngắn: "Phong To, Realtor tại eXp Realty"
+- Acknowledge nhu cầu của họ
+- Đề xuất bước tiếp theo (gọi điện, gặp mặt, gửi thông tin)
+- Tone: chuyên gia tư vấn, không pushy
+
+<Callout kind="info">
+Referral leads cần mention người giới thiệu trong tin nhắn đầu tiên. VD: "Anh Minh có giới thiệu Phong liên hệ với anh/chị về việc tìm nhà..."
+</Callout>
+
+## Bước 3 — Nhập CRM (HubSpot)
+
+**Tool:** HubSpot MCP (`manage_crm_objects`, `search_crm_objects`)
+
+**Tạo contact mới với:**
+- Tên, email, phone
+- Lead source (form, social, referral, open house)
+- Lead status (Hot/Warm/Cold)
+- Ngôn ngữ ưu tiên
+- Notes từ interaction đầu tiên
+- Referral source (nếu có)
+
+**Tạo deal nếu lead là Hot:**
+- Deal name: "[Tên] — [Buyer/Seller] — [Khu vực]"
+- Pipeline stage: New Lead
+- Expected close date: dựa trên timeline của lead
+
+**Kiểm tra trùng lặp trước:** Search CRM theo phone hoặc email trước khi tạo contact mới.
+
+## Bước 4 — Qualify Sâu Hơn
+
+Sau phản hồi đầu tiên, agent chuẩn bị câu hỏi qualify cho cuộc gọi hoặc gặp mặt:
+
+**Buyer:**
+- Budget và nguồn tài chính (conventional, FHA, cash, ITIN)
+- Số phòng ngủ/phòng tắm mong muốn
+- Khu vực ưu tiên, trường học
+- Timeline cụ thể
+- Gia đình có ai cùng quyết định (đặc biệt quan trọng với gia đình Việt)
+
+**Seller:**
+- Lý do bán, timeline
+- Tình trạng nhà hiện tại
+- Kỳ vọng giá
+- Có mortgage balance không
+- Đã tiếp xúc agent khác chưa
+
+## Bước 5 — Setup Follow-Up Sequence
+
+Dựa trên phân loại lead:
+
+**Hot lead:**
+- Gọi điện trong ngày
+- Lên lịch consultation qua TidyCal
+- Gửi thông tin listings phù hợp (buyer) hoặc CMA (seller)
+- Follow-up mỗi 2-3 ngày
+
+**Warm lead:**
+- Email/text giới thiệu + tài liệu hữu ích
+- Follow-up mỗi tuần
+- Mời tham dự open house hoặc community event
+
+**Cold lead:**
+- Thêm vào email drip sequence
+- Monthly market update
+- Re-engage sau 30-60 ngày
+
+<Callout kind="info">
+Với lead người Việt, agent cần lưu ý: quyết định mua nhà thường là quyết định gia đình. Follow-up nên include cả gia đình, không chỉ người liên hệ ban đầu.
+</Callout>

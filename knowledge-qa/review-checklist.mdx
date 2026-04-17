@@ -1,0 +1,104 @@
+---
+title: "Review Checklist"
+description: "Checklist kiểm tra chất lượng trước khi agent gửi output cho Phong — content, real estate, automation, và general tasks."
+---
+
+## Mục đích
+
+Trang này là checklist cuối cùng mà agent phải chạy qua **trước khi giao output** cho Phong. Mỗi loại task có checklist riêng — agent chọn checklist phù hợp và verify từng mục.
+
+<Callout kind="info">
+Checklist này không thay thế việc verify thực tế (chạy test, preview file, check link). Đây là bước kiểm tra logic và compliance cuối cùng.
+</Callout>
+
+
+## Checklist chung (mọi task)
+
+Áp dụng cho TẤT CẢ output, bất kể loại task:
+
+| # | Kiểm tra | Tiêu chí đạt |
+|---|---|---|
+| G1 | Ngôn ngữ | Tiếng Việt (trừ khi Phong yêu cầu tiếng Anh) |
+| G2 | Tone | Chuyên gia tư vấn — không casual, không "ae ơi" |
+| G3 | Research | Đã search real-time nếu task cần dữ liệu mới |
+| G4 | Sources | Trích dẫn nguồn nếu dùng kết quả search |
+| G5 | File location | Output ở đúng folder (workspace, không phải temp) |
+| G6 | No hallucination | Không bịa số liệu, không đoán thông tin thiếu |
+| G7 | Phong approval | Action có tác động bên ngoài đã được Phong xác nhận |
+
+
+## Checklist Content Creation
+
+Áp dụng khi tạo social media posts, video scripts, blog posts, email:
+
+| # | Kiểm tra | Tiêu chí đạt |
+|---|---|---|
+| C1 | Brand voice | Đúng tone "chuyên gia tư vấn" theo Brand Guidelines v2.0 |
+| C2 | Emoji | Tối đa 2-3 functional (📊🏠📞✅💰📍⚠️), không emoji cảm xúc |
+| C3 | Mở đầu | Bắt đầu bằng data/insight, không "Xin chào các bạn!" |
+| C4 | TREC compliance | Có "Phong To · eXp Realty" nếu content RE |
+| C5 | Rate disclaimer | Có disclaimer nếu đề cập mortgage rate |
+| C6 | No promises | Không "guaranteed", "chắc chắn lời", "cam kết tăng giá" |
+| C7 | Content pillar | Phù hợp 1 trong 4 pillars (40% value, 30% listing, 20% brand, 10% văn hóa Việt) |
+| C8 | CTA | Có call-to-action rõ ràng, phù hợp với mục tiêu bài |
+| C9 | Hashtags | Mix Việt + Anh, relevant, không spam |
+| C10 | Media | Ảnh/video theo đúng media stack (HTML→Playwright→FFmpeg) |
+
+
+## Checklist Real Estate
+
+Áp dụng khi xử lý lead, viết email client, tạo CMA, listing content:
+
+| # | Kiểm tra | Tiêu chí đạt |
+|---|---|---|
+| R1 | RKB check | Đã search RKB cho thông tin liên quan |
+| R2 | Market data | Số liệu thị trường từ real-time search, không từ training data |
+| R3 | TREC license | Đề cập đúng license #843757 khi cần |
+| R4 | Fair Housing | Không vi phạm Fair Housing (không phân biệt chủng tộc, tôn giáo, giới tính...) |
+| R5 | Disclaimer | Có disclaimer phù hợp (rate, investment, tax) |
+| R6 | Client privacy | Không để lộ thông tin cá nhân client trong content public |
+| R7 | Accuracy | Giá, diện tích, địa chỉ chính xác — double-check nếu copy từ nguồn |
+| R8 | CRM update | Nếu task liên quan HubSpot, xác nhận với Phong trước khi modify data |
+
+
+## Checklist Automation / Workflow
+
+Áp dụng khi tạo flow Activepieces, setup tool mới, cấu hình MCP:
+
+| # | Kiểm tra | Tiêu chí đạt |
+|---|---|---|
+| A1 | Tool exists | Đã kiểm tra tool/MCP server có sẵn trước khi đề xuất |
+| A2 | No secrets exposed | API keys, tokens không bị lưu trong file public |
+| A3 | Idempotent | Flow chạy lại không tạo duplicate |
+| A4 | Error handling | Có xử lý lỗi, không fail silently |
+| A5 | Documentation | Ghi chú cách flow hoạt động để Phong hiểu |
+| A6 | Test first | Đã test với dữ liệu mẫu trước khi kết nối production |
+
+
+## Cách sử dụng checklist
+
+<Steps>
+### Xác định loại task
+
+Mọi task đều phải qua **Checklist chung (G1-G7)**. Thêm checklist chuyên biệt tùy loại:
+- Content → G + C
+- Real estate → G + R
+- Automation → G + A
+- RE content → G + C + R
+
+### Chạy checklist trong đầu
+
+Agent không cần liệt kê từng mục cho Phong — chạy checklist nội bộ và chỉ báo cáo nếu có mục KHÔNG ĐẠT.
+
+### Nếu có mục không đạt
+
+Sửa trước khi giao output. Nếu không sửa được (ví dụ: cần dữ liệu từ Phong), ghi rõ mục nào chưa đạt và cần gì để hoàn thành.
+
+### Không skip checklist
+
+Checklist là bước BẮT BUỘC, không phải tùy chọn. Đặc biệt quan trọng với content RE (TREC compliance) và automation (security).
+</Steps>
+
+<Callout kind="warning">
+Vi phạm TREC compliance (C4, C5, C6) hoặc Fair Housing (R4) có thể gây hậu quả pháp lý nghiêm trọng. Đây là các mục KHÔNG BAO GIỜ được bỏ qua.
+</Callout>

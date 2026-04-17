@@ -1,0 +1,144 @@
+---
+title: "Claude Cowork Instructions"
+description: "Hướng dẫn cụ thể cho Claude trong Cowork mode — cách đọc context, chọn skill, tạo file, và tương tác với Phong đúng chuẩn Agent OS."
+---
+
+## Tổng quan
+
+Trang này dành riêng cho Claude khi hoạt động trong **Cowork mode** (Claude Desktop app). Cowork mode có những đặc điểm riêng so với Claude Code CLI — agent cần hiểu rõ để thực thi đúng.
+
+<Callout kind="info">
+Cowork mode chạy trên Claude Agent SDK, có file tools (Read/Write/Edit), sandboxed Linux shell, và các MCP server đã kết nối. Agent KHÔNG tự gọi mình là "Claude Code".
+</Callout>
+
+
+## Quy trình khởi động session
+
+Khi bắt đầu một session mới, agent thực hiện theo thứ tự:
+
+<Steps>
+### Đọc memory files
+
+Kiểm tra `/memory/MEMORY.md` và các file memory liên quan. Đây là context từ các session trước — giúp agent hiểu Phong đang ở đâu trong workflow.
+
+### Đọc project instructions
+
+File `CLAUDE.md` ở workspace root chứa brand guidelines, content pillars, media stack, và TREC compliance rules. Đây là nguồn sự thật cho mọi task liên quan content và real estate.
+
+### Xác định task type
+
+Phân loại yêu cầu của Phong để chọn đúng skill/plugin:
+- **Content creation** → Đọc Content Style Guide + Content Pipeline
+- **Real estate** → Search RKB qua Documentation.AI MCP trước
+- **Automation/workflow** → Kiểm tra plugin nào đã cài (Activepieces, Browse AI, Zernio...)
+- **File/document** → Đọc SKILL.md tương ứng (docx, pptx, xlsx, pdf)
+
+### Hỏi làm rõ nếu cần
+
+Dùng AskUserQuestion tool để hỏi Phong trước khi bắt đầu task phức tạp. Không đoán — hỏi.
+</Steps>
+
+
+## Quy tắc chọn Skill
+
+Cowork mode có hàng trăm skill. Agent chọn theo nguyên tắc:
+
+### Ưu tiên skill chuyên biệt
+
+Nếu task khớp với mô tả của một skill cụ thể, dùng skill đó thay vì làm thủ công. Ví dụ:
+- Tạo PowerPoint → dùng skill `pptx`
+- Tạo Word doc → dùng skill `docx`
+- Viết content social → dùng skill `social-media-generator` hoặc `claudekit-marketing:write`
+
+### Đọc SKILL.md trước khi làm
+
+Luôn đọc file SKILL.md của skill tương ứng TRƯỚC khi tạo file. Đây là quy tắc bắt buộc — không bỏ qua.
+
+### Không chồng chéo skill
+
+Chọn MỘT skill phù hợp nhất. Không kích hoạt 3-4 skill cùng lúc trừ khi task thực sự cần.
+
+
+## Quy tắc tạo file
+
+### Output location
+
+- File tạm (draft, test) → working directory (`outputs/`)
+- File cuối cùng cho Phong → workspace folder (`/Users/phongto/Workspace/`)
+- Luôn cung cấp link `computer://` để Phong mở file trực tiếp
+
+### Content files
+
+- Ảnh/video content → `Content/media/YYYY-MM/` theo tháng
+- MDX docs → folder tương ứng trong repo
+- Brand assets → `Content/media/templates/`
+
+### Không tạo file thừa
+
+- Không tạo README.md trừ khi Phong yêu cầu
+- Không tạo file test/demo trừ khi cần verify
+- Xóa file tạm sau khi hoàn thành
+
+
+## Quy tắc tương tác với Phong
+
+### Phong không phải lập trình viên
+
+Phong hiểu công nghệ và AI tools nhưng không biết code. Khi giải thích:
+- Nói kết quả và cách dùng, không giải thích code logic
+- Cung cấp file sẵn sàng dùng, không yêu cầu Phong chạy command
+- Nếu cần Phong thao tác kỹ thuật, hướng dẫn từng bước với screenshot
+
+### Ngắn gọn, trực tiếp
+
+- Không tóm tắt lại những gì vừa làm (Phong đọc được diff)
+- Không hỏi quá 1 câu mỗi response
+- Ưu tiên làm xong rồi báo cáo, thay vì hỏi permission cho từng bước nhỏ
+
+### TodoList là bắt buộc
+
+Mọi task có nhiều hơn 1 bước → dùng TodoWrite để track progress. Phong nhìn thấy TodoList dưới dạng widget — đây là cách chính để Phong theo dõi tiến độ.
+
+
+## MCP Servers đã kết nối
+
+Agent cần biết các MCP server có sẵn để không search_mcp_registry cho những thứ đã có:
+
+| MCP Server | Chức năng |
+|---|---|
+| Desktop Commander | File operations, process management trên Mac |
+| Perplexity | Search chất lượng cao |
+| Exa | Semantic search + web crawl |
+| Playwright | Browser automation, screenshot |
+| Zernio (Late) | Social media scheduling (13 platforms) |
+| CX Genie | Chatbot management |
+| TidyCal | Booking/scheduling |
+| DeftForm | Form builder |
+| ElkQR | QR code management |
+| FeedGuardians | Social media comment monitoring |
+| HubSpot | CRM — contacts, deals, pipeline |
+| Gmail | Email read/send |
+| Google Calendar | Calendar management |
+| Google Drive | File storage |
+| Canva | Design creation |
+| Supabase | Database |
+| Cloudflare | Workers, R2, D1 |
+| Vercel | Deployment |
+| Netlify | Deployment |
+| Documentation.AI | Knowledge base search (RKB + Agent OS) |
+
+<Callout kind="warning">
+Danh sách MCP servers có thể thay đổi. Nếu một tool không hoạt động, thông báo cho Phong thay vì thử workaround.
+</Callout>
+
+
+## Khi nào dùng subagent
+
+Dùng Agent tool (subagent) khi:
+- Task cần research sâu → spawn `researcher` agent
+- Task cần review code/content → spawn `code-reviewer` hoặc `content-reviewer`
+- Nhiều task độc lập có thể chạy song song
+
+Không dùng subagent khi:
+- Task đơn giản, hoàn thành trong 2-3 tool calls
+- Đã có đủ context, không cần research thêm

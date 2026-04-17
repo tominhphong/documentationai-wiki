@@ -1,0 +1,108 @@
+---
+title: "Documentation MCP Usage"
+description: "Hướng dẫn agent cách search và sử dụng hai site Documentation.AI — RKB (kiến thức bất động sản) và Agent OS (quy trình vận hành)."
+---
+
+## Hai site Documentation.AI
+
+Phong có **hai site** trên Documentation.AI, mỗi site phục vụ mục đích khác nhau:
+
+| Site | URL | MCP Endpoint | Nội dung |
+|---|---|---|---|
+| **RKB** (Realtor Knowledge Base) | phong-to.documentationai.com | `https://phong-to.documentationai.com/_mcp` | Kiến thức bất động sản: scripts, SOP, thị trường, luật Texas |
+| **Agent OS** | antigravity-memory-palace.documentationai.com | `https://antigravity-memory-palace.documentationai.com/_mcp` | Hệ điều hành agent: rules, workflows, instructions |
+
+<Callout kind="info">
+Hai site này BỔ SUNG cho nhau. RKB chứa kiến thức chuyên ngành (what to do), Agent OS chứa quy trình vận hành (how to do it).
+</Callout>
+
+
+## Khi nào search site nào
+
+### Search RKB khi
+
+- Câu hỏi về quy trình bất động sản (offer, option period, closing, earnest money)
+- Cần scripts/template để nói chuyện với khách hàng
+- Câu hỏi về thị trường North Texas, Sherman TX, Grayson County
+- Cần checklist, SOP thực tế cho từng bước giao dịch
+- Viết email/tin nhắn cho khách hàng
+- Câu hỏi về luật Texas, TREC, Fair Housing
+- Tư vấn tài chính: commission eXp, thuế, kế toán
+
+### Search Agent OS khi
+
+- Cần biết luật vận hành (Global Rules, RE Rules, Content Rules)
+- Cần workflow cụ thể (Content, Lead Handling, Client Follow-Up)
+- Cần hiểu Phong là ai, làm gì, ưu tiên gì
+- Cần biết cách chọn tool/MCP server
+- Cần agent instructions (Cowork mode, Universal Prompt)
+
+### Search CẢ HAI khi
+
+- Task phức tạp cần cả kiến thức lẫn quy trình (ví dụ: viết email follow-up cho buyer đang trong option period → RKB cho nội dung, Agent OS cho tone/format)
+
+
+## Cách search qua MCP
+
+### Tool name
+
+```
+search_documentation("từ khóa")
+```
+
+Cả hai site dùng cùng tool name `search_documentation`. Agent cần xác định đúng MCP server endpoint khi gọi.
+
+### Tips search hiệu quả
+
+<Steps>
+### Dùng từ khóa ngắn, cụ thể
+
+Tốt: `"option period checklist"`, `"content workflow step"`, `"TREC compliance"`
+
+Không tốt: `"tôi cần biết quy trình làm content từ đầu đến cuối bao gồm viết copy và tạo video"`
+
+### Mix tiếng Việt và tiếng Anh
+
+Nội dung trong cả hai site dùng tiếng Việt là chính nhưng có nhiều thuật ngữ tiếng Anh. Thử cả hai:
+- `"earnest money"` hoặc `"tiền cọc"`
+- `"lead handling"` hoặc `"xử lý lead"`
+
+### Search nhiều lần nếu cần
+
+Một lần search có thể không đủ. Nếu kết quả không chính xác, thử từ khóa khác hoặc search site còn lại.
+
+### Không search cho những gì đã load
+
+Nếu agent đã đọc Core Rules trong session này, không cần search lại. Search chỉ cần khi cần thông tin CHƯA CÓ trong context.
+</Steps>
+
+
+## 10 phòng ban trong RKB
+
+RKB được tổ chức thành 10 phòng ban. Biết cấu trúc này giúp agent search chính xác hơn:
+
+| # | Phòng ban | Từ khóa search |
+|---|---|---|
+| 01 | Sales & CRM | pipeline, HubSpot, follow-up, scripts, objection handling, offer strategy |
+| 02 | Marketing & Content | social media, video scripts, email templates, Vietnamese community outreach |
+| 03 | Market Intelligence | North Texas data, Sherman TX, CMA, price trends, market analysis |
+| 04 | Transaction Management | option period, earnest money, closing, timeline, amendments |
+| 05 | Finance & Accounting | eXp commission 80/20, tax deductions, commission tracker |
+| 06 | Legal & Compliance | TREC #843757, Fair Housing, Texas disclosure, agency law |
+| 07 | Client Communication | re-engagement scripts, breakup messages, drip sequences |
+| 08 | Listing Marketing | photography SOP, MLS, open house promo, listing presentation |
+| 09 | Buyer Journey | buyer consultation, Conventional vs FHA, BMA-1, home search |
+| 10 | Quality & Reviews | post-closing survey, Google Review strategy, KPIs |
+
+<Callout kind="warning">
+RKB là nguồn SỰ THẬT duy nhất cho quy trình làm việc của Phong. Agent KHÔNG được tự ý đề xuất quy trình khác nếu RKB đã có hướng dẫn.
+</Callout>
+
+
+## Quy tắc trích dẫn
+
+Khi dùng thông tin từ Documentation.AI, agent phải:
+
+1. **Ghi rõ nguồn:** "Theo RKB phòng ban 04 — Transaction Management..." hoặc "Theo Agent OS — Content Workflow..."
+2. **Không sửa đổi quy trình:** Nếu RKB nói option period là 7-10 ngày, agent không tự thay đổi thành 14 ngày
+3. **Cập nhật nếu mâu thuẫn:** Nếu thông tin từ RKB mâu thuẫn với real-time search, báo cho Phong để cập nhật RKB
