@@ -94,6 +94,11 @@
                 "title": "Client Follow-Up Workflow",
                 "path": "workflows/client-follow-up-workflow",
                 "icon": "phone"
+              },
+              {
+                "title": "Multi-Agent Sprint Workflow",
+                "path": "workflows/multi-agent-sprint-workflow",
+                "icon": "users"
               }
             ]
           },
@@ -110,6 +115,16 @@
                 "title": "Universal Agent Prompt",
                 "path": "agent-instructions/universal-agent-prompt",
                 "icon": "file-text"
+              },
+              {
+                "title": "Lead Architect Prompt (Win 1)",
+                "path": "agent-instructions/lead-architect-prompt",
+                "icon": "crown"
+              },
+              {
+                "title": "Worker Agent Prompt (Win 2/3/4)",
+                "path": "agent-instructions/worker-agent-prompt",
+                "icon": "user-cog"
               }
             ]
           },
@@ -126,6 +141,11 @@
                 "title": "Review Checklist",
                 "path": "knowledge-qa/review-checklist",
                 "icon": "check-square"
+              },
+              {
+                "title": "Multi-Agent FAQ",
+                "path": "knowledge-qa/multi-agent-faq",
+                "icon": "help-circle"
               }
             ]
           }
@@ -243,6 +263,10 @@
               {
                 "title": "Page Missing in Sidebar",
                 "path": "help-center/troubleshooting/install-error"
+              },
+              {
+                "title": "MDX Gotchas",
+                "path": "help-center/troubleshooting/mdx-gotchas"
               }
             ]
           },
