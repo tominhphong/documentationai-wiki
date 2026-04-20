@@ -1,22 +1,61 @@
 ---
-title: Sample Changelog
-description: Sample release notes you can replace with your real updates.
+title: Changelog
+description: Nhật ký thay đổi của wiki documentationai — track theo sprint, mỗi entry có tag nhóm task và commit SHA.
 ---
 
-## Sample updates
+## Về changelog này
 
-<Callout kind="alert">
-This changelog is example content. Replace every entry with your real releases.
+<Callout kind="info">
+Wiki này được xây và duy trì bởi team 4-agent (Brain + 3 workers). Mỗi sprint kéo dài ~1–2 giờ, kết thúc với entry tại đây. Xem [Multi-Agent Collaboration](/agent-os-overview/multi-agent-collaboration) để hiểu workflow đầy đủ.
 </Callout>
 
-<Update label="2026-01-26" description="Sample Update" tags={["sample"]}>
-## What changed
-- Cleaned up placeholder copy across the starter kit.
-- Added clearer "sample" messaging to avoid confusion.
+---
+
+<Update label="2026-04-20" description="Sprint 2 Round 1 — Depth + Automation" tags={["sprint-2", "content", "tooling"]}>
+## Round 1 (3 tasks parallel)
+
+### Content expansion
+- **Architecture** ([agent-os-overview/architecture](/agent-os-overview/architecture)) — 166 → 319 lines. Thêm ASCII diagram 4-agent team, System Layers section (Content/Nav/Coordination/Validation), Data flow example 7 bước từ edit MDX đến MCP reindex. Commit `95c2bb1`.
+- **Debugging Workflow** ([workflows/debugging-workflow](/workflows/debugging-workflow)) — mới, 358 lines. 6-step flow (Capture → Reproduce → Localize → Pick Strategy → Validate → Resume), 5 common errors (MDX JSX collision, broken links, merge conflicts, Vietnamese ASCII, auth timeout), 4 escalation triggers. Commit `5d0dd72`.
+
+### Tooling
+- **Link checker** — `scripts/check-links.sh` thêm vào repo. Scan tất cả `.mdx`, verify internal paths (markdown links, href props, component path props) có target tồn tại. Exit 1 nếu broken. Chạy trên repo hiện tại: 39 files / 23 links / 0 broken. Commit `ef32a08`.
+
+### Process change
+- **Model downgrade cho executors** — Sprint 2 dùng Agent Team subagents thay 4 iTerm2 CLI. Lý do: concurrent session auth conflict. Brain (Opus 4.7) orchestrate + execute Win 1 tasks, 3 Sonnet agents làm Win 2/3/4 trong parallel — kết quả: không auth issue, faster throughput.
 </Update>
 
-<Update label="2025-12-10" description="Sample Update" tags={["sample"]}>
-## What changed
-- Simplified the Quickstart steps.
-- Trimmed Help Center examples.
+<Update label="2026-04-20" description="Sprint 1 — Multi-Agent Foundation" tags={["sprint-1", "scaffold", "content"]}>
+## Sprint 1 (12 tasks, 4 workers, ~80 phút)
+
+### Scaffolding (Win 1 Lead)
+- `CLAUDE.md`, `AGENTS.md`, `CODEOWNERS` — master rules cho 4-agent team
+- `plans/task-board.md` — kanban coordination
+- `scripts/pre-commit-check.sh` — MDX validation (improved với `strip_code_content()` để skip code fences)
+
+### Content layer (8 new pages + 3 expanded)
+- **Agent OS Overview** — `introduction`, `who-phong-is`, `architecture`, `components-and-tools`, `multi-agent-collaboration`
+- **Core Rules** — `global-operating-rules`, `file-ownership-rules`, `real-estate-rules`, `content-creation-rules`, `tool-selection-rules`
+- **Workflows** — `content-workflow` (expanded với Steps), `lead-handling-workflow`, `client-follow-up-workflow`, `multi-agent-sprint-workflow`
+- **Agent Instructions** — `claude-cowork-instructions`, `universal-agent-prompt`, `lead-architect-prompt`, `worker-agent-prompt`
+- **Knowledge & QA** — `documentation-mcp-usage`, `review-checklist`, `multi-agent-faq`
+- **Help Center** — `troubleshooting/mdx-gotchas` (7 gotchas)
+
+### Navigation
+- 7 new sidebar entries across 5 groups (Agent OS, Core Rules, Workflows, Agent Instructions, Knowledge & QA)
+- 3 cross-scope requests resolved
+
+### Validation
+- 31 files passed pre-commit, 0 errors
+- MCP `antigravity-memory-palace` reindex sau push — xác nhận content searchable
 </Update>
+
+---
+
+## Changelog conventions
+
+- **Label:** `YYYY-MM-DD` ngày merge vào main
+- **Description:** tên sprint hoặc event chính
+- **Tags:** `sprint-N`, plus loại nhóm (`content`, `tooling`, `scaffold`, `nav`, `process`)
+- **Body:** grouped bullets với link tới pages thay đổi + commit SHA
+- **Cadence:** 1 entry per sprint hoàn tất, hoặc entry riêng cho hotfix / breaking change
