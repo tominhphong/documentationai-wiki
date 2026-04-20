@@ -161,6 +161,159 @@ Nếu task liên quan bất động sản, Claude search thêm Realtor Knowledge
 Nếu task cần thông tin mới nhất, Claude research qua Perplexity/WebSearch trước khi thực thi.
 
 
+## Sơ đồ phối hợp 4-agent
+
+Hệ thống Agent OS hiện tại vận hành với 4 agent làm việc song song qua filesystem — không có IPC runtime. Sơ đồ dưới mô tả luồng phối hợp đầy đủ từ lúc claim task đến khi deploy:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    AGENT OS — COORDINATION LOOP                  │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   ┌─────────────────┐     reads/writes      ┌─────────────────┐ │
+│   │  BRAIN (Opus)   │◄─────────────────────►│  plans/         │ │
+│   │  Lead Architect │                        │  task-board.md  │ │
+│   │  Win 1 executor │                        │  progress.md    │ │
+│   └────────┬────────┘                        └────────▲────────┘ │
+│            │ assigns tasks                            │ appends  │
+│            │                                          │ status   │
+│   ┌────────▼────────────────────────────────────────┐│           │
+│   │              WORKER LAYER                        ││           │
+│   │                                                  ││           │
+│   │  ┌──────────────┐  ┌──────────────┐             ││           │
+│   │  │  Win 2       │  │  Win 3       │             ││           │
+│   │  │  Sonnet 4.6  │  │  Sonnet 4.6  │             ││           │
+│   │  │  Framework   │  │  Workflow    │             ││           │
+│   │  │  Author      │  │  Writer      │             ││           │
+│   │  │  (worktree)  │  │  (worktree)  │             ││           │
+│   │  └──────┬───────┘  └──────┬───────┘             ││           │
+│   │         │                  │         ┌──────────┐││           │
+│   │         │                  │         │  Win 4   │││           │
+│   │         │                  │         │  Haiku   │││           │
+│   │         │                  │         │  Ref+QA  │││           │
+│   │         │   commit+push    │         │(worktree)│││           │
+│   │         └──────────────────┴─────────┴────┬─────┘│           │
+│   └────────────────────────────────────────────│──────┘           │
+│                                                │                  │
+│            PR → Win 4 QA ──────────────────────►                  │
+│                                                │                  │
+│            Win 4 PASS ─────► Brain merge ──────►  main branch     │
+│            Win 4 FAIL ─────► Worker fixes                         │
+│                                                │                  │
+│            main push ──────► Documentation.AI deploy (30-60s)     │
+│                                                │                  │
+│            Deploy ─────────► MCP reindex ─────► searchable        │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Luồng claim task (5 bước):**
+
+1. Worker đọc `plans/task-board-sprint-2.md` → chọn task `[ ]` phù hợp scope
+2. Worker commit+push lên worktree branch riêng (`win2-framework`, `win3-workflow`, `win4-reference-qa`)
+3. Win 4 chạy `scripts/pre-commit-check.sh` → QA pass/fail
+4. Brain (Opus) review PR → merge vào `main`
+5. Documentation.AI auto-deploy → MCP reindex → wiki searchable
+
+<Callout kind="info">
+Không có runtime IPC. Toàn bộ phối hợp qua filesystem: `plans/progress.md` (append-only log), `plans/task-board.md` (status updates), `plans/cross-scope-sprint-2.md` (cross-scope requests). Workers không gọi nhau trực tiếp.
+</Callout>
+
+
+## System Layers
+
+Hệ thống Agent OS chia làm 4 layers chồng lên nhau, từ nội dung đến vận hành:
+
+### Layer 1 — Content Layer
+
+**File:** `.mdx` pages trong các module folders.
+
+Đây là tầng người dùng cuối thấy — các trang documentation hiển thị trên browser. Mỗi file MDX chứa:
+- Frontmatter bắt buộc (`title`, `description`)
+- Body content bằng Markdown + Mintlify components (`<Callout>`, `<Steps>`, `<Tabs>`)
+- Vietnamese với dấu đầy đủ
+
+**Owners:** Win 2 (`agent-os-overview/`, `core-rules/`), Win 3 (`workflows/`, `agent-instructions/`), Win 4 (`help-center/`, `knowledge-qa/`).
+
+### Layer 2 — Nav Layer
+
+**File:** `documentation.json`
+
+Nav layer định nghĩa cấu trúc sidebar và routing. Mỗi entry mapping `path` → `title` → nhóm phân cấp. Documentation.AI đọc file này để build sidebar navigation tự động.
+
+Quy tắc quan trọng: `path` trong JSON **không có** đuôi `.mdx`. Sai 1 ký tự → trang 404.
+
+**Owner:** Win 1 (Lead only). Workers không chỉnh sửa trực tiếp — gửi cross-scope request.
+
+### Layer 3 — Coordination Layer
+
+**Files:** `plans/`, `CLAUDE.md`, `AGENTS.md`, `CODEOWNERS`
+
+Đây là tầng điều phối multi-agent. Không có server, không có message queue — chỉ có filesystem:
+
+| File | Vai trò |
+|------|---------|
+| `plans/task-board-sprint-2.md` | Kanban: `[ ]` TODO → `[>]` IN-PROGRESS → `[R]` REVIEW → `[x]` DONE |
+| `plans/progress.md` | Append-only activity log: `[HH:MM] [winN] <action>` |
+| `plans/cross-scope-sprint-2.md` | Cross-scope patch requests từ workers gửi Lead |
+| `CLAUDE.md` | Master rules: MDX gotchas, voice/style, component whitelist |
+| `AGENTS.md` | Role definitions, file ownership per agent |
+| `CODEOWNERS` | Git-level ownership enforcement |
+
+### Layer 4 — Validation Layer
+
+**Files:** `scripts/pre-commit-check.sh`, `.github/workflows/` (Sprint 2 — S2-W1-01)
+
+Tầng validation tự động ngăn broken builds. Pre-commit script chạy 4 checks:
+
+1. Grep Unicode checkboxes (`☐`, `□`) — replace with `- [ ]`
+2. Grep `<[0-9]` pattern — rephrase "under N"
+3. Scan frontmatter — verify `title:` và `description:` present
+4. Heuristic ASCII Vietnamese — warning only
+
+CI pipeline (S2-W1-01) sẽ chạy script này trên mỗi PR, tự động block merge nếu fail.
+
+<Callout kind="warning">
+Layer 4 là "last line of defense". Build Documentation.AI là all-or-nothing — 1 file lỗi = toàn bộ site fail. Luôn chạy `bash scripts/pre-commit-check.sh` trước khi push.
+</Callout>
+
+
+## Data flow example
+
+Trace 1 user edit hoàn chỉnh qua toàn bộ hệ thống:
+
+<Steps>
+<Step title="Edit MDX">
+Win 2 mở `agent-os-overview/architecture.mdx` trong worktree `documentationai-wiki-win2`. Thêm section mới, giữ đúng frontmatter, dùng `<Callout>` component, viết tiếng Việt đầy đủ dấu.
+</Step>
+<Step title="Validate locally">
+Chạy `bash scripts/pre-commit-check.sh agent-os-overview/architecture.mdx`. Script grep 4 patterns. Nếu PASS → tiếp tục. Nếu FAIL → fix ngay trước khi commit.
+</Step>
+<Step title="Commit + Push">
+```
+git add agent-os-overview/architecture.mdx
+git commit -m "feat(S2-W2-01): expand architecture with system layers and data flow"
+git push origin win2-framework
+```
+Commit message chứa task ID (`S2-W2-01`) để Brain track qua `git log --grep`.
+</Step>
+<Step title="Win 4 QA">
+Win 4 pull branch `win2-framework`, chạy `pre-commit-check.sh` trên toàn bộ branch. Nếu PASS → update task-board: `[>]` → `[R]`. Nếu FAIL → ghi feedback vào `plans/findings.md`, notify Win 2.
+</Step>
+<Step title="Brain merge">
+Brain (Opus) review PR, merge `win2-framework` → `main`. Update task-board: `[R]` → `[x]`. Nếu cần thêm nav entry mới cho page vừa tạo, Brain edit `documentation.json` trong cùng merge commit.
+</Step>
+<Step title="Auto-deploy">
+Documentation.AI phát hiện push vào `main`, rebuild trong 30–60 giây. Page mới live tại URL public.
+</Step>
+<Step title="MCP reindex">
+Sau deploy, MCP endpoint `https://antigravity-memory-palace.documentationai.com/_mcp` reindex content mới. Agents dùng tool `search_documentation(query)` sẽ tìm thấy page vừa thêm — wiki self-updating cho AI consumption.
+</Step>
+</Steps>
+
+**Kết quả:** Từ 1 file edit → validated → committed → QA-passed → merged → deployed → searchable bởi cả AI agents lẫn người dùng, trong khoảng 5–10 phút.
+
+
 ## Read next
 
 Trang tiếp theo liệt kê chi tiết từng component và tool trong hệ thống — cấu hình, use cases, và cách agents sử dụng chúng.
