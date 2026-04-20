@@ -37,6 +37,11 @@
                 "title": "Components and Tools",
                 "path": "agent-os-overview/components-and-tools",
                 "icon": "wrench"
+              },
+              {
+                "title": "Multi-Agent Collaboration",
+                "path": "agent-os-overview/multi-agent-collaboration",
+                "icon": "users"
               }
             ]
           },
@@ -48,6 +53,11 @@
                 "title": "Global Operating Rules",
                 "path": "core-rules/global-operating-rules",
                 "icon": "shield"
+              },
+              {
+                "title": "File Ownership Rules",
+                "path": "core-rules/file-ownership-rules",
+                "icon": "lock"
               },
               {
                 "title": "Real Estate Rules",
