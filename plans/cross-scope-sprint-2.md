@@ -17,7 +17,9 @@ Status: pending | applied (commit SHA)
 
 ## Pending
 
-_(empty — all requests applied)_
+### [2026-04-20 13:41] [win4 → win1] Add glossary to nav
+Patch: documentation.json add entry cho knowledge-qa/glossary vào group "Knowledge & QA"
+Status: pending
 
 ## Applied
 
