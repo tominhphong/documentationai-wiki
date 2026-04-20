@@ -99,6 +99,11 @@
                 "title": "Multi-Agent Sprint Workflow",
                 "path": "workflows/multi-agent-sprint-workflow",
                 "icon": "users"
+              },
+              {
+                "title": "Debugging Workflow",
+                "path": "workflows/debugging-workflow",
+                "icon": "bug"
               }
             ]
           },

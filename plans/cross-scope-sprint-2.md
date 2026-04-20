@@ -17,13 +17,13 @@ Status: pending | applied (commit SHA)
 
 ## Pending
 
+_(empty — all requests applied)_
+
+## Applied
+
 ### [2026-04-20 12:55] [win3 → win1] Add debugging-workflow to nav
 Reason: New page workflows/debugging-workflow.mdx cần add vào documentation.json under Workflows group.
 Patch:
 - file: documentation.json
 - change: Add `{"title": "Debugging Workflow", "path": "workflows/debugging-workflow", "icon": "bug"}` vào group "Workflows"
-Status: pending
-
-## Applied
-
-_(empty — Sprint 2 just started)_
+Status: **applied**
