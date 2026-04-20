@@ -22,7 +22,7 @@
 ### Win 3 — Workflow Writer
 
 - [R] **W3-03** [win3] Write `agent-instructions/lead-architect-prompt.mdx` — role prompt template for Win 1. PR: `win3-workflow` branch.
-- [>] **W3-04** [win3] Write `agent-instructions/worker-agent-prompt.mdx` — role prompt template for Win 2/3/4 (parameterized by scope).
+- [R] **W3-04** [win3] Write `agent-instructions/worker-agent-prompt.mdx` — role prompt template for Win 2/3/4 (parameterized by scope). PR: `win3-workflow` branch.
 
 ### Win 4 — Reference & QA
 
@@ -54,6 +54,16 @@
 
 _(Win 2/3/4: if you need to edit a file outside your scope, add an entry here — Win 1 will apply.)_
 
+### [2026-04-20 00:19] [win3 → win1] Add new pages to documentation.json
+Reason: Created 2 new workflows + 2 new agent-instructions pages — need nav entries.
+Patch:
+Add to `documentation.json` under workflows group:
+  - path: "workflows/multi-agent-sprint-workflow", title: "Multi-Agent Sprint Workflow"
+Add to `documentation.json` under agent-instructions group:
+  - path: "agent-instructions/lead-architect-prompt", title: "Lead Architect Prompt (Win 1)"
+  - path: "agent-instructions/worker-agent-prompt", title: "Worker Agent Prompt (Win 2/3/4)"
+Status: pending
+
 Format:
 ```
 ### [YYYY-MM-DD HH:MM] [winN → win1] <short title>
@@ -68,8 +78,9 @@ Status: pending | applied | rejected
 ## 📊 Sprint 1 Burn-Down
 
 - Total tasks: 12 (4 per worker)
-- Claimed: 0
+- Claimed: 4 (W3-01 → W3-04)
 - In progress: 0
+- Review: 4 (W3-01, W3-02, W3-03, W3-04)
 - Done: 1 (scaffold)
 - Target: All TODO → DONE by end of Sprint 1
 
