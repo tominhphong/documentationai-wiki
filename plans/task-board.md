@@ -18,7 +18,6 @@ _(all claimed — see IN-PROGRESS)_
 
 ### Win 3 — Workflow Writer
 
-- [ ] **W3-01** Audit `workflows/content-workflow.mdx` — add Steps component, verify ties to Core Rules (cross-link).
 - [ ] **W3-02** Write `workflows/multi-agent-sprint-workflow.mdx` — new page. Scope: how to run a 4-agent sprint (claim → work → review → merge → deploy). Reference CLAUDE.md and AGENTS.md.
 - [ ] **W3-03** Write `agent-instructions/lead-architect-prompt.mdx` — role prompt template for Win 1.
 - [ ] **W3-04** Write `agent-instructions/worker-agent-prompt.mdx` — role prompt template for Win 2/3/4 (parameterized by scope).
@@ -34,7 +33,7 @@ _(all claimed — see IN-PROGRESS)_
 
 ## 🟡 IN-PROGRESS
 
-_(empty)_
+_(empty — all active work moved to REVIEW)_
 
 ---
 
@@ -46,6 +45,10 @@ _(empty)_
 - [R] **W2-02** [win2] Created `agent-os-overview/multi-agent-collaboration.mdx` — 4-agent model, file ownership, task flow, cross-scope protocol
 - [R] **W2-03** [win2] Expanded `core-rules/global-operating-rules.mdx` — added Luật 7 (YAGNI/KISS/DRY) with Phong workflow examples
 - [R] **W2-04** [win2] Created `core-rules/file-ownership-rules.mdx` — ownership map, cross-scope request flow, conflict resolution
+
+### Win 3 — Workflow Writer
+
+- [R] **W3-01** [win3] Expanded `workflows/content-workflow.mdx` — added Steps component, cross-linked to core-rules/content-creation-rules
 
 ---
 

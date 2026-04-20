@@ -7,13 +7,15 @@ description: "Quy trình sản xuất content end-to-end — từ ý tưởng, v
 
 Đây là quy trình 7 bước mà agent thực hiện khi Phong yêu cầu tạo content marketing. Quy trình áp dụng cho mọi loại content: social media post, video, email, hoặc bất kỳ material nào.
 
-Trước khi bắt đầu, agent phải đã nắm rõ Content Creation Rules — trang đó chứa luật, trang này chứa quy trình.
+Trước khi bắt đầu, agent phải đã nắm rõ [Content Creation Rules](../core-rules/content-creation-rules) — trang đó chứa luật (brand voice, emoji, TREC), trang này chứa quy trình.
 
 <Callout kind="info">
-Tất cả content output bằng tiếng Việt 100%. Brand voice: chuyên gia tư vấn. Xem Content Creation Rules để biết chi tiết tone, emoji, và CTA.
+Tất cả content output bằng tiếng Việt 100%. Brand voice: chuyên gia tư vấn. Xem [Content Creation Rules](../core-rules/content-creation-rules) để biết chi tiết tone, emoji, và CTA.
 </Callout>
 
-## Bước 1 — Data và Lên Ý Tưởng
+<Steps>
+
+<Step title="Bước 1 — Data và Lên Ý Tưởng">
 
 **Thời gian mục tiêu:** 5 phút/post
 
@@ -30,13 +32,16 @@ Agent thu thập dữ liệu mới nhất trước khi viết bất kỳ content
 
 **Xác định pillar:** Mỗi post thuộc một trong 4 pillars (40% giá trị, 30% listing, 20% thương hiệu, 10% văn hóa Việt). Nếu Phong không chỉ rõ, agent chọn dựa trên chủ đề và tỷ lệ hiện tại.
 
-## Bước 2 — Viết Copy Tiếng Việt
+</Step>
+
+<Step title="Bước 2 — Viết Copy Tiếng Việt">
 
 **Thời gian mục tiêu:** 10 phút/post
 
 **Tham chiếu bắt buộc:**
-- `Docs/content-style-guide.md` — công thức copy, CTA library
-- `Docs/brand-guidelines.md` — brand voice, colors, emoji rules
+- [Content Creation Rules](../core-rules/content-creation-rules) — brand voice, tone, emoji, CTA library
+- `Docs/content-style-guide.md` — công thức copy chi tiết
+- `Docs/brand-guidelines.md` — colors, TREC compliance
 
 **Độ dài theo platform:**
 
@@ -51,11 +56,13 @@ Agent thu thập dữ liệu mới nhất trước khi viết bất kỳ content
 **Cấu trúc mỗi post:**
 1. Hook (data hoặc insight) — không mở đầu bằng chào hỏi
 2. Nội dung chính — giá trị thực, không fluff
-3. CTA cụ thể — từ CTA Library trong Content Creation Rules
+3. CTA cụ thể — từ CTA Library trong [Content Creation Rules](../core-rules/content-creation-rules)
 4. TREC disclaimer (nếu là RE content)
 5. Hashtags (mix Việt + Anh)
 
-## Bước 3 — Tạo Ảnh (HTML to PNG)
+</Step>
+
+<Step title="Bước 3 — Tạo Ảnh (HTML to PNG)">
 
 **Pipeline:**
 
@@ -72,7 +79,9 @@ Agent thu thập dữ liệu mới nhất trước khi viết bất kỳ content
 Không dùng Gemini API image generation (quá đắt). Luôn dùng HTML template + Playwright screenshot.
 </Callout>
 
-## Bước 4 — Tạo Video (HTML to MP4)
+</Step>
+
+<Step title="Bước 4 — Tạo Video (HTML to MP4)">
 
 **Pipeline:**
 
@@ -88,9 +97,11 @@ Không dùng Gemini API image generation (quá đắt). Luôn dùng HTML templat
 
 **Không dùng:** edge-tts, MiniMax TTS, Gemini video generation.
 
-## Bước 5 — Compliance Check
+</Step>
 
-Trước khi đăng, agent kiểm tra:
+<Step title="Bước 5 — Compliance Check">
+
+Trước khi đăng, agent kiểm tra theo [Content Creation Rules](../core-rules/content-creation-rules):
 
 **TREC (bắt buộc cho RE content):**
 - Có `Phong To · eXp Realty` ở cuối post
@@ -104,7 +115,9 @@ Trước khi đăng, agent kiểm tra:
 
 **Content không cần TREC disclaimer:** Post văn hóa Việt thuần túy, personal brand không quảng cáo RE.
 
-## Bước 6 — Đăng Bài qua Zernio
+</Step>
+
+<Step title="Bước 6 — Đăng Bài qua Zernio">
 
 **Tool:** Zernio MCP (`posts_create`, `cross_post`, `media_upload`)
 
@@ -117,7 +130,9 @@ Trước khi đăng, agent kiểm tra:
 
 **Lưu ý:** Mỗi platform có giới hạn ký tự và media specs khác nhau. Dùng `validate_post_length` trước khi đăng.
 
-## Bước 7 — Theo Dõi và Tối Ưu
+</Step>
+
+<Step title="Bước 7 — Theo Dõi và Tối Ưu">
 
 **Sau khi đăng:**
 
@@ -126,8 +141,15 @@ Trước khi đăng, agent kiểm tra:
 3. Ghi nhận post nào perform tốt/kém vào memory
 
 **Cadence theo dõi:**
-- 2 giờ sau đăng: check comments đầu tiên, reply
-- 24 giờ: check engagement metrics
-- 7 ngày: đánh giá performance, rút bài học
+
+| Mốc | Hành động |
+|-----|-----------|
+| 2 giờ sau đăng | Check comments đầu tiên, reply |
+| 24 giờ | Check engagement metrics |
+| 7 ngày | Đánh giá performance, rút bài học |
 
 **Khi post perform tốt:** Ghi nhận format/topic/hook vào memory để replicate. Cân nhắc boost qua ads nếu reach organic cao.
+
+</Step>
+
+</Steps>

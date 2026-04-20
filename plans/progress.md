@@ -21,3 +21,4 @@ _(Workers: append new entries below. One line per commit. Be concise — context
 - [2026-04-20 00:45] [win2] Expanded core-rules/global-operating-rules.mdx — added Luật 7 YAGNI/KISS/DRY (W2-03)
 - [2026-04-20 00:45] [win2] Created core-rules/file-ownership-rules.mdx — ownership & cross-scope protocol (W2-04)
 - [2026-04-20 00:45] [win2] Filed cross-scope request for Win 1 to add 2 new paths to documentation.json
+- [2026-04-20 00:19] [win3] W3-01: Added Steps component to content-workflow.mdx, cross-linked to core-rules/content-creation-rules
