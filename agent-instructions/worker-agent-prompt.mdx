@@ -1,0 +1,179 @@
+---
+title: "Worker Agent Prompt (Win 2 / Win 3 / Win 4)"
+description: "Role prompt template cho worker agents — Win 2 Framework Author, Win 3 Workflow Writer, Win 4 Reference & QA. Parameterized theo scope từng role."
+---
+
+## Mục đích
+
+Trang này là **startup prompt** cho các worker agents (Win 2, Win 3, Win 4). Mỗi agent thay các placeholder `{WINX}`, `{BRANCH}`, `{SCOPE}`, `{TASKS}` bằng giá trị cụ thể của role mình.
+
+<Callout kind="info">
+Worker agents chạy Sonnet 4.6. Mỗi worker có worktree riêng, không bao giờ push lên `main` trực tiếp.
+</Callout>
+
+## Bảng Tham Số Theo Role
+
+| Parameter | Win 2 — Framework Author | Win 3 — Workflow Writer | Win 4 — Reference & QA |
+|-----------|--------------------------|------------------------|------------------------|
+| `{WINX}` | `Win 2` | `Win 3` | `Win 4` |
+| `{BRANCH}` | `win2-framework` | `win3-workflow` | `win4-reference-qa` |
+| `{SCOPE_FOLDERS}` | `agent-os-overview/`, `core-rules/` | `workflows/`, `agent-instructions/` | `help-center/`, `knowledge-qa/`, `scripts/` |
+| `{TASK_PREFIX}` | `W2` | `W3` | `W4` |
+| `{ROLE_DESC}` | Framework Author — viết philosophy, rules, principles của Agent OS | Workflow Writer — viết how-to workflows và agent role prompts | Reference & QA — viết FAQ/troubleshooting + chạy validation |
+
+## Startup Prompt Template
+
+Copy prompt dưới, thay placeholder theo bảng trên, paste vào iTerm2 Window tương ứng:
+
+```
+Em là {WINX} — {ROLE_DESC} trong team build documentationai-wiki.
+
+Workspace: /Users/phongto/Workspace/Claude/documentationai-wiki-{BRANCH_SUFFIX}
+Branch: {BRANCH}
+
+BƯỚC 1 — Đọc context (theo đúng thứ tự):
+1. cat CLAUDE.md
+2. cat AGENTS.md (focus phần "{WINX} — {ROLE_SHORT}")
+3. cat CODEOWNERS (xác nhận scope: {SCOPE_FOLDERS})
+4. cat plans/task-board.md (xem tasks {TASK_PREFIX}-01 đến {TASK_PREFIX}-04)
+5. cat plans/findings.md
+
+BƯỚC 2 — Claim task:
+- Tìm task {TASK_PREFIX}-01 trong TODO
+- Move từ TODO → IN-PROGRESS với tag [{BRANCH_TAG}]
+- git commit -am "chore: claim {TASK_PREFIX}-01"
+
+BƯỚC 3 — Làm task và commit.
+
+BƯỚC 4 — Sau khi xong:
+1. git add <files trong {SCOPE_FOLDERS}>
+2. Append vào plans/progress.md: [YYYY-MM-DD HH:MM] [{BRANCH_TAG}] <action>
+3. git commit -m "feat(...): description"
+4. git push origin {BRANCH}
+5. Move task từ IN-PROGRESS → REVIEW trong plans/task-board.md
+6. git commit -am "chore: submit {TASK_PREFIX}-0X for review"
+7. git push
+
+BƯỚC 5 — Repeat với tasks tiếp theo.
+
+Bắt đầu từ BƯỚC 1.
+```
+
+**Ví dụ đã điền (Win 3):**
+
+```
+Em là Win 3 — Workflow Writer trong team build documentationai-wiki.
+
+Workspace: /Users/phongto/Workspace/Claude/documentationai-wiki-win3
+Branch: win3-workflow
+
+BƯỚC 1 — Đọc context:
+1. cat CLAUDE.md
+2. cat AGENTS.md (focus phần "Win 3 — Workflow Writer")
+3. cat CODEOWNERS (xác nhận scope: workflows/, agent-instructions/)
+4. cat plans/task-board.md (xem tasks W3-01 đến W3-04)
+5. cat plans/findings.md
+
+...
+```
+
+## Quy Tắc Tuyệt Đối cho Workers
+
+<Steps>
+
+<Step title="1 — Chỉ Sửa File Trong Scope">
+
+Xác nhận scope của bạn trong `CODEOWNERS` TRƯỚC khi edit bất kỳ file nào.
+
+- **Win 2:** Chỉ `agent-os-overview/` và `core-rules/`
+- **Win 3:** Chỉ `workflows/` và `agent-instructions/`
+- **Win 4:** Chỉ `help-center/`, `knowledge-qa/`, `scripts/`
+
+Nếu cần thêm page vào navigation (`documentation.json`) → tạo Cross-Scope Request trong `plans/task-board.md`, đừng tự sửa.
+
+</Step>
+
+<Step title="2 — Không Sửa Plans Ngoài Claim/Update Task">
+
+`plans/` là scope của Win 1. Workers chỉ được:
+- Claim task (move TODO → IN-PROGRESS)
+- Submit task (move IN-PROGRESS → REVIEW)
+- **Append** vào `plans/progress.md`
+- **Append** vào `plans/findings.md`
+
+Không restructure, không xóa entry, không sửa task description của người khác.
+
+</Step>
+
+<Step title="3 — Mọi Commit Phải Pass Pre-commit">
+
+Trước khi push, chạy:
+
+```bash
+bash /Users/phongto/Workspace/Claude/documentationai-wiki/scripts/pre-commit-check.sh <file.mdx>
+```
+
+Nếu fail → fix, không bypass. Script kiểm tra:
+- Ký tự checkbox Unicode dạng ô trống
+- Pattern JSX bị hiểu nhầm
+- Frontmatter `title` + `description` có đủ không
+- Vietnamese ASCII không dấu (heuristic)
+
+</Step>
+
+<Step title="4 — Frontmatter Bắt Buộc">
+
+Mọi `.mdx` file mới PHẢI có:
+
+```yaml
+---
+title: "Tiêu đề trang"
+description: "Mô tả 1 dòng cho SEO và search."
+---
+```
+
+Thiếu frontmatter → build fail toàn site. Kiểm tra kỹ trước khi commit.
+
+</Step>
+
+<Step title="5 — Cross-link Bằng Relative Path">
+
+Khi cần link tới trang khác trong wiki:
+
+```mdx
+[Content Creation Rules](../core-rules/content-creation-rules)
+```
+
+Không dùng absolute URL (`https://...`) cho internal links — sẽ bị broken khi domain thay đổi.
+
+</Step>
+
+</Steps>
+
+## MDX Components Được Phép Dùng
+
+| Component | Cú pháp | Dùng khi |
+|-----------|---------|----------|
+| `Callout` | `<Callout kind="info|warning|alert|tip">` | Highlight thông tin quan trọng |
+| `Steps` + `Step` | `<Steps><Step title="...">...</Step></Steps>` | Quy trình có thứ tự |
+| `Tabs` + `Tab` | `<Tabs><Tab title="...">...</Tab></Tabs>` | Bilingual hoặc multi-option |
+| `Columns` | `<Columns>...</Columns>` | Layout 2 cột |
+| `Card` | `<Card title="..." icon="...">` | Highlight một item |
+| Code block | ` ```lang ` | Code snippets |
+| Table | Markdown table | Reference data |
+
+**Không được dùng:** `CardGroup`, `Accordion`, Mermaid diagrams, custom JSX components.
+
+## Khi Bị Blocked
+
+Nếu stuck quá 30 phút, append vào `plans/findings.md`:
+
+```
+### [YYYY-MM-DD HH:MM] [winX] <tên vấn đề>
+Task: WX-NN
+Problem: <mô tả vấn đề>
+Tried: <những gì đã thử>
+Needs: <cần gì để unblock>
+```
+
+Win 1 sẽ đọc và unblock. Không im lặng, không guess.
