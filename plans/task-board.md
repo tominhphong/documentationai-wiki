@@ -21,7 +21,7 @@
 
 ### Win 3 — Workflow Writer
 
-- [ ] **W3-01** Audit `workflows/content-workflow.mdx` — add Steps component, verify ties to Core Rules (cross-link).
+- [>] **W3-01** [win3] Audit `workflows/content-workflow.mdx` — add Steps component, verify ties to Core Rules (cross-link).
 - [ ] **W3-02** Write `workflows/multi-agent-sprint-workflow.mdx` — new page. Scope: how to run a 4-agent sprint (claim → work → review → merge → deploy). Reference CLAUDE.md and AGENTS.md.
 - [ ] **W3-03** Write `agent-instructions/lead-architect-prompt.mdx` — role prompt template for Win 1.
 - [ ] **W3-04** Write `agent-instructions/worker-agent-prompt.mdx` — role prompt template for Win 2/3/4 (parameterized by scope).
@@ -37,7 +37,7 @@
 
 ## 🟡 IN-PROGRESS
 
-_(empty — first agent to claim, move task here)_
+- [>] **W3-01** [win3] Audit `workflows/content-workflow.mdx` — add Steps component, verify ties to Core Rules (cross-link).
 
 ---
 
