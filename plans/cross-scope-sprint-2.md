@@ -17,7 +17,11 @@ Status: pending | applied (commit SHA)
 
 ## Pending
 
-_(empty — all requests applied)_
+### [2026-04-20 14:27] [win3 → win1] Add cross-scope-workflow to nav
+Patch:
+- file: documentation.json
+- change: Add `{"title": "Cross-Scope Workflow", "path": "workflows/cross-scope-workflow", "icon": "git-branch"}` vào group "Workflows"
+Status: pending
 
 ## Applied
 
