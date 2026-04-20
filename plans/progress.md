@@ -17,3 +17,4 @@
 _(Workers: append new entries below. One line per commit. Be concise — context lives in git log, not here.)_
 [2026-04-20 00:19] [win3] W3-01: Added Steps component to content-workflow.mdx, cross-linked to core-rules/content-creation-rules
 [2026-04-20 00:19] [win3] W3-02: Created workflows/multi-agent-sprint-workflow.mdx — 7-phase sprint protocol
+[2026-04-20 00:19] [win3] W3-03: Created agent-instructions/lead-architect-prompt.mdx — Win 1 startup prompt + sprint orchestration

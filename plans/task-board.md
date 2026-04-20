@@ -21,8 +21,8 @@
 
 ### Win 3 — Workflow Writer
 
-- [>] **W3-03** [win3] Write `agent-instructions/lead-architect-prompt.mdx` — role prompt template for Win 1. Write `agent-instructions/lead-architect-prompt.mdx` — role prompt template for Win 1.
-- [ ] **W3-04** Write `agent-instructions/worker-agent-prompt.mdx` — role prompt template for Win 2/3/4 (parameterized by scope).
+- [R] **W3-03** [win3] Write `agent-instructions/lead-architect-prompt.mdx` — role prompt template for Win 1. PR: `win3-workflow` branch.
+- [>] **W3-04** [win3] Write `agent-instructions/worker-agent-prompt.mdx` — role prompt template for Win 2/3/4 (parameterized by scope).
 
 ### Win 4 — Reference & QA
 
