@@ -1,0 +1,219 @@
+---
+title: "Multi-Agent Team FAQ"
+description: "Frequently asked questions about running the 4-agent sprint: task ownership, coordination, pre-commit, and documentation.json updates."
+icon: "help-circle"
+last_reviewed: "2026-04-20"
+---
+
+## Overview
+
+This FAQ covers the most common questions agents encounter when working in the 4-agent sprint setup (Win 1 Lead + Win 2/3/4 Workers). Read this before asking Win 1 — most answers are here.
+
+<Callout kind="info">
+All coordination happens via filesystem: `plans/task-board.md` and `plans/progress.md`. There is no runtime IPC between Claude Code CLI instances.
+</Callout>
+
+---
+
+## Task Ownership
+
+### What if two agents claim the same task?
+
+**Problem:** Two agents both move the same task to IN-PROGRESS simultaneously (race condition via git pull timing).
+
+**Resolution:**
+1. The agent who **committed first** (earlier git timestamp) owns the task.
+2. The second agent reverts their task-board change and picks the next unclaimed task.
+3. If already partially implemented by both, Win 1 adjudicates: keeps the more complete version, discards the other, credits both in `plans/progress.md`.
+
+**Prevention:** Always `git pull` before claiming. Claim and commit the task-board update as your **first commit** before touching any content files.
+
+---
+
+### What if my assigned scope has no more unclaimed tasks?
+
+Check the task board for:
+1. **W4 tasks not yet claimed** — verify you've read the latest pulled version.
+2. **Blocked tasks** — can you unblock one by doing prerequisite work?
+3. **Cross-scope requests** — Win 1 may have posted a patch request you can help verify.
+
+If genuinely idle, add a note in `plans/findings.md` under Insights and notify Win 1 via task-board update.
+
+---
+
+### Can I touch files outside my scope if I notice a bug?
+
+**No** — not directly. File ownership is strict. Instead:
+
+<Steps>
+  <Step title="Document the bug" icon="file-text" title-type="p">
+    Note the exact file, line, and issue in `plans/findings.md`.
+  </Step>
+  <Step title="Submit a Cross-Scope Request" icon="send" title-type="p">
+    Add an entry under `## Cross-Scope Requests` in `plans/task-board.md` with the patch inline.
+  </Step>
+  <Step title="Wait for Win 1" icon="clock" title-type="p">
+    Win 1 (Lead) reviews and applies the patch. You continue with your own tasks.
+  </Step>
+</Steps>
+
+**Exception:** `plans/progress.md` and `plans/findings.md` — all agents may append to these files.
+
+---
+
+## Updating `documentation.json`
+
+### How do I add my new page to the sidebar?
+
+`documentation.json` is owned exclusively by **Win 1**. As a worker agent (Win 2/3/4), you cannot edit it directly.
+
+**Workflow:**
+
+<Steps>
+  <Step title="Create your page" icon="file-plus" title-type="p">
+    Write and commit your `.mdx` file in your scope folder.
+  </Step>
+  <Step title="Submit Cross-Scope Request" icon="send" title-type="p">
+    Add an entry to `plans/task-board.md` under `## Cross-Scope Requests`:
+
+    ```
+    ### [2026-04-20 14:30] [win4 → win1] Add mdx-gotchas to nav
+    Reason: New page created at help-center/troubleshooting/mdx-gotchas.mdx
+    Patch: Add to documentation.json under help-center/troubleshooting group:
+      { "title": "MDX Gotchas", "path": "help-center/troubleshooting/mdx-gotchas" }
+    Status: pending
+    ```
+  </Step>
+  <Step title="Win 1 applies the patch" icon="check" title-type="p">
+    Win 1 updates `documentation.json` and marks the cross-scope request as `applied`.
+  </Step>
+</Steps>
+
+**Path format reminder:** No `.mdx` extension in the `path` field. See [MDX Gotchas — Gotcha 6](/help-center/troubleshooting/mdx-gotchas) for details.
+
+---
+
+### What fields does a navigation entry need?
+
+Minimum required:
+```json
+{
+  "title": "Page Display Title",
+  "path": "folder/subfolder/page-name"
+}
+```
+
+Optional fields Win 1 may add:
+```json
+{
+  "title": "Page Display Title",
+  "path": "folder/subfolder/page-name",
+  "icon": "lucide-icon-name"
+}
+```
+
+---
+
+## Pre-Commit Validation
+
+### What if pre-commit-check.sh fails?
+
+The script exits with code 1 and prints which check failed. Fix the reported issue before pushing.
+
+| Check | Common cause | Fix |
+|-------|-------------|-----|
+| Unicode checkbox | Copy-pasted `☐` from notes | Replace with `- [ ]` |
+| `<NUMBER` pattern | Wrote `<5%` or `<3 years` | Rephrase to "under 5%" or "fewer than 3 years" |
+| Missing frontmatter | Forgot `title:` or `description:` | Add both to top of file |
+| ASCII Vietnamese | Typed without diacritics | Use full Unicode: `phòng ngủ` not `phong ngu` |
+
+Re-run the script after fixing:
+```bash
+bash scripts/pre-commit-check.sh .
+```
+
+---
+
+### Do I need to run pre-commit on other agents' branches before they push?
+
+**Win 4 specifically** runs QA on PRs from Win 2 and Win 3 before Win 1 merges. Workflow:
+
+1. Win 2 or Win 3 moves task to **REVIEW** in task-board.
+2. Win 4 pulls their branch locally and runs `bash scripts/pre-commit-check.sh .`
+3. If pass: Win 4 comments "QA PASS" in task-board Cross-Scope section.
+4. If fail: Win 4 lists failing checks in task-board. The submitting agent fixes and re-submits.
+5. Win 1 only merges after Win 4 QA PASS.
+
+---
+
+### Can I push directly to main without QA?
+
+**Win 1 only** can push directly to `main` (for scaffolding and emergency fixes). Win 2/3/4 push to their worktree branches and submit PRs.
+
+**Exception:** Win 4 may push directly to `main` for emergency hotfixes if the site is broken — but must run `pre-commit-check.sh` first and log the action in `plans/progress.md`.
+
+---
+
+## Coordination & Context
+
+### How do I know what other agents have done?
+
+Read `plans/progress.md` — it is the append-only activity log all agents write to after every commit. Format:
+
+```
+[2026-04-20 14:30] [win4] Created help-center/troubleshooting/mdx-gotchas.mdx (W4-02)
+```
+
+**Tip:** Re-read `plans/progress.md` every 3–5 tasks to stay in sync without needing to parse git history.
+
+---
+
+### How do I signal I'm blocked?
+
+Add an entry to `plans/findings.md` under `## Blockers`:
+
+```
+### [2026-04-20 15:00] [win4] Cannot verify live deploy URL
+Task: W4-04
+Problem: No live URL found in CLAUDE.md or Documentation.AI dashboard.
+Tried: Searched CLAUDE.md — URL listed as "Resolved via dashboard".
+Needs: Win 1 to provide live URL for post-deploy verification.
+```
+
+Win 1 reads findings periodically and will resolve or escalate.
+
+---
+
+### When should I use the MCP search tool vs. reading files?
+
+| Use case | Method |
+|----------|--------|
+| Check if a page already covers a topic | `search_documentation(query)` via MCP |
+| Read a specific file's content | Direct `Read` tool with file path |
+| Find all files in a folder | `Glob` or `ls` |
+| Verify a cross-reference link exists | `search_documentation` + `Glob` |
+| Check live vs. local content parity | `search_documentation` (live) + `Read` (local) |
+
+MCP endpoint: `https://antigravity-memory-palace.documentationai.com/_mcp`
+
+---
+
+## Deployment
+
+### How long does a deploy take after push to main?
+
+Documentation.AI auto-deploys on push to `main`. Typical time: **30–60 seconds**.
+
+Win 4 should verify the live site within 2 minutes of Win 1 merging a PR. If the site shows old content after 2 minutes, log a blocker in `plans/findings.md`.
+
+---
+
+### What happens if the deploy fails?
+
+The site remains on the last successful build — no downtime, but new content is not live.
+
+**Win 4 action:**
+1. Identify which file caused the failure (Documentation.AI dashboard or build logs).
+2. Submit a Cross-Scope Request if the broken file is outside Win 4's scope.
+3. If within scope: fix → push → verify.
+4. Log the incident in `plans/findings.md` under Blockers.

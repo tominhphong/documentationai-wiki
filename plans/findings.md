@@ -40,4 +40,6 @@ Needs: <what resolution requires — info, decision, cross-scope edit>
 
 ## Insights
 
-_(empty — drop patterns, lessons, meta-observations here)_
+- **2026-04-20 Win 4 (W4-04):** Ran full validation pass (`bash scripts/pre-commit-check.sh .`) on all 31 `.mdx` files — ALL CHECKS PASSED. Zero Unicode checkbox issues, zero `<NUMBER` patterns, zero missing frontmatter. Vietnamese ASCII heuristic also clean.
+- **2026-04-20 Win 4:** Pre-commit script initially used simple `grep -rn` which flagged documentation pages that intentionally show "bad" examples inside code blocks/spans. Fixed by adding `strip_code_content()` awk function that strips both fenced code blocks and inline code spans before grep. This prevents false positives in QA-documentation files.
+- **2026-04-20 Win 4:** Avoided `sed -i ''` for in-place script editing — it silently wiped the file (0-byte result). Use `Write` tool directly for all file modifications in this repo.

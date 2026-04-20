@@ -10,35 +10,66 @@ ERRORS=0
 
 echo "=== Pre-commit check for: $TARGET ==="
 
+# Strip fenced code blocks AND inline code spans before pattern-matching.
+# Docs about bad patterns (like mdx-gotchas.mdx) intentionally contain example
+# bad strings inside code fences/spans — those should not be flagged.
+strip_code_content() {
+  awk 'BEGIN{in_block=0}
+    /^```/{in_block=!in_block; next}
+    !in_block{gsub(/`[^`]*`/, "INLINE_CODE"); print}' "$1"
+}
+
+# Build list of all mdx files once
+MDX_FILES=()
+while IFS= read -r -d '' f; do
+  MDX_FILES+=("$f")
+done < <(find "$TARGET" -name "*.mdx" -print0 2>/dev/null)
+
 # Gotcha 1 — Unicode checkbox characters
 echo ""
-echo "[1/4] Checking for Unicode checkboxes (☐, □)..."
-HITS=$(grep -rn --include='*.mdx' -E "☐|□" "$TARGET" 2>/dev/null || true)
+echo "[1/4] Checking for Unicode checkboxes..."
+HITS=""
+for f in "${MDX_FILES[@]}"; do
+  MATCH=$(strip_code_content "$f" | grep -nE "☐|□" || true)
+  if [ -n "$MATCH" ]; then
+    while IFS= read -r line; do
+      HITS="${HITS}${f}:${line}"$'\n'
+    done <<< "$MATCH"
+  fi
+done
 if [ -n "$HITS" ]; then
-  echo "❌ Found Unicode checkbox characters — replace with '- [ ]':"
+  echo "FAIL: Found Unicode checkbox characters — replace with '- [ ]':"
   echo "$HITS"
   ERRORS=$((ERRORS + 1))
 else
-  echo "✅ No Unicode checkboxes."
+  echo "PASS: No Unicode checkboxes."
 fi
 
 # Gotcha 2 — <NUMBER% parsed as JSX
 echo ""
-echo "[2/4] Checking for <NUMBER% patterns..."
-HITS=$(grep -rn --include='*.mdx' -E "<[0-9]" "$TARGET" 2>/dev/null || true)
+echo "[2/4] Checking for <NUMBER patterns..."
+HITS=""
+for f in "${MDX_FILES[@]}"; do
+  MATCH=$(strip_code_content "$f" | grep -nE "<[0-9]" || true)
+  if [ -n "$MATCH" ]; then
+    while IFS= read -r line; do
+      HITS="${HITS}${f}:${line}"$'\n'
+    done <<< "$MATCH"
+  fi
+done
 if [ -n "$HITS" ]; then
-  echo "❌ Found <NUMBER patterns — rephrase 'under N' or 'dưới N':"
+  echo "FAIL: Found <NUMBER patterns — rephrase 'under N' or 'duoi N':"
   echo "$HITS"
   ERRORS=$((ERRORS + 1))
 else
-  echo "✅ No <NUMBER patterns."
+  echo "PASS: No <NUMBER patterns."
 fi
 
 # Gotcha 3 — Missing frontmatter (title or description)
 echo ""
 echo "[3/4] Checking frontmatter (title + description required)..."
 MISSING=()
-while IFS= read -r -d '' f; do
+for f in "${MDX_FILES[@]}"; do
   HEAD=$(head -10 "$f")
   if ! echo "$HEAD" | grep -q "^title:"; then
     MISSING+=("$f: missing 'title:'")
@@ -46,34 +77,41 @@ while IFS= read -r -d '' f; do
   if ! echo "$HEAD" | grep -q "^description:"; then
     MISSING+=("$f: missing 'description:'")
   fi
-done < <(find "$TARGET" -name "*.mdx" -print0 2>/dev/null)
+done
 
 if [ ${#MISSING[@]} -gt 0 ]; then
-  echo "❌ Missing frontmatter fields:"
+  echo "FAIL: Missing frontmatter fields:"
   printf '  %s\n' "${MISSING[@]}"
   ERRORS=$((ERRORS + 1))
 else
-  echo "✅ All MDX files have title + description."
+  echo "PASS: All MDX files have title + description."
 fi
 
-# Gotcha 4 — Vietnamese ASCII (heuristic: Vietnamese-pattern words without diacritics)
+# Gotcha 4 — Vietnamese ASCII (heuristic: warning only, does not fail build)
 echo ""
 echo "[4/4] Quick heuristic for ASCII-only Vietnamese (low-confidence)..."
-# Look for suspicious "phong ngu", "Ho tro", "Gia", etc. — warning only, does not fail
-WARN=$(grep -rn --include='*.mdx' -E "phong ngu|Ho tro|Tu [A-Z]|Gia [0-9]" "$TARGET" 2>/dev/null || true)
+WARN=""
+for f in "${MDX_FILES[@]}"; do
+  MATCH=$(strip_code_content "$f" | grep -nE "phong ngu|Ho tro|Tu [A-Z]|Gia [0-9]" || true)
+  if [ -n "$MATCH" ]; then
+    while IFS= read -r line; do
+      WARN="${WARN}${f}:${line}"$'\n'
+    done <<< "$MATCH"
+  fi
+done
 if [ -n "$WARN" ]; then
-  echo "⚠️  Possible ASCII-only Vietnamese (verify manually):"
+  echo "WARN: Possible ASCII-only Vietnamese (verify manually):"
   echo "$WARN"
 else
-  echo "✅ No obvious ASCII Vietnamese patterns."
+  echo "PASS: No obvious ASCII Vietnamese patterns."
 fi
 
 echo ""
 echo "=== Summary ==="
 if [ $ERRORS -eq 0 ]; then
-  echo "✅ ALL CHECKS PASSED — safe to commit/push."
+  echo "ALL CHECKS PASSED — safe to commit/push."
   exit 0
 else
-  echo "❌ $ERRORS check(s) failed — fix before commit/push."
+  echo "FAILED: $ERRORS check(s) failed — fix before commit/push."
   exit 1
 fi

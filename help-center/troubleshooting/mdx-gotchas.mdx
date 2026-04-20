@@ -1,0 +1,224 @@
+---
+title: "MDX Gotchas — Common Parse Errors & Fixes"
+description: "Catalog of MDX syntax errors that break Documentation.AI builds, with causes and fixes for each."
+icon: "triangle-alert"
+last_reviewed: "2026-04-20"
+---
+
+## Overview
+
+Documentation.AI builds are **all-or-nothing**: one broken `.mdx` file causes the entire site to fail. This page catalogs every known parse error, its root cause, and the exact fix.
+
+<Callout kind="warning">
+Always run `bash scripts/pre-commit-check.sh` before pushing. It catches gotchas 1–3 automatically.
+</Callout>
+
+---
+
+## Gotcha 1 — Unicode Checkbox Characters
+
+**Symptom:** Page renders with empty squares `□` instead of checkboxes.
+
+**Cause:** Unicode characters `☐` and `□` are not rendered by Documentation.AI's MDX engine. They appear as empty squares or break layout.
+
+**Bad:**
+```
+☐ Read CLAUDE.md
+□ Check task-board
+```
+
+**Fix:** Use standard Markdown task list syntax:
+```
+- [ ] Read CLAUDE.md
+- [ ] Check task-board
+```
+
+**Detected by:** `pre-commit-check.sh` check 1 — grep for `☐|□`
+
+---
+
+## Gotcha 2 — JSX Tag Collision with Numbers
+
+**Symptom:** Build error: `Unexpected token`, `JSX parse error`, or page goes blank.
+
+**Cause:** MDX parses `<NUMBER` as the opening of a JSX tag. Any pattern matching `<` followed immediately by a digit (e.g., `<20%`, `<5 years`) triggers a JSX parse attempt and fails.
+
+**Bad:**
+```
+Lãi suất <6% là tốt cho người mua nhà.
+Response time <3 seconds.
+Agents with <5 tasks pending.
+```
+
+**Fix:** Rephrase to avoid the `<[digit]` pattern:
+```
+Lãi suất dưới 6% là tốt cho người mua nhà.
+Response time under 3 seconds.
+Agents with fewer than 5 tasks pending.
+```
+
+Or use the HTML entity for less-than:
+```
+Lãi suất &lt;6% là tốt.
+```
+
+**Detected by:** `pre-commit-check.sh` check 2 — grep for `<[0-9]`
+
+---
+
+## Gotcha 3 — Missing Frontmatter
+
+**Symptom:** Page renders with no title in sidebar, or build fails with `frontmatter required` error.
+
+**Cause:** Documentation.AI requires `title` and `description` fields in YAML frontmatter at the top of every `.mdx` file.
+
+**Bad — missing frontmatter:**
+```mdx
+## My Page
+
+Content here.
+```
+
+**Bad — incomplete frontmatter:**
+```mdx
+---
+title: "My Page"
+---
+
+Content here.
+```
+
+**Fix:** Always include both required fields at the very top of the file:
+```mdx
+---
+title: "My Page"
+description: "One-line summary for SEO and search preview."
+---
+
+## First Heading
+
+Content here.
+```
+
+**Optional recommended fields:**
+```yaml
+icon: "icon-name"        # Lucide icon name
+last_reviewed: "2026-04-20"
+```
+
+**Detected by:** `pre-commit-check.sh` check 3 — scans first 10 lines for `title:` and `description:`
+
+---
+
+## Gotcha 4 — Unsupported Components
+
+**Symptom:** Build error referencing an unknown component, or component renders as raw text.
+
+**Cause:** Documentation.AI only supports a specific whitelist of components. Using anything outside this list breaks the build.
+
+**Supported components:**
+
+| Component | Usage |
+|-----------|-------|
+| `<Callout kind="info|warning|error">` | Highlighted notes |
+| `<Steps>` / `<Step title="...">` | Numbered step sequences |
+| `<Tabs>` / `<Tab title="...">` | Tabbed content |
+| `<Columns>` | Side-by-side layout |
+| `<Card>` | Info card |
+| Code blocks (triple backtick) | Syntax-highlighted code |
+| Tables (Markdown pipe syntax) | Data tables |
+
+**Not supported (will break build):**
+
+| Component | Alternative |
+|-----------|-------------|
+| `<CardGroup>` | Use `<Columns>` |
+| `<Accordion>` | Use `<Steps>` or plain headings |
+| Mermaid diagrams | Use ASCII art or plain description |
+| Custom JSX components | Not supported — use only whitelisted components |
+
+---
+
+## Gotcha 5 — Vietnamese Without Full Diacritics
+
+**Symptom:** Page renders with garbled or incorrect Vietnamese text. Search results return wrong pages.
+
+**Cause:** Documentation.AI does not normalize Unicode. ASCII-only Vietnamese (`phong ngu`, `Ho tro`) is stored and indexed as-is — wrong phonetically and semantically.
+
+**Bad:**
+```
+So phong ngu: 3
+Ho tro nguoi mua nha
+```
+
+**Fix:** Always write full diacritics in source:
+```
+Số phòng ngủ: 3
+Hỗ trợ người mua nhà
+```
+
+**Detected by:** `pre-commit-check.sh` check 4 (heuristic — low confidence, verify manually)
+
+---
+
+## Gotcha 6 — Path Mismatch in `documentation.json`
+
+**Symptom:** Page exists but does not appear in sidebar, or clicking nav link shows 404.
+
+**Cause:** The `path` field in `documentation.json` must match the file path **without** the `.mdx` extension.
+
+**Bad `documentation.json` entry:**
+```json
+{ "path": "help-center/troubleshooting/mdx-gotchas.mdx" }
+```
+
+**Fix:**
+```json
+{ "path": "help-center/troubleshooting/mdx-gotchas" }
+```
+
+**Note:** `documentation.json` is owned by Win 1 (Lead). If you add a new page, submit a Cross-Scope Request in `plans/task-board.md`.
+
+---
+
+## Gotcha 7 — H1 Heading Conflict
+
+**Symptom:** Page shows double title (frontmatter title + H1 from content).
+
+**Cause:** Documentation.AI renders `title` from frontmatter as the H1 automatically. Adding `# Title` inside the MDX body creates a duplicate.
+
+**Bad:**
+```mdx
+---
+title: "My Page"
+---
+
+# My Page
+
+Content here.
+```
+
+**Fix:** Start body content at `##` (H2):
+```mdx
+---
+title: "My Page"
+---
+
+## First Section
+
+Content here.
+```
+
+---
+
+## Quick Reference Table
+
+| # | Pattern | Symptom | Fix |
+|---|---------|---------|-----|
+| 1 | `☐` or `□` | Empty squares render | Use `- [ ]` |
+| 2 | `<[digit]` | JSX parse error / blank page | Rephrase: "under N", "fewer than N" |
+| 3 | Missing `title:` or `description:` | Build fail / no sidebar entry | Add full frontmatter |
+| 4 | Unsupported component | Build error / raw text | Use only whitelisted components |
+| 5 | ASCII Vietnamese | Wrong text / bad search | Write full Unicode diacritics |
+| 6 | `.mdx` in `documentation.json` path | 404 / missing from nav | Remove `.mdx` extension from path |
+| 7 | `# H1` in body | Duplicate title | Start at `## H2` |

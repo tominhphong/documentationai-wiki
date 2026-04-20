@@ -24,10 +24,7 @@ _(all claimed — see IN-PROGRESS)_
 
 ### Win 4 — Reference & QA
 
-- [ ] **W4-01** Write `scripts/pre-commit-check.sh` — bash script running 3 greps (`☐`, `<[0-9]`, missing frontmatter) + exit non-zero on any hit.
-- [ ] **W4-02** Write `help-center/troubleshooting/mdx-gotchas.mdx` — catalog of MDX parse errors with fixes.
-- [ ] **W4-03** Write `knowledge-qa/multi-agent-faq.mdx` — FAQ: "What if two agents claim the same task?", "How do I update documentation.json?", "What if pre-commit fails?".
-- [ ] **W4-04** Run validation pass on all existing `.mdx` files → log any gotchas found in `plans/findings.md`.
+_(claimed — see IN-PROGRESS)_
 
 ---
 
@@ -39,16 +36,23 @@ _(empty — all active work moved to REVIEW)_
 
 ## 🔵 REVIEW
 
-### Win 2 — Framework Author
+### Win 2 — Framework Author (MERGED to main)
 
-- [R] **W2-01** [win2] Expanded `agent-os-overview/introduction.mdx` — added "Tại sao hệ thống này tồn tại" section
-- [R] **W2-02** [win2] Created `agent-os-overview/multi-agent-collaboration.mdx` — 4-agent model, file ownership, task flow, cross-scope protocol
-- [R] **W2-03** [win2] Expanded `core-rules/global-operating-rules.mdx` — added Luật 7 (YAGNI/KISS/DRY) with Phong workflow examples
-- [R] **W2-04** [win2] Created `core-rules/file-ownership-rules.mdx` — ownership map, cross-scope request flow, conflict resolution
+- [x] **W2-01** Expanded `agent-os-overview/introduction.mdx`
+- [x] **W2-02** Created `agent-os-overview/multi-agent-collaboration.mdx`
+- [x] **W2-03** Expanded `core-rules/global-operating-rules.mdx` (YAGNI/KISS/DRY)
+- [x] **W2-04** Created `core-rules/file-ownership-rules.mdx`
 
 ### Win 3 — Workflow Writer
 
-- [R] **W3-01** [win3] Expanded `workflows/content-workflow.mdx` — added Steps component, cross-linked to core-rules/content-creation-rules
+- [x] **W3-01** Expanded `workflows/content-workflow.mdx` — Steps component (MERGED)
+
+### Win 4 — Reference & QA
+
+- [R] **W4-01** `scripts/pre-commit-check.sh` — improved with `strip_code_content()` (merging now)
+- [R] **W4-02** `help-center/troubleshooting/mdx-gotchas.mdx` — 7 gotchas (merging now)
+- [R] **W4-03** `knowledge-qa/multi-agent-faq.mdx` — 12 FAQ entries (merging now)
+- [R] **W4-04** Full validation pass — 31 files, 0 errors (merging now)
 
 ---
 
@@ -78,16 +82,26 @@ Patch:
 Status: pending | applied | rejected
 ```
 
+### [2026-04-20 00:35] [win4 → win1] Add W4 pages to documentation.json nav
+Reason: 2 new pages created by Win 4 need sidebar entries to be discoverable.
+Patch: Add to `documentation.json` under their respective groups:
+  1. Under help-center/troubleshooting group:
+     `{ "title": "MDX Gotchas", "path": "help-center/troubleshooting/mdx-gotchas" }`
+  2. Under knowledge-qa group:
+     `{ "title": "Multi-Agent FAQ", "path": "knowledge-qa/multi-agent-faq" }`
+Status: pending
+
 ---
 
 ## 📊 Sprint 1 Burn-Down
 
 - Total tasks: 12 (4 per worker)
-- Claimed: 0
+- Claimed: 4 (Win 4)
 - In progress: 0
+- Review: 4 (Win 4 — W4-01 through W4-04)
 - Done: 1 (scaffold)
 - Target: All TODO → DONE by end of Sprint 1
 
 ---
 
-**Last updated:** 2026-04-20 by Win 1
+**Last updated:** 2026-04-20 by Win 4
