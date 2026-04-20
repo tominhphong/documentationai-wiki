@@ -1,0 +1,41 @@
+# CODEOWNERS — documentationai-wiki
+#
+# File ownership per agent. Enforced manually by agents reading this file.
+# GitHub username notation used for clarity; actual enforcement is agent self-discipline.
+#
+# Conflict resolution: cross-scope edits go through Win 1 via plans/task-board.md → "Cross-Scope Requests".
+
+# ==== Win 1 — Lead Architect ====
+/CLAUDE.md                @win1
+/AGENTS.md                @win1
+/CODEOWNERS               @win1
+/plans/                   @win1
+/documentation.json       @win1
+/openapi.yaml             @win1
+/components/              @win1
+/introduction.mdx         @win1
+/quickstart.mdx           @win1
+/concepts.mdx             @win1
+/authentication.mdx       @win1
+/components.mdx           @win1
+/changelog.mdx            @win1
+/help-center.mdx          @win1
+/notice.mdx               @win1
+
+# ==== Win 2 — Framework Author ====
+/agent-os-overview/       @win2
+/core-rules/              @win2
+
+# ==== Win 3 — Workflow Writer ====
+/workflows/               @win3
+/agent-instructions/      @win3
+
+# ==== Win 4 — Reference & QA ====
+/help-center/             @win4
+/knowledge-qa/            @win4
+/scripts/                 @win4
+
+# ==== Shared (append-only) ====
+# plans/progress.md       — any agent may APPEND entries
+# plans/findings.md       — any agent may APPEND entries
+# (still owned by Win 1 for structural changes)
