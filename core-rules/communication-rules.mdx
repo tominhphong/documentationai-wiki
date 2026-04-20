@@ -1,0 +1,218 @@
+---
+title: "Communication Rules"
+description: "Cách các agents giao tiếp: filesystem-based, no runtime IPC, cross-scope protocol, commit message conventions"
+---
+
+## Nguyên tắc cốt lõi — Filesystem là IPC
+
+Hệ thống multi-agent này **không có real-time communication**. Không có shared memory, không có message queue, không có WebSocket, không có API nội bộ giữa các agents.
+
+Mọi thông tin di chuyển giữa agents đều đi qua:
+
+- **Git commits** — mỗi commit là một "message" với nội dung thay đổi và ngữ cảnh tại sao
+- **Markdown files trong `plans/`** — task assignment, status, cross-scope requests, findings
+- **`documentation.json`** — source of truth cho nav structure, owned bởi Win 1
+
+Kiến trúc này có ba hệ quả quan trọng:
+
+**Tuần tự hoá qua git history.** Mọi thay đổi đều có timestamp, author, và message. Không có race condition vì git merge là step tường minh — không tự động.
+
+**Auditable.** `git log --grep="S2-W"` hiện toàn bộ việc sprint đã làm, theo thứ tự. Không cần meeting hay status call.
+
+**Replayable.** Nếu một agent cần biết quyết định thiết kế của agent khác, đọc commit message và file content là đủ — không cần hỏi lại.
+
+<Callout kind="info">
+"Filesystem as IPC" không phải limitation — đây là design choice. Mỗi agent làm việc độc lập trong branch của mình. Không ai block ai vì không có real-time dependency.
+</Callout>
+
+
+## Channels giao tiếp
+
+Mỗi loại thông tin có channel riêng. Agents không được dùng channel sai mục đích.
+
+| Channel | File / Pattern | Dùng cho |
+|---------|----------------|----------|
+| Task assignment | `plans/task-board-sprint-*.md` | Claim task, cập nhật status `[ ]` → `[>]` → `[x]` |
+| Cross-scope request | `plans/cross-scope-sprint-*.md` | Xin phép edit file ngoài scope của mình |
+| Commit messages | Convention format (xem bên dưới) | Ghi lại what + why của mỗi thay đổi |
+| Branch names | `winN-<role>` | Identify owner của mỗi branch |
+| File ownership | `CODEOWNERS` (root repo) | Nguồn sự thật duy nhất về ai own gì |
+| Shared logs | `plans/progress.md`, `plans/findings.md` | Append-only: tiến độ, gotchas học được |
+
+**Không có channel broadcast.** Không có cách nào để một agent "nhắn" cho tất cả agents khác cùng lúc. Đây là intentional — broadcast tạo noise và dependencies không cần thiết.
+
+
+## Commit message conventions
+
+Mọi worker phải tuân thủ format này cho tất cả commits. Không có ngoại lệ.
+
+**Format:**
+
+```
+<type>(<task-id>): <mô tả ngắn gọn>
+```
+
+**Types được phép:**
+
+| Type | Khi nào dùng |
+|------|-------------|
+| `feat` | Tạo file mới hoặc thêm tính năng mới |
+| `fix` | Sửa lỗi (MDX parse error, broken link, sai content) |
+| `docs` | Cập nhật nội dung tài liệu đã có (expand, refine) |
+| `refactor` | Cấu trúc lại mà không thay đổi meaning |
+| `test` | Thêm hoặc sửa scripts test |
+| `chore` | Thay đổi meta: config, CI, tooling — **không dùng cho content** |
+
+**Task ID format:** `S<sprint>-W<win>-<NN>`
+
+Ví dụ: `S2-W2-03` = Sprint 2, Win 2, task số 03.
+
+**Ví dụ commit messages thực tế:**
+
+```bash
+feat(S2-W2-01): expand architecture.mdx with coordination loop diagram
+
+feat(S2-W3-01): add debugging-workflow with 6-step diagnosis flow
+
+fix(S2-W4-02): resolve MDX JSX collision in getting-started.mdx
+
+docs(S2-W2-03): add communication-rules with channels and cross-scope protocol
+
+chore(S2-W1-01): add mdx-validate CI workflow on PR
+```
+
+**Quy tắc bắt buộc:**
+
+- Không viết AI references trong commit message ("as requested by Claude", "AI-generated", etc.)
+- Không dùng `chore` cho file content thay đổi — dùng `feat` (file mới) hoặc `docs` (update existing)
+- Task ID bắt buộc trong ngoặc — không có task ID = commit bị reject khi Win 1 merge
+
+
+## Cross-scope protocol
+
+Khi một worker cần edit file ngoài scope của mình, không được tự edit. Quy trình 4 bước:
+
+<Steps>
+
+<Step title="Bước 1 — Worker phát hiện nhu cầu">
+
+Trong quá trình thực hiện task, worker nhận ra cần thay đổi file ngoài scope (ví dụ: Win 2 tạo page mới và cần thêm path vào `documentation.json` — nhưng `documentation.json` là của Win 1).
+
+Worker viết rõ:
+- File nào cần thay đổi
+- Thay đổi cụ thể là gì (inline diff hoặc mô tả rõ ràng đủ để Win 1 apply mà không cần hỏi lại)
+- Lý do tại sao cần thay đổi đó
+
+</Step>
+
+<Step title="Bước 2 — Append request vào cross-scope file">
+
+Mở `plans/cross-scope-sprint-2.md`, append vào section `## Pending` theo template:
+
+```
+### [YYYY-MM-DD HH:MM] [winN → win1] Tên ngắn gọn
+Reason: Tại sao cần thay đổi này
+Patch:
+- file: path/to/file
+- change: Mô tả cụ thể hoặc diff
+Status: pending
+```
+
+Ví dụ thực tế:
+
+```
+### [2026-04-20 14:27] [win2 → win1] Add communication-rules to nav
+Reason: New page core-rules/communication-rules.mdx created in S2-W2-03
+Patch:
+- file: documentation.json
+- change: Add {"title": "Communication Rules", "path": "core-rules/communication-rules",
+  "icon": "message-square"} vào group "Core Rules" sau entry "core-rules/file-ownership-rules"
+Status: pending
+```
+
+</Step>
+
+<Step title="Bước 3 — Commit request và tiếp tục làm việc">
+
+Commit file `plans/cross-scope-sprint-2.md` với message:
+
+```bash
+git add plans/cross-scope-sprint-2.md
+git commit -m "chore(S2-W2-03): cross-scope request communication-rules nav"
+git push origin win2-framework
+```
+
+**Không chờ.** Tiếp tục claim task tiếp theo ngay. Win 1 xử lý cross-scope request trong lần sync tiếp — không phải real-time.
+
+</Step>
+
+<Step title="Bước 4 — Win 1 apply và mark applied">
+
+Win 1 đọc `plans/cross-scope-sprint-2.md`, apply patch vào file đúng scope, rồi cập nhật status:
+
+```
+Status: **applied** (commit SHA: abc1234)
+```
+
+Nếu reject (lý do: conflict, incorrect patch, etc.), Win 1 đổi thành:
+
+```
+Status: **rejected** — <lý do>
+```
+
+Worker cần check status trước lần deploy để biết nav đã được update chưa.
+
+</Step>
+
+</Steps>
+
+
+## Khi nào escalate lên Brain (Win 1)
+
+Không phải mọi vấn đề đều cần escalate. Nhưng có 3 trường hợp **phải** báo cho Win 1:
+
+<Callout kind="warning">
+**Stuck trên 30 phút trên một task.** Không tiếp tục mày mò. Append `BLOCKED` tag vào `plans/cross-scope-sprint-2.md` với mô tả lỗi và những gì đã thử. Tiếp tục task khác nếu có thể.
+</Callout>
+
+**Trường hợp 1 — Stuck trên 30 phút**
+
+Đã thử các approach khác nhau, đã đọc docs liên quan, vẫn bị chặn. Ghi rõ: task ID, mô tả lỗi, những gì đã thử, thời gian đã bỏ ra.
+
+**Trường hợp 2 — Conflict giữa 2 workers**
+
+Hai workers đều claim cùng một file, hoặc phát hiện commit của worker kia đã làm hỏng file mình đang làm. Không tự resolve — đây là quyết định của Win 1.
+
+**Trường hợp 3 — Scope ambiguity**
+
+File cần tạo hoặc edit không rõ thuộc scope nào theo `CODEOWNERS`. Ví dụ: file mới hoàn toàn chưa có trong CODEOWNERS, hoặc path có thể thuộc Win 2 hoặc Win 3 tùy cách đọc.
+
+Mặc định: file chưa assigned trong CODEOWNERS thuộc Win 1 cho đến khi được giao rõ ràng.
+
+**Format escalate:**
+
+```
+### [2026-04-20 14:30] [win2 → win1] BLOCKED: mô tả ngắn
+Reason: <mô tả lỗi và những gì đã thử>
+Files affected: <list>
+Time spent: X phút
+Status: BLOCKED
+```
+
+
+## Anti-patterns
+
+| Đừng làm | Tại sao |
+|-----------|---------|
+| Push thẳng lên `main` (trừ Win 1/Brain) | Main là stable branch — mọi thay đổi phải qua PR flow để Win 1 review và merge |
+| Edit file ngoài scope của mình | Tạo merge conflict, phá context của owner file đó, vi phạm CODEOWNERS |
+| Commit mà không có task ID | Win 1 không thể trace commit về task → không merge được |
+| Dùng "broadcast" (notify mọi agent) | Không có channel broadcast — và không cần thiết vì agents làm việc async |
+| Silent fail — stuck mà không báo | Build fail mà không có trace → debug tốn nhiều thời gian hơn; luôn append BLOCKED nếu stuck trên 30 phút |
+| Dùng `chore` type cho content files | `chore` dành cho tooling/config — content mới là `feat`, cập nhật content là `docs` |
+
+
+## Read next
+
+- [File Ownership Rules](/core-rules/file-ownership-rules) — chi tiết về CODEOWNERS và conflict resolution
+- [Debugging Workflow](/workflows/debugging-workflow) — khi build fail, cách diagnosis và escalate

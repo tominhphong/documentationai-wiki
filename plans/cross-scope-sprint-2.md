@@ -17,7 +17,12 @@ Status: pending | applied (commit SHA)
 
 ## Pending
 
-_(empty — all requests applied)_
+### [2026-04-20 14:27] [win2 → win1] Add communication-rules to nav
+Reason: New page core-rules/communication-rules.mdx created in S2-W2-03
+Patch:
+- file: documentation.json
+- change: Add `{"title": "Communication Rules", "path": "core-rules/communication-rules", "icon": "message-square"}` vào group "Core Rules" sau entry "core-rules/file-ownership-rules"
+Status: pending
 
 ## Applied
 
