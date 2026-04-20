@@ -1,0 +1,156 @@
+---
+title: "Multi-Agent Collaboration"
+description: "Mô hình 4-agent team cho wiki này — Lead Architect (Win 1) + 3 workers (Win 2/3/4). File ownership, task claiming, và cross-scope protocol."
+icon: "users"
+last_reviewed: "2026-04-20"
+---
+
+## Tổng quan mô hình
+
+Wiki này được xây và duy trì bởi một team 4 agents chạy song song trên 4 iTerm2 windows (Win 1–4), mỗi agent là một instance `claude` CLI độc lập. Không có runtime communication giữa các agents — tất cả coordination thông qua filesystem (git + markdown files trong `plans/`).
+
+Mô hình này là ví dụ thực tế của **multi-agent collaboration** được document trong chính wiki này.
+
+<Callout kind="info">
+Trước khi bất kỳ agent nào bắt đầu làm việc: đọc `AGENTS.md` để xác nhận role, đọc `CODEOWNERS` để xác nhận scope, đọc `plans/task-board.md` để claim task.
+</Callout>
+
+
+## 4 Roles
+
+### Win 1 — Lead Architect
+
+**Model:** Opus 4.7 (orchestration brain)
+**Branch:** `main` (trực tiếp, không worktree riêng)
+
+Trách nhiệm chính:
+- Scaffold repo structure, define brand voice, MDX conventions
+- Audit content, tạo tasks trong task-board, assign cho workers
+- Review và merge PRs từ Win 2/3/4
+- Cập nhật `documentation.json` khi có page mới
+- Resolve cross-scope conflicts
+- Verify deploy sau mỗi merge
+
+**File ownership:** `CLAUDE.md`, `AGENTS.md`, `CODEOWNERS`, `plans/`, `documentation.json`, `openapi.yaml`, top-level `*.mdx`, `components/`
+
+---
+
+### Win 2 — Framework Author
+
+**Model:** Sonnet 4.6
+**Branch:** `win2-framework` (worktree riêng)
+
+Trách nhiệm chính:
+- Document Agent OS framework — triết lý, luật, nguyên tắc
+- Giải thích YAGNI/KISS/DRY áp dụng vào workflow của Phong
+- Maintain consistency giữa `agent-os-overview/` và `core-rules/`
+
+**File ownership:** `agent-os-overview/*.mdx`, `core-rules/*.mdx`
+
+---
+
+### Win 3 — Workflow Writer
+
+**Model:** Sonnet 4.6
+**Branch:** `win3-workflow` (worktree riêng)
+
+Trách nhiệm chính:
+- Viết workflow how-tos (planning, TDD, review, debug, multi-agent)
+- Viết agent role prompts (universal + role-specific templates)
+- Cross-reference đến Core Rules (Win 2 scope) qua relative links
+
+**File ownership:** `workflows/*.mdx`, `agent-instructions/*.mdx`
+
+---
+
+### Win 4 — Reference & QA
+
+**Model:** Sonnet 4.6
+**Branch:** `win4-reference-qa` (worktree riêng)
+
+**Dual role:**
+
+**(A) Content:** FAQ, troubleshooting guides, quick-reference tables cho `help-center/` và `knowledge-qa/`
+
+**(B) QA Gate:** Chạy pre-commit validation trên tất cả incoming PRs trước khi Win 1 merge. Nếu file nào fail → reject với feedback trong task-board.
+
+**File ownership:** `help-center/*.mdx`, `knowledge-qa/*.mdx`, `scripts/pre-commit-check.sh`
+
+
+## File Ownership là bất khả xâm phạm
+
+Mỗi module folder được assign cho một agent duy nhất. Không được edit file ngoài scope của mình — kể cả khi "chỉ sửa một chút".
+
+Lý do:
+- Parallel agents có thể cùng modify một file → merge conflicts → build fail
+- Agent thiếu context về quyết định thiết kế của owner → edit không nhất quán
+- Win 4 chỉ QA code của người khác, không edit — giữ nguyên tắc separation of concerns
+
+Chi tiết đầy đủ trong `CODEOWNERS` và page [File Ownership Rules](/core-rules/file-ownership-rules).
+
+
+## Task Claiming Flow
+
+Agents không tự chọn task tùy ý. Flow chuẩn:
+
+<Steps>
+### Đọc task-board
+Mở `plans/task-board.md`, tìm task trong **TODO** phù hợp với role của mình.
+
+### Claim task
+Move task sang **IN-PROGRESS** và thêm tag `[winN]`. Commit thay đổi ngay để signal cho các agents khác.
+
+### Làm việc
+Thực thi task trong worktree branch của mình. Commit thường xuyên với conventional commit messages.
+
+### Push + chuyển sang REVIEW
+Push branch, move task sang **REVIEW** trong task-board, append vào `plans/progress.md`.
+
+### Win 4 validate
+Win 4 pull branch, chạy `scripts/pre-commit-check.sh`, comment kết quả trong task-board.
+
+### Win 1 merge
+Nếu QA pass, Win 1 merge vào `main`, move task sang **DONE**, verify deploy.
+</Steps>
+
+
+## Cross-Scope Requests
+
+Khi agent cần chỉnh một file ngoài scope của mình (VD: Win 2 cần thêm page vào `documentation.json`), **không được tự edit**. Thay vào đó:
+
+1. Vào `plans/task-board.md` section `## Cross-Scope Requests`
+2. Thêm entry theo format:
+
+```
+### [YYYY-MM-DD HH:MM] [winN → win1] <short title>
+Reason: <why this edit is needed>
+Patch:
+<inline diff or clear instructions>
+Status: pending
+```
+
+3. Win 1 apply patch → đổi Status thành `applied`
+
+Ví dụ thực tế: khi Win 2 tạo page mới `core-rules/file-ownership-rules.mdx`, Win 2 viết cross-scope request để Win 1 thêm path vào `documentation.json`.
+
+
+## Coordination qua Filesystem
+
+Agents không có shared memory hay runtime IPC. Tất cả state nằm trong ba files:
+
+| File | Mục đích | Update khi nào |
+|------|----------|----------------|
+| `plans/task-board.md` | Kanban trạng thái tasks | Mỗi khi claim, move, hoặc complete task |
+| `plans/progress.md` | Activity log append-only | Sau mỗi commit |
+| `plans/findings.md` | Gotchas, blockers, decisions | Khi phát hiện vấn đề hoặc ra quyết định quan trọng |
+
+**Context freshness rule:** Mỗi 3–5 tasks, re-read `plans/progress.md` để sync với work của agents khác.
+
+
+## Sprint 1 Success Criteria
+
+- [ ] Tất cả 4 agents claim ≥1 task
+- [ ] ≥3 `.mdx` pages mới tạo hoặc expand đáng kể
+- [ ] Zero file-ownership violations
+- [ ] Tất cả pre-commit validations pass trước khi merge
+- [ ] Deploy verified live trong vòng 2 giờ kể từ khi bắt đầu Sprint 1

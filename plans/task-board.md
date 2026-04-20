@@ -14,10 +14,7 @@
 
 ### Win 2 — Framework Author
 
-- [ ] **W2-01** Audit `agent-os-overview/introduction.mdx` — verify it covers: (a) what Agent OS is, (b) why it exists, (c) who benefits. Expand if gap.
-- [ ] **W2-02** Write `agent-os-overview/multi-agent-collaboration.mdx` — new page explaining 4-agent model (Lead + 3 Workers), file ownership, cross-scope protocol. Reference this task-board as living example.
-- [ ] **W2-03** Expand `core-rules/global-operating-rules.mdx` — add section on YAGNI/KISS/DRY with concrete examples from Phong's workflow.
-- [ ] **W2-04** Write `core-rules/file-ownership-rules.mdx` — new page. Scope: why strict ownership, how to handle cross-scope, conflict resolution.
+_(all claimed — see IN-PROGRESS)_
 
 ### Win 3 — Workflow Writer
 
@@ -37,13 +34,18 @@
 
 ## 🟡 IN-PROGRESS
 
-_(empty — first agent to claim, move task here)_
+_(empty)_
 
 ---
 
 ## 🔵 REVIEW
 
-_(empty — PRs awaiting Win 4 QA + Win 1 merge)_
+### Win 2 — Framework Author
+
+- [R] **W2-01** [win2] Expanded `agent-os-overview/introduction.mdx` — added "Tại sao hệ thống này tồn tại" section
+- [R] **W2-02** [win2] Created `agent-os-overview/multi-agent-collaboration.mdx` — 4-agent model, file ownership, task flow, cross-scope protocol
+- [R] **W2-03** [win2] Expanded `core-rules/global-operating-rules.mdx` — added Luật 7 (YAGNI/KISS/DRY) with Phong workflow examples
+- [R] **W2-04** [win2] Created `core-rules/file-ownership-rules.mdx` — ownership map, cross-scope request flow, conflict resolution
 
 ---
 
@@ -55,7 +57,14 @@ _(empty — PRs awaiting Win 4 QA + Win 1 merge)_
 
 ## 📨 Cross-Scope Requests
 
-_(Win 2/3/4: if you need to edit a file outside your scope, add an entry here — Win 1 will apply.)_
+### [2026-04-20 00:45] [win2 → win1] Add 2 new pages to documentation.json
+Reason: Created `agent-os-overview/multi-agent-collaboration.mdx` and `core-rules/file-ownership-rules.mdx`
+Patch:
+In `documentation.json`, under `agent-os-overview` group, add after `components-and-tools`:
+  `{ "path": "agent-os-overview/multi-agent-collaboration" }`
+In `documentation.json`, under `core-rules` group, add after `global-operating-rules`:
+  `{ "path": "core-rules/file-ownership-rules" }`
+Status: pending
 
 Format:
 ```
