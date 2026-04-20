@@ -15,3 +15,10 @@
 ---
 
 _(Workers: append new entries below. One line per commit. Be concise — context lives in git log, not here.)_
+
+- [2026-04-20 00:20] [win4] Claimed W4-01 through W4-04 in plans/task-board.md
+- [2026-04-20 00:22] [win4] Verified W4-01 (pre-commit-check.sh) — script already scaffolded by Win 1, complete with 4 checks
+- [2026-04-20 00:25] [win4] Created help-center/troubleshooting/mdx-gotchas.mdx (W4-02) — 7 gotchas with causes, bad/fix examples, quick-reference table
+- [2026-04-20 00:27] [win4] Created knowledge-qa/multi-agent-faq.mdx (W4-03) — 12 FAQ entries covering task ownership, documentation.json, pre-commit, coordination
+- [2026-04-20 00:30] [win4] Improved scripts/pre-commit-check.sh — added strip_code_content() to skip fenced blocks + inline code spans, preventing false positives in QA docs
+- [2026-04-20 00:32] [win4] Ran full validation pass on all 31 .mdx files (W4-04) — ALL CHECKS PASSED; logged insights in plans/findings.md

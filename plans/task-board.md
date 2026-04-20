@@ -28,22 +28,24 @@
 
 ### Win 4 — Reference & QA
 
-- [ ] **W4-01** Write `scripts/pre-commit-check.sh` — bash script running 3 greps (`☐`, `<[0-9]`, missing frontmatter) + exit non-zero on any hit.
-- [ ] **W4-02** Write `help-center/troubleshooting/mdx-gotchas.mdx` — catalog of MDX parse errors with fixes.
-- [ ] **W4-03** Write `knowledge-qa/multi-agent-faq.mdx` — FAQ: "What if two agents claim the same task?", "How do I update documentation.json?", "What if pre-commit fails?".
-- [ ] **W4-04** Run validation pass on all existing `.mdx` files → log any gotchas found in `plans/findings.md`.
+_(claimed — see IN-PROGRESS)_
 
 ---
 
 ## 🟡 IN-PROGRESS
 
-_(empty — first agent to claim, move task here)_
+_(empty)_
 
 ---
 
 ## 🔵 REVIEW
 
-_(empty — PRs awaiting Win 4 QA + Win 1 merge)_
+### Win 4 — Reference & QA
+
+- [R] **W4-01** [win4] `scripts/pre-commit-check.sh` — improved with `strip_code_content()` to skip code fences + inline spans; all 4 checks verified working. Awaiting Win 1 merge.
+- [R] **W4-02** [win4] `help-center/troubleshooting/mdx-gotchas.mdx` — 7 gotchas documented with cause/bad/fix pattern + quick-reference table. Pre-commit PASS. Awaiting Win 1 merge.
+- [R] **W4-03** [win4] `knowledge-qa/multi-agent-faq.mdx` — 12 FAQ entries covering task ownership, documentation.json, pre-commit, deploy, coordination. Pre-commit PASS. Awaiting Win 1 merge.
+- [R] **W4-04** [win4] Full validation pass complete — 31 files, 0 errors. Findings logged in `plans/findings.md`. Awaiting Win 1 merge.
 
 ---
 
@@ -66,16 +68,26 @@ Patch:
 Status: pending | applied | rejected
 ```
 
+### [2026-04-20 00:35] [win4 → win1] Add W4 pages to documentation.json nav
+Reason: 2 new pages created by Win 4 need sidebar entries to be discoverable.
+Patch: Add to `documentation.json` under their respective groups:
+  1. Under help-center/troubleshooting group:
+     `{ "title": "MDX Gotchas", "path": "help-center/troubleshooting/mdx-gotchas" }`
+  2. Under knowledge-qa group:
+     `{ "title": "Multi-Agent FAQ", "path": "knowledge-qa/multi-agent-faq" }`
+Status: pending
+
 ---
 
 ## 📊 Sprint 1 Burn-Down
 
 - Total tasks: 12 (4 per worker)
-- Claimed: 0
+- Claimed: 4 (Win 4)
 - In progress: 0
+- Review: 4 (Win 4 — W4-01 through W4-04)
 - Done: 1 (scaffold)
 - Target: All TODO → DONE by end of Sprint 1
 
 ---
 
-**Last updated:** 2026-04-20 by Win 1
+**Last updated:** 2026-04-20 by Win 4
