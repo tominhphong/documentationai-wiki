@@ -21,8 +21,7 @@
 
 ### Win 3 — Workflow Writer
 
-- [>] **W3-02** [win3] Write `workflows/multi-agent-sprint-workflow.mdx` — new page. Scope: how to run a 4-agent sprint (claim → work → review → merge → deploy). Reference CLAUDE.md and AGENTS.md.
-- [ ] **W3-03** Write `agent-instructions/lead-architect-prompt.mdx` — role prompt template for Win 1.
+- [>] **W3-03** [win3] Write `agent-instructions/lead-architect-prompt.mdx` — role prompt template for Win 1. Write `agent-instructions/lead-architect-prompt.mdx` — role prompt template for Win 1.
 - [ ] **W3-04** Write `agent-instructions/worker-agent-prompt.mdx` — role prompt template for Win 2/3/4 (parameterized by scope).
 
 ### Win 4 — Reference & QA
@@ -41,6 +40,7 @@
 ## 🔵 REVIEW
 
 - [R] **W3-01** [win3] Audit `workflows/content-workflow.mdx` — add Steps component, verify ties to Core Rules (cross-link). PR: `win3-workflow` branch.
+- [R] **W3-02** [win3] Write `workflows/multi-agent-sprint-workflow.mdx` — 7-phase sprint protocol. PR: `win3-workflow` branch.
 
 ---
 
