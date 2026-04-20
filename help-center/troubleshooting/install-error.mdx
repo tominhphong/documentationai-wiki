@@ -1,26 +1,282 @@
 ---
-title: Page Missing in Sidebar
-description: Fix a page that does not appear in navigation.
+title: "Install Error Troubleshooting"
+description: "Fix common install/setup errors: git auth, gh scope, pre-commit fails, MCP connect issues"
+icon: "triangle-alert"
+last_reviewed: "2026-04-20"
 ---
-## Symptoms
 
-- A new page file exists but does not show up in the sidebar.
+## Overview
 
-- Clicking a nav item shows a 404.
+Trang này liệt kê các lỗi thường gặp khi setup và vận hành **documentationai-wiki** trong môi trường Agent OS. Mỗi lỗi có triệu chứng rõ ràng, nguyên nhân, và fix step-by-step.
 
-## Fix
+<Callout kind="info">
+Chạy `bash scripts/pre-commit-check.sh .` trước khi push để tự động catch hầu hết các lỗi MDX. Xem [MDX Gotchas](/help-center/troubleshooting/mdx-gotchas) để biết chi tiết từng check.
+</Callout>
 
-<Steps>
-  <Step title="Confirm the file name" icon="file-text" title-type="p">
-    Ensure the file exists.
-  </Step>
+---
 
-  <Step title="Update navigation" icon="settings" title-type="p">
-    Add or fix the matching `path` in `documentation.json` or from navigation menu.
-  </Step>
+## Git auth 401/403
 
-  <Step title="Publish" icon="refresh-cw" title-type="p">
-    Publish so changes take effect.
-  </Step>
-</Steps>
+<Callout kind="error">
+**Triệu chứng:** `git push` hoặc `gh` commands trả về `401 Unauthorized` hoặc `403 Forbidden`.
+</Callout>
 
+**Nguyên nhân:** Token GitHub hết hạn hoặc chưa login.
+
+**Fix:**
+
+```bash
+# Kiểm tra trạng thái auth
+gh auth status
+
+# Nếu thấy "not logged in" hoặc token lỗi:
+gh auth login
+
+# Chọn: GitHub.com → HTTPS → Login with a web browser
+# Hoàn thành device flow trên browser
+```
+
+Sau khi login:
+
+```bash
+# Verify thành công
+gh auth status
+# Phải thấy: ✓ Logged in to github.com as <username>
+```
+
+---
+
+## Push rejected: workflow scope missing
+
+<Callout kind="error">
+**Triệu chứng:** Push bị reject với message:
+
+```
+refusing to allow a GitHub App to create or update workflow
+  '.github/workflows/validate-mdx.yml'
+  without 'workflow' scope
+```
+</Callout>
+
+**Nguyên nhân:** GitHub token hiện tại thiếu `workflow` scope. Lỗi này xảy ra khi repo có `.github/workflows/` và bạn thay đổi file trong thư mục đó, hoặc khi token được tạo trước khi workflow scope được thêm.
+
+**Fix:**
+
+```bash
+# Refresh token với workflow scope
+gh auth refresh -s workflow --hostname github.com
+```
+
+Browser sẽ mở (hoặc hiển thị device code):
+
+```
+! First copy your one-time code: XXXX-XXXX
+Press Enter to open github.com in your browser...
+```
+
+1. Copy code, nhấn Enter
+2. Dán code vào GitHub device authorization page
+3. Click "Authorize GitHub CLI"
+4. Quay lại terminal — sẽ thấy `✓ Authentication complete`
+
+```bash
+# Verify workflow scope đã được thêm
+gh auth status
+# Token scopes phải bao gồm: ..., workflow
+```
+
+---
+
+## pre-commit-check.sh fails
+
+<Callout kind="warning">
+**Triệu chứng:** Script thoát với code 1 và in lỗi như:
+
+```
+[FAIL] Check 1: Unicode checkbox chars found in file.mdx
+[FAIL] Check 2: <NUMBER pattern found in file.mdx
+[FAIL] Check 3: Missing frontmatter in file.mdx
+[FAIL] Check 4: Possible ASCII Vietnamese in file.mdx
+```
+</Callout>
+
+Nguyên nhân và fix cho từng check:
+
+| Check | Nguyên nhân | Fix |
+|-------|-------------|-----|
+| Check 1: Unicode checkbox | Copy-paste `☐` hoặc `□` từ notes | Thay bằng `- [ ]` |
+| Check 2: `<NUMBER` pattern | Viết `<5%`, `<3 giây`, `<20 phút` | Viết lại: "dưới 5%", "under 3 seconds" |
+| Check 3: Missing frontmatter | Thiếu `title:` hoặc `description:` | Thêm cả hai vào đầu file |
+| Check 4: ASCII Vietnamese | Viết `phong ngu`, `Ho tro` | Dùng Unicode đầy đủ dấu |
+
+**Fix nhanh cho Check 2 (`<NUMBER`):**
+
+```bash
+# Tìm tất cả occurrences trong file
+grep -n '<[0-9]' help-center/path/to/file.mdx
+
+# Ví dụ bad patterns và cách fix:
+# Bad:  phí hoa hồng <3%
+# Good: phí hoa hồng dưới 3%
+
+# Bad:  response time <500ms
+# Good: response time under 500ms
+
+# Bad:  files <200 lines
+# Good: files fewer than 200 lines
+```
+
+Sau khi fix, chạy lại:
+
+```bash
+bash scripts/pre-commit-check.sh .
+```
+
+Xem [MDX Gotchas](/help-center/troubleshooting/mdx-gotchas) để hiểu chi tiết từng pattern.
+
+---
+
+## check-links.sh reports broken
+
+<Callout kind="warning">
+**Triệu chứng:** Script báo:
+
+```
+[BROKEN] help-center/guides/new-guide — file not found
+```
+</Callout>
+
+**Nguyên nhân thường gặp:**
+
+1. **Path typo trong `documentation.json`**: Tên file trong nav khác với tên file thực tế
+2. **File chưa được tạo**: Nav entry tồn tại nhưng `.mdx` file chưa được commit
+3. **File chưa push**: File tồn tại local nhưng chưa lên remote nên script so sánh sai
+4. **documentation.json chưa update**: Bạn tạo file mới nhưng chưa có nav entry (Win 1 cần add)
+
+**Fix theo từng trường hợp:**
+
+Nếu là path typo — kiểm tra chính tả:
+
+```bash
+# So sánh path trong documentation.json với file thực tế
+ls help-center/guides/
+# Đảm bảo tên khớp chính xác, kể cả kebab-case
+```
+
+Nếu file chưa có nav entry — submit Cross-Scope Request cho Win 1:
+
+```
+### [2026-04-20 14:30] [win4 → win1] Add new-guide to nav
+Reason: New page at help-center/guides/new-guide.mdx needs documentation.json entry
+Patch: Add under help-center/guides group:
+  { "title": "New Guide", "path": "help-center/guides/new-guide" }
+Status: pending
+```
+
+<Callout kind="info">
+`documentation.json` là owned by Win 1. Worker agents (Win 2/3/4) không được edit trực tiếp. Xem [Multi-Agent Team FAQ — How do I add my new page to the sidebar?](/knowledge-qa/multi-agent-faq#how-do-i-add-my-new-page-to-the-sidebar) để biết đầy đủ workflow.
+</Callout>
+
+---
+
+## MCP not indexing sau deploy
+
+<Callout kind="warning">
+**Triệu chứng:** Push lên `main` thành công, deploy xong, nhưng `search_documentation(query)` qua MCP không trả về content mới. Hoặc MCP trả về nội dung cũ.
+</Callout>
+
+**Nguyên nhân:** Documentation.AI MCP index cần thời gian để re-crawl sau deploy.
+
+**Fix:**
+
+1. Chờ 1–2 phút sau khi deploy confirm successful
+2. Thử lại MCP search
+3. Nếu sau 5 phút vẫn không thấy: check Documentation.AI dashboard để xem deploy status và index logs
+
+**Verify deploy thành công:**
+
+```bash
+# Check PR merged và CI passed
+gh pr list --state merged --limit 3
+
+# Check latest commit on main
+git log origin/main --oneline -3
+```
+
+Nếu deploy thực sự failed (không phải chỉ slow indexing), check CI logs:
+
+```bash
+gh run list --limit 5
+gh run view <run-id> --log
+```
+
+---
+
+## Claude Code CLI 401 auth error
+
+<Callout kind="error">
+**Triệu chứng:** Claude Code CLI trong worktree trả về:
+
+```
+Error: 401 Unauthorized — authentication failed
+```
+
+Hoặc CLI không start được trong một worktree cụ thể.
+</Callout>
+
+**Nguyên nhân:** Concurrent session conflict — nhiều Claude Code CLI instances cùng chạy với một Anthropic API key có thể gây authentication issues tùy theo account tier.
+
+**Workaround:**
+
+Thay vì chạy multiple Claude Code CLI instances độc lập, dùng **Agent Team feature trong một main session**:
+
+1. Chạy `claude` từ repo chính (không phải worktree)
+2. Trong session, dùng Agent Team tools để spawn Win 2/3/4 as sub-agents
+3. Sub-agents nhận tasks qua filesystem (`plans/task-board.md`) thay vì separate CLI sessions
+
+Đây là kiến trúc được recommend cho multi-agent sprint. Xem [Multi-Agent Team FAQ](/knowledge-qa/multi-agent-faq) để biết đầy đủ coordination protocol.
+
+---
+
+## Merge conflict trong plans/cross-scope
+
+<Callout kind="warning">
+**Triệu chứng:** `git pull` hoặc `git merge` báo conflict trong `plans/task-board.md` hoặc `plans/progress.md`.
+</Callout>
+
+**Nguyên nhân:** Hai worker agents cùng append vào file `plans/` trong khoảng thời gian gần nhau — git không biết cách merge hai additions vào cuối file.
+
+**Conflict sẽ trông như thế này:**
+
+```
+<<<<<<< HEAD
+[2026-04-20 14:28] [win4] Completed W4-02
+=======
+[2026-04-20 14:29] [win3] Completed W3-05
+>>>>>>> origin/win3-workflow
+```
+
+**Fix — giữ CẢ HAI entries:**
+
+```
+[2026-04-20 14:28] [win4] Completed W4-02
+[2026-04-20 14:29] [win3] Completed W3-05
+```
+
+Xóa conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), giữ nguyên nội dung của cả hai. Không bao giờ xóa entry của agent khác.
+
+```bash
+# Sau khi resolve conflict thủ công
+git add plans/progress.md
+git commit -m "fix: resolve progress.md merge conflict — keep both entries"
+```
+
+**Phòng ngừa:** Luôn `git pull` trước khi append vào `plans/` files. Commit nhanh sau khi append để minimize conflict window.
+
+---
+
+## Xem thêm
+
+- [MDX Gotchas — Common Parse Errors](/help-center/troubleshooting/mdx-gotchas) — chi tiết từng MDX syntax error
+- [Setup Project Guide](/help-center/guides/setup-project) — hướng dẫn setup từ đầu
+- [Multi-Agent Team FAQ](/knowledge-qa/multi-agent-faq) — coordination, ownership, cross-scope
