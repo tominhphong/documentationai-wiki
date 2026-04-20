@@ -1,0 +1,164 @@
+---
+title: "Multi-Agent Sprint Workflow"
+description: "Quy trình chạy một sprint với 4 agent song song — từ scaffold, claim task, làm việc, review, đến merge và deploy."
+---
+
+## Tổng quan
+
+Sprint workflow mô tả cách 4 agent (Win 1 Lead + Win 2/3/4 Workers) phối hợp để hoàn thành một batch công việc theo mô hình Kanban. Tất cả coordination qua filesystem — không có IPC hay messaging tool.
+
+Xem [AGENTS.md](https://github.com/tominhphong/documentationai-wiki/blob/main/AGENTS.md) để nắm role definition và [CLAUDE.md](https://github.com/tominhphong/documentationai-wiki/blob/main/CLAUDE.md) để nắm 5 Core Rules.
+
+<Callout kind="info">
+Mọi coordination đều qua `plans/task-board.md` và `plans/progress.md`. Không có tool nào khác — git + markdown là lingua franca của team.
+</Callout>
+
+## Vai Trò Trong Sprint
+
+| Agent | Window | Model | Branch |
+|-------|--------|-------|--------|
+| Win 1 — Lead Architect | iTerm2 Win 1 | Opus 4.7 | `main` |
+| Win 2 — Framework Author | iTerm2 Win 2 | Sonnet 4.6 | `win2-framework` |
+| Win 3 — Workflow Writer | iTerm2 Win 3 | Sonnet 4.6 | `win3-workflow` |
+| Win 4 — Reference & QA | iTerm2 Win 4 | Sonnet 4.6 | `win4-reference-qa` |
+
+<Steps>
+
+<Step title="Phase 1 — Win 1 Scaffolds Sprint">
+
+**Owner:** Win 1 (Lead Architect)
+
+Win 1 chuẩn bị trước khi workers bắt đầu:
+
+1. Audit repo hiện tại — tìm gaps trong documentation
+2. Tạo task cards trong `plans/task-board.md` cho Win 2, Win 3, Win 4
+3. Cập nhật `CLAUDE.md` nếu có thay đổi về rules hoặc structure
+4. Verify `CODEOWNERS` phản ánh đúng scope của từng worker
+5. Thông báo workers: "Sprint open — pick your tasks"
+
+**Output:** `plans/task-board.md` có đủ tasks trong cột TODO, mỗi task rõ scope và acceptance criteria.
+
+</Step>
+
+<Step title="Phase 2 — Workers Claim Tasks">
+
+**Owner:** Win 2, Win 3, Win 4 (đồng thời)
+
+Mỗi worker tự claim task theo protocol:
+
+1. Đọc `plans/task-board.md` — tìm task trong TODO thuộc role của mình
+2. Move task từ TODO sang IN-PROGRESS với `[winN]` tag
+3. Commit claim: `git commit -am "chore: claim WN-XX"`
+
+<Callout kind="warning">
+Không claim task ngoài scope. Nếu cần file ngoài scope → tạo Cross-Scope Request trong `plans/task-board.md`, Win 1 apply.
+</Callout>
+
+**Thứ tự ưu tiên:** Claim task có ID nhỏ nhất trước — earlier tasks thường set up context cho later tasks.
+
+</Step>
+
+<Step title="Phase 3 — Workers Implement">
+
+**Owner:** Win 2, Win 3, Win 4 (độc lập song song)
+
+Mỗi worker làm việc trên worktree branch riêng:
+
+1. Đọc file hiện có trong scope trước khi viết mới
+2. Search wiki bằng MCP `search_documentation(query)` để tránh duplicate content
+3. Viết/sửa `.mdx` theo conventions trong `CLAUDE.md`:
+   - Frontmatter mandatory: `title` + `description`
+   - Headings bắt đầu từ `##` (H1 từ frontmatter)
+   - Dùng `Steps`, `Callout`, `Tabs`, `Card`, `Columns` — không dùng Mermaid hay `CardGroup`
+   - Vietnamese đầy đủ dấu
+4. Cross-link tới pages liên quan bằng relative path (ví dụ: `../core-rules/global-operating-rules`)
+5. Commit sau mỗi page hoàn thành
+
+**File ownership là tuyệt đối.** Nếu cần sửa file ngoài scope → Cross-Scope Request, không tự sửa.
+
+</Step>
+
+<Step title="Phase 4 — Pre-commit Validation">
+
+**Owner:** Worker (self-check) + Win 4 (QA gate)
+
+Trước khi push, worker tự chạy:
+
+```bash
+bash /path/to/scripts/pre-commit-check.sh <file.mdx>
+```
+
+Script kiểm tra 4 điều:
+- Không có ký tự checkbox Unicode dạng ô trống
+- Không có `<NUMBER%` pattern
+- Có frontmatter `title` + `description`
+- Không có ASCII-only Vietnamese (heuristic)
+
+Nếu fail → fix trước khi push. Không bypass.
+
+**Win 4 QA:** Sau khi worker push, Win 4 pull branch, chạy script toàn bộ scope, approve hoặc reject trong `plans/task-board.md`.
+
+</Step>
+
+<Step title="Phase 5 — Push và Submit PR">
+
+**Owner:** Worker (Win 2/3/4)
+
+Khi implementation xong và pre-commit pass:
+
+1. `git add <files trong scope>`
+2. Append vào `plans/progress.md`: `[YYYY-MM-DD HH:MM] [winN] <action>`
+3. `git commit -m "feat(scope): description"`
+4. `git push origin <branch>`
+5. Move task từ IN-PROGRESS → REVIEW trong `plans/task-board.md`
+6. `git commit -am "chore: submit WN-XX for review"`
+7. `git push`
+
+GitHub sẽ gợi ý tạo PR. Worker tạo PR trên GitHub với title ngắn gọn.
+
+</Step>
+
+<Step title="Phase 6 — Win 4 QA Review">
+
+**Owner:** Win 4 (Reference & QA)
+
+1. Pull branch của worker: `git fetch && git checkout <branch>`
+2. Chạy `scripts/pre-commit-check.sh` trên toàn bộ scope của branch
+3. Kiểm tra thêm:
+   - Cross-links có resolve không
+   - Frontmatter đầy đủ
+   - Không có file ownership violation
+4. Ghi kết quả vào `plans/task-board.md` dưới task đang review:
+   - `QA: PASSED — Win 4, 2026-04-XX`
+   - hoặc `QA: FAILED — <lý do>` (worker phải fix và re-push)
+
+</Step>
+
+<Step title="Phase 7 — Win 1 Merge và Deploy">
+
+**Owner:** Win 1 (Lead Architect)
+
+1. Review PR trên GitHub — verify không có file ngoài scope của PR
+2. Merge branch vào `main`
+3. Cập nhật `documentation.json` nếu có page mới được thêm
+4. Verify deploy: Documentation.AI rebuild trong 30-60 giây
+5. Move task từ REVIEW → DONE trong `plans/task-board.md`
+6. Update Sprint Burn-Down counter
+
+<Callout kind="tip">
+Nếu `documentation.json` chưa được update trước khi deploy, page mới sẽ exist nhưng không appear trong navigation. Win 1 fix ngay sau merge.
+</Callout>
+
+</Step>
+
+</Steps>
+
+## Coordination Rules Tóm Tắt
+
+| Tình huống | Hành động |
+|------------|-----------|
+| Cần sửa file ngoài scope | Cross-Scope Request trong task-board |
+| Blocked quá 30 phút | Append vào `plans/findings.md` → `## Blockers` |
+| Pre-commit fail | Fix trước khi push, không bypass |
+| Hai workers claim cùng task | Task có `[winN]` tag là người đã claim — người sau pick task khác |
+| Mọi 3-5 tasks | Re-read `plans/progress.md` để sync với other agents |
