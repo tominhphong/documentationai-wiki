@@ -1,0 +1,358 @@
+---
+title: "Debugging Workflow"
+description: "Flow diagnosis khi agent gặp error: reproduce → localize → fix → escalate. Common errors và escalation triggers."
+---
+
+## Tổng quan
+
+Khi một agent (Win 2, Win 3, hoặc Win 4) gặp lỗi trong quá trình thực hiện task — build fail, MDX parse error, git conflict, script crash — agent không được bỏ qua hay workaround bừa. Có một quy trình chuẩn để xử lý từng tình huống.
+
+Trang này mô tả flow 6 bước: từ capture error đến resume sprint sau khi fix xong.
+
+<Callout kind="info">
+Quy trình này áp dụng cho mọi loại lỗi trong phạm vi file ownership của worker. Lỗi ngoài scope (ví dụ: lỗi trong `documentation.json` khi bạn là Win 3) → không tự sửa, follow [Cross-Scope Workflow](./cross-scope-workflow).
+</Callout>
+
+<Steps>
+
+<Step title="Bước 1 — Capture Error">
+
+**Thời gian:** Ngay khi lỗi xảy ra
+
+Trước khi làm bất cứ điều gì khác, ghi lại đầy đủ thông tin về lỗi.
+
+**Cần thu thập:**
+
+| Thông tin | Cách lấy |
+|-----------|----------|
+| Error message đầy đủ | Copy toàn bộ stderr/stdout |
+| File bị lỗi | Ghi rõ đường dẫn tuyệt đối |
+| Lệnh đã chạy | Chép lại chính xác command |
+| Commit SHA hiện tại | `git rev-parse HEAD` |
+| Thời điểm xảy ra | `date "+%Y-%m-%d %H:%M"` |
+
+**Lưu log tạm:**
+
+```bash
+# Capture stderr khi chạy pre-commit
+bash scripts/pre-commit-check.sh workflows/my-file.mdx 2>&1 | tee /tmp/error-$(date +%s).log
+```
+
+<Callout kind="warning">
+Không bắt đầu sửa ngay khi chưa đọc hết error message. Nhiều lỗi MDX có root cause cách vài dòng so với dòng báo lỗi.
+</Callout>
+
+</Step>
+
+<Step title="Bước 2 — Reproduce Locally">
+
+**Mục tiêu:** Xác nhận lỗi reproducible — không phải fluke hay timing issue.
+
+Chạy lại đúng command đã gây lỗi, trên chính file đó:
+
+```bash
+# Re-run pre-commit trên file cụ thể
+bash scripts/pre-commit-check.sh workflows/debugging-workflow.mdx
+
+# Nếu lỗi git, check status đầy đủ
+git status
+git diff HEAD
+git log --oneline -5
+```
+
+**Kết quả có thể:**
+
+- **Lỗi reproduce** — tiếp tục sang Bước 3 (localize root cause)
+- **Lỗi không reproduce** — likely là transient issue (network, temp file lock). Chạy lại lần nữa. Nếu vẫn không reproduce sau 2 lần, ghi note và tiếp tục task.
+- **Lỗi khác xuất hiện** — ghi lại cả hai, có thể cùng root cause
+
+</Step>
+
+<Step title="Bước 3 — Localize Root Cause">
+
+**Mục tiêu:** Tìm chính xác file, line, hoặc commit gây ra lỗi.
+
+**Với MDX parse error:**
+
+1. Đọc error message — thường có line number
+2. Mở file tại dòng đó, kiểm tra theo [MDX Gotchas](../help-center/troubleshooting/mdx-gotchas):
+   - Có `<[digit]` pattern không? (JSX collision)
+   - Có ký tự checkbox Unicode không? (`☐`, `□`)
+   - Frontmatter có đủ `title` + `description` không?
+   - Component có trong whitelist không?
+3. Kiểm tra Vietnamese — dấu đầy đủ chưa?
+
+**Với git conflict:**
+
+```bash
+# Tìm conflict markers
+grep -n "<<<<<<" workflows/*.mdx agent-instructions/*.mdx
+
+# Xem diff với origin/main
+git diff origin/main...HEAD -- workflows/ agent-instructions/
+```
+
+**Với commit mới gây lỗi — dùng git bisect:**
+
+```bash
+# Xác định commit tốt cuối cùng và commit xấu
+git bisect start
+git bisect bad HEAD
+git bisect good <commit-sha-known-good>
+# Git sẽ hướng dẫn kiểm tra từng commit
+# Sau khi tìm ra: git bisect reset
+```
+
+**Nguyên tắc localize:**
+
+- Narrow scope: thay đổi một file tại một thời điểm
+- Dùng `git diff` để thấy chính xác điều đã thay đổi
+- Đừng assume — verify bằng cách đọc file thực tế
+
+</Step>
+
+<Step title="Bước 4 — Chọn Strategy">
+
+Sau khi biết root cause, chọn một trong ba strategy:
+
+**Strategy A — Quick Fix (dưới 5 phút)**
+
+Áp dụng khi lỗi nhỏ, rõ ràng, ảnh hưởng ít:
+- Sửa MDX syntax error (missing frontmatter, wrong component)
+- Fix dấu tiếng Việt
+- Remove ký tự Unicode không hợp lệ
+
+```bash
+# Sửa file, sau đó verify
+bash scripts/pre-commit-check.sh workflows/my-file.mdx
+# Nếu pass → commit và tiếp tục
+```
+
+**Strategy B — Git Revert (commit mới gây lỗi)**
+
+Áp dụng khi một commit cụ thể làm hỏng trạng thái ổn định:
+
+```bash
+# Revert commit đó (tạo commit mới, không xóa history)
+git revert <bad-commit-sha>
+# Hoặc nếu muốn unstage chỉ một file
+git checkout HEAD~1 -- workflows/broken-file.mdx
+```
+
+<Callout kind="warning">
+Không dùng `git reset --hard` trừ khi Win 1 cho phép. Revert an toàn hơn vì không xóa history.
+</Callout>
+
+**Strategy C — Escalate to Brain (stuck trên 30 phút)**
+
+Áp dụng khi:
+- Đã thử quick fix và revert nhưng vẫn không xong
+- Root cause không rõ sau 30 phút debug
+- Lỗi nằm ngoài file ownership (cần Win 1 can thiệp)
+
+Append vào `plans/cross-scope-sprint-2.md` với tag `BLOCKED` (xem Bước 4b bên dưới).
+
+</Step>
+
+<Step title="Bước 5 — Validate Fix">
+
+Sau khi apply fix (bất kể strategy nào), phải validate trước khi commit:
+
+```bash
+# 1. Pre-commit check trên file đã sửa
+bash scripts/pre-commit-check.sh workflows/my-file.mdx
+
+# 2. Nếu đã có check-links script (sau S2-W4-03):
+bash scripts/check-links.sh workflows/my-file.mdx
+
+# 3. Kiểm tra git status sạch
+git status
+git diff --stat
+```
+
+**Checklist validate:**
+
+- Pre-commit check: PASSED (0 errors)
+- Frontmatter đầy đủ: `title` + `description`
+- Không có MDX gotcha nào từ [danh sách](../help-center/troubleshooting/mdx-gotchas)
+- Vietnamese dấu đầy đủ trong toàn file
+- Cross-links trỏ tới file tồn tại
+
+Chỉ commit khi tất cả checklist trên PASS. Không commit để "xem thử" — Documentation.AI build là all-or-nothing.
+
+</Step>
+
+<Step title="Bước 6 — Resume Sprint Work">
+
+Sau khi fix validated và committed:
+
+```bash
+# Commit fix với conventional format
+git add workflows/my-fixed-file.mdx
+git commit -m "fix(S2-W3-XX): resolve MDX parse error in <filename>"
+
+# Push
+git push origin win3-workflow
+
+# Cập nhật progress log
+# Append vào plans/progress.md:
+# [YYYY-MM-DD HH:MM] [win3] fix: resolved <error type> in <file>
+```
+
+Sau đó **claim task tiếp theo** trong `plans/task-board-sprint-2.md` theo đúng thứ tự ưu tiên (task ID nhỏ nhất còn TODO trong scope của mình).
+
+<Callout kind="info">
+Nếu debug mất hơn 15 phút, ghi vào `plans/findings.md` section "Gotchas" — giúp các agent khác và sprint sau tránh lỗi tương tự.
+</Callout>
+
+</Step>
+
+</Steps>
+
+---
+
+## Common Errors
+
+### Error 1 — MDX JSX Collision (`<[digit]`)
+
+**Triệu chứng:** Build fail với `Unexpected token` hoặc `JSX parse error`. Trang blank sau deploy.
+
+**Nguyên nhân:** MDX parser hiểu `<6%` hoặc `<30 phút` là JSX tag mở.
+
+**Fix:**
+```
+# Bad
+Response time <3 seconds.
+Lãi suất <6% là tốt.
+
+# Good
+Response time under 3 seconds.
+Lãi suất dưới 6% là tốt.
+```
+
+Detected by `pre-commit-check.sh` check 2.
+
+---
+
+### Error 2 — Broken Internal Link
+
+**Triệu chứng:** Link click ra 404. Hoặc link text hiển thị nhưng destination không tồn tại.
+
+**Nguyên nhân:** Path trong link không khớp filename, hoặc file target chưa được tạo.
+
+**Fix:**
+
+```bash
+# Kiểm tra file target có tồn tại không
+ls workflows/cross-scope-workflow.mdx
+ls ../core-rules/global-operating-rules.mdx
+
+# Syntax đúng cho cross-folder link:
+# [Text](../core-rules/global-operating-rules)  ← không có .mdx
+# [Text](./cross-scope-workflow)                  ← trong cùng folder
+```
+
+---
+
+### Error 3 — Merge Conflict Trong MDX
+
+**Triệu chứng:** File MDX có `<<<<<<`, `=======`, `>>>>>>` markers — không parse được.
+
+**Nguyên nhân:** Hai agents sửa cùng file (vi phạm file ownership), hoặc rebase không clean.
+
+**Fix:**
+
+```bash
+# Tìm tất cả conflict markers trong scope của mình
+grep -rn "<<<<<<" workflows/ agent-instructions/
+
+# Resolve từng file:
+# 1. Mở file, quyết định giữ version nào
+# 2. Xóa conflict markers
+# 3. Chạy pre-commit check
+# 4. Commit với message "fix: resolve merge conflict in <file>"
+```
+
+<Callout kind="warning">
+Nếu conflict xuất phát từ file không thuộc scope của bạn (ví dụ: `documentation.json`), KHÔNG tự resolve. Escalate ngay cho Win 1.
+</Callout>
+
+---
+
+### Error 4 — Pre-commit Check Fail: Vietnamese ASCII
+
+**Triệu chứng:** `pre-commit-check.sh` báo "potential ASCII Vietnamese detected".
+
+**Nguyên nhân:** Có text tiếng Việt không dấu trong file — ví dụ `"Ho tro"` thay vì `"Hỗ trợ"`.
+
+**Fix:**
+
+Tìm và thay toàn bộ Vietnamese không dấu trong file:
+
+```bash
+# Heuristic: tìm các từ phổ biến sai dấu
+grep -n "Ho tro\|phong ngu\|nguoi dung\|tu dong\|ket qua" workflows/my-file.mdx
+```
+
+Thay thế bằng Unicode đầy đủ. Nếu không chắc dấu đúng, dùng Google Translate để tra.
+
+---
+
+### Error 5 — Auth Timeout / MCP Disconnect
+
+**Triệu chứng:** MCP tool call trả về auth error hoặc timeout. Ví dụ: `search_documentation` không phản hồi, hoặc git push bị rejected vì credentials.
+
+**Nguyên nhân:** Session token hết hạn, kết nối MCP bị drop, hoặc SSH key chưa được load.
+
+**Fix:**
+
+```bash
+# Kiểm tra git credentials
+git config --list | grep credential
+
+# Re-authenticate nếu cần
+gh auth status
+gh auth login  # nếu expired
+
+# Với MCP disconnect: restart MCP trong Claude Code settings
+# Không phải lỗi trong code — không cần commit gì
+```
+
+Nếu MCP vẫn không kết nối sau khi restart, escalate cho Win 1 (có thể cần reset MCP endpoint config).
+
+---
+
+## When to Escalate
+
+Escalate ngay cho Win 1 (Brain) khi gặp bất kỳ trigger nào dưới đây:
+
+**Trigger 1 — Blocked trên 30 phút**
+
+Nếu đã thử mọi cách mà vẫn không fix được sau 30 phút làm việc tập trung → không tiếp tục mày mò. Append `BLOCKED` vào `plans/cross-scope-sprint-2.md`.
+
+**Trigger 2 — Lỗi ngoài file ownership**
+
+Bất kỳ lỗi nào yêu cầu sửa file ngoài scope (ví dụ: `documentation.json`, `scripts/`, top-level `*.mdx`) → không tự sửa, tạo Cross-Scope Request.
+
+**Trigger 3 — Build fail toàn site**
+
+Nếu sau khi push, toàn bộ Documentation.AI site fail (không chỉ một trang) → có thể lỗi của mình ảnh hưởng file khác. Ping Win 1 ngay và sẵn sàng revert commit.
+
+**Trigger 4 — Không hiểu error message**
+
+Nếu error message không quen và không tìm được solution sau 15 phút research → escalate thay vì guess. Một bad fix có thể tạo thêm lỗi mới.
+
+**Cách escalate:**
+
+```markdown
+# Append vào plans/cross-scope-sprint-2.md:
+
+### [2026-04-20 14:30] [win3 → win1] BLOCKED: <mô tả ngắn>
+Reason: <mô tả lỗi và những gì đã thử>
+Error log: <paste error message>
+Files affected: <list>
+Time spent: <X phút>
+Status: BLOCKED
+```
+
+Sau khi append, commit file đó và tiếp tục làm task khác nếu có thể. Win 1 sẽ xử lý khi available.
