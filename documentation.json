@@ -104,6 +104,11 @@
                 "title": "Debugging Workflow",
                 "path": "workflows/debugging-workflow",
                 "icon": "bug"
+              },
+              {
+                "title": "Review Workflow",
+                "path": "workflows/review-workflow",
+                "icon": "check-square"
               }
             ]
           },
@@ -151,6 +156,11 @@
                 "title": "Multi-Agent FAQ",
                 "path": "knowledge-qa/multi-agent-faq",
                 "icon": "help-circle"
+              },
+              {
+                "title": "Glossary",
+                "path": "knowledge-qa/glossary",
+                "icon": "book-open"
               }
             ]
           }

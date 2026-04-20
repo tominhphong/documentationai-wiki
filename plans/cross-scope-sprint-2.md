@@ -17,12 +17,7 @@ Status: pending | applied (commit SHA)
 
 ## Pending
 
-### [2026-04-20 13:14] [win3 → win1] Add review-workflow to nav
-Reason: New page workflows/review-workflow.mdx cần add vào documentation.json.
-Patch:
-- file: documentation.json
-- change: Add `{"title": "Review Workflow", "path": "workflows/review-workflow", "icon": "check-square"}` vào group "Workflows"
-Status: pending
+_(empty — all requests applied)_
 
 ## Applied
 
@@ -31,4 +26,18 @@ Reason: New page workflows/debugging-workflow.mdx cần add vào documentation.j
 Patch:
 - file: documentation.json
 - change: Add `{"title": "Debugging Workflow", "path": "workflows/debugging-workflow", "icon": "bug"}` vào group "Workflows"
+Status: **applied** (commit 95907c2)
+
+### [2026-04-20 13:14] [win3 → win1] Add review-workflow to nav
+Reason: New page workflows/review-workflow.mdx
+Patch:
+- file: documentation.json
+- change: Add `{"title": "Review Workflow", "path": "workflows/review-workflow", "icon": "check-square"}` vào group "Workflows"
+Status: **applied**
+
+### [2026-04-20 13:41] [win4 → win1] Add glossary to nav
+Reason: New page knowledge-qa/glossary.mdx
+Patch:
+- file: documentation.json
+- change: Add `{"title": "Glossary", "path": "knowledge-qa/glossary", "icon": "book-open"}` vào group "Knowledge & QA"
 Status: **applied**
