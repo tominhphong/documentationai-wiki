@@ -17,7 +17,12 @@ Status: pending | applied (commit SHA)
 
 ## Pending
 
-_(empty — all requests applied)_
+### [2026-04-20 13:14] [win3 → win1] Add review-workflow to nav
+Reason: New page workflows/review-workflow.mdx cần add vào documentation.json.
+Patch:
+- file: documentation.json
+- change: Add `{"title": "Review Workflow", "path": "workflows/review-workflow", "icon": "check-square"}` vào group "Workflows"
+Status: pending
 
 ## Applied
 
