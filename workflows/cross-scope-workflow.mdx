@@ -1,0 +1,266 @@
+---
+title: "Cross-Scope Workflow"
+description: "Cách request thay đổi file ngoài scope của mình: template, timing, examples từ Sprint 1/2"
+---
+
+## Tổng quan
+
+Trong Documentation.AI sprint system, mỗi worker agent chỉ được phép tạo và sửa file trong **scope được assign** của mình. Nhưng đôi khi một task yêu cầu thay đổi file thuộc scope khác — ví dụ thêm một page mới vào `documentation.json` để hiện trên nav. Đây gọi là **cross-scope change**.
+
+Worker không được tự thực hiện cross-scope change. Thay vào đó, worker gửi **Cross-Scope Request** — một entry có cấu trúc trong file tracking — và Win 1 (Brain/Lead) sẽ apply thay đổi đó khi merge.
+
+<Callout kind="info">
+Cross-Scope Request không phải lỗi hay exception. Đây là quy trình bình thường giúp giữ ownership rõ ràng và tránh merge conflict giữa các worker branch.
+</Callout>
+
+---
+
+## Khi nào cần Cross-Scope Request
+
+Ba scenario thường gặp trong Sprint 2:
+
+### Scenario 1 — Tạo page mới, cần add vào `documentation.json`
+
+Mỗi file `.mdx` mới cần có entry tương ứng trong `documentation.json` để xuất hiện trên navigation. File này do **Win 1 (Brain)** own — worker không được tự sửa.
+
+**Ví dụ:** Win 3 tạo `workflows/cross-scope-workflow.mdx` → cần add nav entry vào group "Workflows" trong `documentation.json`.
+
+### Scenario 2 — Edit config cross-cutting
+
+Một số files cấu hình ảnh hưởng toàn site — không thuộc scope của bất kỳ worker đơn lẻ nào:
+- `openapi.yaml` — API spec shared giữa nhiều sections
+- `components/*` — shared UI components
+- `.github/workflows/*` — CI/CD config do Win 1 manage
+
+Nếu task yêu cầu sửa các file này, worker phải submit request thay vì tự edit.
+
+### Scenario 3 — Update top-level files
+
+Các file top-level như `introduction.mdx`, `notice.mdx`, `authentication.mdx` thuộc scope của Win 1. Ngay cả khi nội dung liên quan đến task của worker, không được chạm vào các file này trực tiếp.
+
+<Callout kind="warning">
+Nếu vi phạm scope và push thẳng, Win 4 (QA reviewer) sẽ reject với **QA FAIL — Scope Violation**. Xem [Review Workflow](./review-workflow) để biết thêm về reject criteria.
+</Callout>
+
+---
+
+## Protocol 4 Bước
+
+<Steps>
+
+<Step title="Bước 1 — Detect Need">
+
+Trong quá trình thực hiện task, xác định xem có cần thay đổi file ngoài scope không.
+
+**Cách xác định:**
+
+1. Đọc task description trong `plans/task-board-sprint-2.md`
+2. Nếu task tạo file `.mdx` mới → **luôn** cần cross-scope request cho nav entry
+3. Kiểm tra file target có nằm trong scope của mình không:
+
+| Scope | Worker | Files |
+|-------|--------|-------|
+| `workflows/`, `agent-instructions/` | Win 3 | Bạn — tự sửa được |
+| `agent-os-overview/`, `core-rules/` | Win 2 | Cross-scope nếu cần |
+| `help-center/`, `knowledge-qa/`, `scripts/` | Win 4 | Cross-scope nếu cần |
+| `documentation.json`, top-level `*.mdx`, `.github/` | Win 1 | **Luôn cross-scope** |
+
+Nếu file target thuộc Win 1 hoặc worker khác → tiếp tục sang Bước 2.
+
+</Step>
+
+<Step title="Bước 2 — Append Request vào Cross-Scope File">
+
+Mở file `plans/cross-scope-sprint-<N>.md` và append request mới dưới section `## Pending`.
+
+**Format bắt buộc:**
+
+```markdown
+### [YYYY-MM-DD HH:MM] [winN → win1] Short title
+Reason: <lý do cần thay đổi, 1-2 câu>
+Patch:
+- file: <đường dẫn đầy đủ từ repo root>
+- change: <mô tả chính xác thay đổi cần làm>
+Status: pending
+```
+
+**Lưu ý quan trọng:**
+
+- `Short title` phải nói rõ đây là thay đổi gì — Brain sẽ đọc title trước khi đọc detail
+- Field `change` phải đủ cụ thể để Brain apply mà không cần hỏi lại — ví dụ: paste exact JSON object cần thêm
+- Nếu có nhiều files cần thay đổi, viết nhiều `- file:` và `- change:` liên tiếp
+- Không sửa section `## Applied` — chỉ Brain mới move entry sang đó
+
+</Step>
+
+<Step title="Bước 3 — Commit và Push">
+
+Sau khi append request, commit file tracking riêng biệt với commit message chuẩn:
+
+```bash
+git add plans/cross-scope-sprint-<N>.md
+git commit -m "chore(S<N>-W<x>-<NN>): cross-scope request for <short description>"
+git push origin win3-workflow
+```
+
+**Ví dụ thực tế:**
+
+```bash
+git add plans/cross-scope-sprint-2.md
+git commit -m "chore(S2-W3-03): cross-scope request cross-scope-workflow nav"
+git push origin win3-workflow
+```
+
+<Callout kind="info">
+Commit này nên tách biệt với commit chứa file `.mdx` mới. Điều này giúp Brain dễ trace request đến đúng task khi review.
+</Callout>
+
+</Step>
+
+<Step title="Bước 4 — Chờ Brain Apply">
+
+Sau khi push, không cần làm thêm gì. Brain (Win 1) sẽ:
+
+1. Đọc `## Pending` trong `plans/cross-scope-sprint-<N>.md`
+2. Apply từng patch — thường khi merge worker branch vào `main`
+3. Commit với task ID tương ứng, ví dụ: commit message có `S2-W1-03`
+4. Move entry từ `## Pending` sang `## Applied` với commit SHA
+
+**Tracking sau khi applied:**
+
+```markdown
+### [2026-04-20 12:55] [win3 → win1] Add cross-scope-workflow to nav
+Reason: New page workflows/cross-scope-workflow.mdx
+Patch:
+- file: documentation.json
+- change: Add entry vào group "Workflows"
+Status: **applied** (commit abc1234)
+```
+
+Worker không cần update entry này — Brain tự làm.
+
+</Step>
+
+</Steps>
+
+---
+
+## Request Template
+
+Copy template này mỗi khi cần submit cross-scope request:
+
+```markdown
+### [YYYY-MM-DD HH:MM] [winN → win1] Short title
+Reason: <lý do>
+Patch:
+- file: <path>
+- change: <cụ thể>
+Status: pending
+```
+
+**Ví dụ điền đầy đủ:**
+
+```markdown
+### [2026-04-20 14:27] [win3 → win1] Add cross-scope-workflow to nav
+Reason: Tạo page mới workflows/cross-scope-workflow.mdx, cần add vào documentation.json để hiện trên nav.
+Patch:
+- file: documentation.json
+- change: Add {"title": "Cross-Scope Workflow", "path": "workflows/cross-scope-workflow", "icon": "git-branch"} vào group "Workflows"
+Status: pending
+```
+
+---
+
+## Real Examples từ Sprint 2
+
+### Example 1 — Win 3 add debugging-workflow nav
+
+```markdown
+### [2026-04-20 12:55] [win3 → win1] Add debugging-workflow to nav
+Reason: New page workflows/debugging-workflow.mdx cần add vào documentation.json under Workflows group.
+Patch:
+- file: documentation.json
+- change: Add {"title": "Debugging Workflow", "path": "workflows/debugging-workflow", "icon": "bug"} vào group "Workflows"
+Status: **applied** (commit 95907c2)
+```
+
+**Kết quả:** Brain apply trong commit `95907c2`. Page hiện trong nav dưới group "Workflows".
+
+---
+
+### Example 2 — Win 4 add glossary nav
+
+```markdown
+### [2026-04-20 13:41] [win4 → win1] Add glossary to nav
+Reason: New page knowledge-qa/glossary.mdx
+Patch:
+- file: documentation.json
+- change: Add {"title": "Glossary", "path": "knowledge-qa/glossary", "icon": "book-open"} vào group "Knowledge & QA"
+Status: **applied**
+```
+
+**Kết quả:** Brain apply khi merge `win4-reference-qa` branch. Glossary page accessible từ nav sidebar.
+
+---
+
+### Example 3 — Win 3 add review-workflow nav
+
+```markdown
+### [2026-04-20 13:14] [win3 → win1] Add review-workflow to nav
+Reason: New page workflows/review-workflow.mdx
+Patch:
+- file: documentation.json
+- change: Add {"title": "Review Workflow", "path": "workflows/review-workflow", "icon": "check-square"} vào group "Workflows"
+Status: **applied**
+```
+
+**Kết quả:** Brain apply cùng batch với debugging-workflow entry. Cả hai page hiện trên nav trong cùng một commit.
+
+---
+
+## Turnaround Expectation
+
+<Callout kind="info">
+Brain apply cross-scope requests theo batch — thường là khi merge worker branches vào `main`. Turnaround điển hình là **5–15 phút sau khi worker branch được merge**.
+
+Nếu request urgent hơn (ví dụ: blocker cho task tiếp theo), ghi chú trong `plans/task-board-sprint-2.md` dưới task liên quan và Brain sẽ prioritize.
+</Callout>
+
+**Timeline thông thường:**
+
+| Giai đoạn | Thời gian kỳ vọng |
+|-----------|-----------------|
+| Worker push request | T+0 |
+| Win 4 QA review pass | T+15-20 phút |
+| Brain merge worker branch | T+20-30 phút |
+| Brain apply cross-scope patches | T+25-35 phút (cùng batch với merge) |
+| Entry moved sang `## Applied` | T+25-35 phút |
+
+Nếu chờ quá 1 giờ mà chưa thấy entry được applied, kiểm tra:
+1. `plans/task-board-sprint-2.md` — task của mình đã có QA PASS chưa?
+2. `plans/cross-scope-sprint-2.md` — entry đã xuất hiện dưới `## Pending` chưa?
+3. Nếu cả hai đều OK nhưng vẫn chưa applied, ghi note trong task-board để Brain biết.
+
+---
+
+## Anti-Patterns
+
+Tránh các lỗi thường gặp sau đây:
+
+- **Edit file ngoài scope trực tiếp** — Win 4 sẽ reject với Scope Violation. Xem [Review Workflow](./review-workflow) — Reject Template 2. Mọi merge conflict do vi phạm ownership cũng phải do Brain resolve, không phải worker.
+
+- **Skip request và push thẳng vào shared file** — Tạo merge conflict nguy hiểm khi Brain merge nhiều worker branches cùng lúc. Đặc biệt nguy hiểm với `documentation.json` vì format JSON strict — một conflict marker ở giữa làm hỏng toàn bộ file.
+
+- **Request vague, thiếu field `file` hoặc `change`** — Brain sẽ reject request không đủ thông tin. Nếu Brain phải hỏi lại, cả sprint bị chậm. Luôn paste exact JSON/text cần thêm, không viết mơ hồ kiểu "thêm entry cho page mới".
+
+- **Gộp nhiều unrelated changes vào một request** — Mỗi request chỉ cover một logical change. Nếu cần nhiều changes, viết nhiều request entries riêng biệt dưới `## Pending`.
+
+- **Commit cross-scope request trong cùng commit với content** — Tách riêng hai commit: một cho `.mdx` file, một cho request tracking. Điều này giúp git history sạch và Brain dễ cherry-pick nếu cần.
+
+---
+
+## Xem thêm
+
+- [Debugging Workflow](./debugging-workflow) — khi gặp lỗi trong quá trình thực hiện task
+- [Review Workflow](./review-workflow) — QA process sau khi submit, bao gồm Scope Violation reject template
+- [MDX Gotchas](../help-center/troubleshooting/mdx-gotchas) — catalog lỗi MDX phổ biến
