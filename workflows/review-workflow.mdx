@@ -1,0 +1,378 @@
+---
+title: "Review Workflow"
+description: "Win 4 QA process: checkout → validate → decision → feedback. Review criteria, reject templates, và turnaround expectation."
+---
+
+## Tổng quan
+
+Khi một worker (Win 2, Win 3) hoặc Brain hoàn thành một task và đẩy commit lên branch worker, đó là lúc **Win 4** bước vào với vai trò QA reviewer. Review workflow đảm bảo mọi nội dung được merge vào `main` đều đã qua kiểm tra: MDX syntax hợp lệ, frontmatter đầy đủ, links không bị hỏng, và scope không bị xâm phạm.
+
+Trang này mô tả toàn bộ quy trình Win 4 từ lúc nhận request đến khi ra quyết định QA PASS hoặc QA FAIL, và các bước tiếp theo sau khi Brain merge.
+
+<Callout kind="info">
+Win 4 là reviewer duy nhất trong Sprint 2. Không worker nào tự review output của mình. Tính khách quan của Win 4 là điều kiện đảm bảo chất lượng toàn sprint.
+</Callout>
+
+---
+
+<Steps>
+
+<Step title="Bước 1 — Nhận Review Request">
+
+**Trigger:** Worker (Win 2 hoặc Win 3) đã push commit lên branch worker và đánh dấu task là `[R]` REVIEW trong `plans/task-board-sprint-2.md`.
+
+**Win 4 cần xác nhận 3 thứ trước khi bắt đầu:**
+
+| Kiểm tra | Cách xác nhận |
+|----------|--------------|
+| Task ID đúng | Đọc commit message — format `feat(S2-WX-YY): ...` |
+| Branch đúng | Win 2 dùng `win2-framework`, Win 3 dùng `win3-workflow` |
+| File nằm đúng scope | Win 2 chỉ sửa `agent-os-overview/`, `core-rules/` — Win 3 chỉ sửa `workflows/`, `agent-instructions/` |
+
+```bash
+# Xem commit mới nhất trên branch worker
+git log origin/win3-workflow --oneline -5
+git log origin/win2-framework --oneline -5
+```
+
+Nếu 3 điều kiện trên đều đúng, tiếp tục sang Bước 2. Nếu có vấn đề về scope ngay ở bước này, dừng lại và xử lý theo quy trình QA FAIL (Bước 4b).
+
+</Step>
+
+<Step title="Bước 2 — Checkout Branch Worker">
+
+**Mục tiêu:** Lấy code mới nhất từ branch worker về môi trường local của Win 4 để validate.
+
+Win 4 làm việc trong worktree riêng (`win4-reference-qa`). Không cần tạo branch mới — chỉ fetch và đọc từ remote.
+
+```bash
+# Option A: Làm việc trong Win 4 worktree
+cd /Users/phongto/Workspace/Claude/documentationai-wiki-win4
+
+# Fetch tất cả branches mới nhất
+git fetch origin
+
+# Checkout branch worker (read-only review — không commit vào đây)
+git checkout origin/win3-workflow
+# Hoặc:
+git checkout origin/win2-framework
+```
+
+```bash
+# Option B: Nếu có nhiều worktrees, cd thẳng vào
+# Win 3 worktree đã có sẵn tại:
+cd /Users/phongto/Workspace/Claude/documentationai-wiki-win3
+git fetch origin
+git log origin/win3-workflow --oneline -3
+```
+
+**Xem danh sách files thay đổi so với main:**
+
+```bash
+git diff origin/main...origin/win3-workflow --name-only
+```
+
+Ghi lại danh sách này — đây là các file sẽ được review trong Bước 3.
+
+<Callout kind="warning">
+Win 4 KHÔNG được commit hay sửa trực tiếp lên branch worker. Win 4 chỉ đọc + validate. Mọi yêu cầu sửa chữa phải trả về cho submitter.
+</Callout>
+
+</Step>
+
+<Step title="Bước 3 — Chạy Validation Suite">
+
+Với từng file trong danh sách đã thay đổi, chạy ba lớp validation theo thứ tự:
+
+**Lớp 1 — MDX Syntax + Frontmatter (automated)**
+
+```bash
+# Chạy pre-commit-check.sh trên toàn bộ scope của worker
+bash scripts/pre-commit-check.sh workflows/
+# Hoặc cho Win 2:
+bash scripts/pre-commit-check.sh agent-os-overview/ core-rules/
+```
+
+Script kiểm tra 4 điều:
+- Check 1: Không có Unicode checkbox (`☐`, `□`)
+- Check 2: Không có pattern `<[digit]` (JSX collision)
+- Check 3: Frontmatter có đủ `title:` và `description:`
+- Check 4: Không có Vietnamese không dấu (heuristic, warning only)
+
+**Lớp 2 — Internal Link Integrity (automated)**
+
+```bash
+# Kiểm tra tất cả internal links trong repo
+bash scripts/check-links.sh .
+```
+
+Script quét mọi Markdown link (dạng `[text](url)`), href props, và path props — báo cáo bất kỳ link nào trỏ tới file không tồn tại.
+
+**Lớp 3 — Manual Read-through (subjective)**
+
+Đọc từng file thay đổi và kiểm tra những điều script không thể tự detect:
+
+| Tiêu chí | Câu hỏi kiểm tra |
+|----------|-----------------|
+| Vietnamese voice | Text có nhất quán tiếng Việt không? Dấu đầy đủ không? |
+| Content quality | Nội dung có đúng topic không? Có đủ độ sâu không? |
+| Component usage | Steps/Callout có dùng đúng cú pháp không? |
+| Line count | File có đạt target lines không (xem task-board)? |
+| No Mermaid | Không có mermaid code fence (unsupported)? |
+| No emoji in code | Không có emoji bên trong code fence? |
+| Unescaped braces | `{` và `}` trong prose text đã được escape chưa? |
+
+Ghi lại kết quả validation vào scratch note — cần thiết cho Bước 4.
+
+</Step>
+
+<Step title="Bước 4 — Decision: PASS hoặc FAIL">
+
+Sau khi hoàn thành cả 3 lớp validation, Win 4 đưa ra quyết định:
+
+**4a — QA PASS (tất cả checks đều xanh)**
+
+Khi tất cả automated checks pass và manual read-through không tìm thấy vấn đề:
+
+1. Mở `plans/task-board-sprint-2.md`
+2. Đổi `[R]` thành `[x]` cho task vừa review
+3. Append comment QA PASS vào dưới task line:
+   ```
+   <!-- QA PASS [YYYY-MM-DD HH:MM] win4 — pre-commit OK, links OK, manual OK -->
+   ```
+4. Commit và push lên `win4-reference-qa`:
+   ```bash
+   git add plans/task-board-sprint-2.md
+   git commit -m "chore(qa): QA PASS S2-WX-YY — pre-commit + links + manual OK"
+   git push origin win4-reference-qa
+   ```
+5. Thông báo Brain (Opus): append note vào `plans/cross-scope-sprint-2.md` dưới `## Pending`:
+   ```
+   ### [YYYY-MM-DD HH:MM] [win4 → win1] QA PASS: S2-WX-YY ready to merge
+   Reason: All validation passed. Branch origin/winX-<scope> ready for merge to main.
+   Status: pending
+   ```
+
+**4b — QA FAIL (có ít nhất 1 check thất bại)**
+
+Khi bất kỳ automated check nào fail hoặc manual review tìm thấy vấn đề:
+
+1. Ghi lại chi tiết từng issue (file, line, description)
+2. Giữ task ở trạng thái `[R]` trong task-board — KHÔNG đổi thành `[x]`
+3. Append QA FAIL comment vào task line:
+   ```
+   <!-- QA FAIL [YYYY-MM-DD HH:MM] win4 — xem issues bên dưới -->
+   ```
+4. Gửi feedback chi tiết cho submitter (xem templates trong section "Reject Templates")
+5. Submitter sửa và re-push — Win 4 review lại từ Bước 2
+
+<Callout kind="warning">
+Một QA FAIL không phải thất bại — đó là quy trình làm việc đúng. Win 4 không được "pass cho xong" khi còn issue chưa giải quyết. Brain sẽ không merge bất kỳ task nào chưa có QA PASS tag.
+</Callout>
+
+</Step>
+
+<Step title="Bước 5 — Post-Merge Verify">
+
+Sau khi Brain merge branch worker vào `main`, Win 4 thực hiện kiểm tra cuối:
+
+**Sync với main mới nhất:**
+
+```bash
+cd /Users/phongto/Workspace/Claude/documentationai-wiki-win4
+git fetch origin
+git checkout origin/main
+git log --oneline -3
+```
+
+**Verify content live trên Documentation.AI:**
+
+Nếu MCP `search_documentation` khả dụng:
+
+```bash
+# Tìm page vừa merge trong Documentation.AI search index
+# (Win 4 sử dụng MCP search để confirm page đã được index)
+```
+
+Nếu không có MCP:
+- Kiểm tra file tồn tại trong `main` với đúng path
+- Confirm frontmatter `title` và `description` đúng
+- Confirm entry tương ứng đã có trong `documentation.json` (do Win 1 apply từ cross-scope request)
+
+**Cập nhật task-board:**
+
+Nếu post-merge verify pass, task đã hoàn thành. Không cần thêm action.
+
+Nếu phát hiện vấn đề sau merge (hiếm), tạo task mới trong task-board với tag `[REGRESSION]` và assign cho worker phù hợp.
+
+</Step>
+
+</Steps>
+
+---
+
+## Review Criteria (Chi tiết)
+
+Win 4 đánh giá từng submission dựa trên 4 nhóm tiêu chí:
+
+### Nhóm 1 — Content
+
+| # | Tiêu chí | Định nghĩa đạt |
+|---|----------|---------------|
+| CT1 | Line count | File đạt hoặc vượt target được ghi trong task description |
+| CT2 | Frontmatter | Có đủ `title:` và `description:` trong 10 dòng đầu |
+| CT3 | Vietnamese voice | Text tiếng Việt nhất quán, dấu đầy đủ trong toàn file |
+| CT4 | Topic accuracy | Nội dung đúng topic được assign — không drift sang chủ đề khác |
+| CT5 | Depth | Có đủ chi tiết kỹ thuật để người đọc thực hiện được, không chỉ liệt kê abstract |
+
+### Nhóm 2 — Technical
+
+| # | Tiêu chí | Định nghĩa đạt |
+|---|----------|---------------|
+| TC1 | No Mermaid | Không có `` ```mermaid `` fence — unsupported trên Documentation.AI |
+| TC2 | No unescaped braces | `{variable}` trong prose đã escape hoặc trong code fence |
+| TC3 | No emoji in code | Không có emoji bên trong backtick code fence hoặc code block |
+| TC4 | Callout syntax | Dùng đúng `<Callout kind="info|warning|error">` — không dùng variant không có trong whitelist |
+| TC5 | Steps syntax | `<Steps>` wraps các `<Step title="...">` đúng format — không nest Steps trong Steps |
+| TC6 | No JSX collision | Không có `<[digit]` pattern trong text ngoài code fence |
+| TC7 | No Unicode checkbox | Không có `☐` hay `□` ở bất kỳ đâu ngoài code fence |
+
+### Nhóm 3 — Links
+
+| # | Tiêu chí | Định nghĩa đạt |
+|---|----------|---------------|
+| LK1 | Internal refs exist | Mọi `[text](../path)` hoặc `[text](./path)` trỏ tới file thực sự tồn tại |
+| LK2 | No .mdx suffix in links | Link paths không có `.mdx` extension — dùng `./debugging-workflow`, không phải `./debugging-workflow.mdx` |
+| LK3 | Cross-folder syntax | Links sang folder khác dùng `../folder/file`, không dùng absolute `/folder/file` |
+
+### Nhóm 4 — Scope
+
+| # | Tiêu chí | Định nghĩa đạt |
+|---|----------|---------------|
+| SC1 | No territory invasion | Worker chỉ tạo/sửa file trong scope được assign — xem task-board |
+| SC2 | No documentation.json edits | Worker không tự sửa `documentation.json` — phải submit cross-scope request |
+| SC3 | No scripts/ edits | Worker không sửa `scripts/` trừ khi đó là task của Win 4 |
+| SC4 | No plans/ content edits | Worker chỉ được append vào `plans/cross-scope-sprint-2.md` — không sửa các file plans khác |
+
+---
+
+## Reject Templates
+
+Ba template copy-paste cho Win 4 khi cần gửi QA FAIL feedback. Thay nội dung trong `[brackets]`.
+
+### Template 1 — Missing Frontmatter
+
+```
+QA FAIL — [Task ID] — Missing Frontmatter
+
+File: [path/to/file.mdx]
+Issue: Frontmatter không đầy đủ.
+
+Kiểm tra:
+- `title:` hiện tại: [có/không có]
+- `description:` hiện tại: [có/không có]
+
+Fix yêu cầu:
+Thêm frontmatter đầy đủ vào 3 dòng đầu của file:
+
+---
+title: "[Page Title Here]"
+description: "[One-line summary, under 160 chars.]"
+---
+
+Sau khi fix, chạy: bash scripts/pre-commit-check.sh [path/to/file.mdx]
+Confirm check 3 (frontmatter) PASS trước khi re-push.
+
+Re-submit: push commit mới lên [branch] và ping Win 4.
+```
+
+### Template 2 — Scope Violation
+
+```
+QA FAIL — [Task ID] — Scope Violation
+
+Phát hiện thay đổi ngoài scope được assign:
+
+Files vi phạm:
+- [path/to/out-of-scope-file] — thuộc scope [Win X], không phải [Win Y]
+
+Quy tắc: Mỗi worker chỉ được tạo/sửa file trong scope của mình.
+- Win 2: agent-os-overview/, core-rules/
+- Win 3: workflows/, agent-instructions/
+- Win 4: help-center/, knowledge-qa/, scripts/
+- Win 1 (Brain): documentation.json, top-level *.mdx, .github/
+
+Action yêu cầu:
+1. Revert thay đổi trên [out-of-scope-file]:
+   git checkout origin/main -- [path/to/out-of-scope-file]
+2. Nếu thay đổi đó cần thiết, submit cross-scope request:
+   Append vào plans/cross-scope-sprint-2.md theo template trong file đó.
+3. Push lại và ping Win 4.
+
+Note: Nếu cross-scope change là phần bắt buộc của task, submit request — Brain sẽ apply.
+```
+
+### Template 3 — Link Broken
+
+```
+QA FAIL — [Task ID] — Broken Internal Link(s)
+
+check-links.sh phát hiện [N] broken link(s):
+
+[file:line → /path/that/does/not/exist]
+[file:line → /another/missing/path]
+
+Nguyên nhân thường gặp:
+- File target chưa được tạo (task chưa hoàn thành)
+- Typo trong path
+- Dùng .mdx extension trong link (không cần thiết)
+- Cross-folder path sai syntax
+
+Fix từng link:
+1. Kiểm tra file target có tồn tại không:
+   ls [expected/path.mdx]
+2. Sửa path trong link cho đúng
+3. Nếu file target chưa tồn tại và phụ thuộc task khác:
+   Dùng placeholder text thay vì link: "*(xem cross-scope-workflow — coming soon)*"
+
+Sau khi fix, chạy: bash scripts/check-links.sh .
+Confirm output "All N links OK" trước khi re-push.
+
+Re-submit: push commit mới lên [branch] và ping Win 4.
+```
+
+---
+
+## Turnaround Expectation
+
+**Win 4 nên hoàn thành QA review trong 15–20 phút sau khi task được submitted** (đánh dấu `[R]` trên task-board).
+
+| Giai đoạn | Thời gian kỳ vọng |
+|-----------|------------------|
+| Bước 1 (nhận request + xác nhận context) | dưới 2 phút |
+| Bước 2 (checkout branch) | dưới 1 phút |
+| Bước 3 (chạy validation suite) | 5–8 phút (automated + manual) |
+| Bước 4 (ra quyết định + cập nhật tracking) | 3–5 phút |
+| **Tổng** | **dưới 15–16 phút cho 1 task** |
+
+Nếu file có hơn 300 lines hoặc nhiều internal links, cộng thêm 5 phút.
+
+**Nếu Win 4 không thể review trong 20 phút** (bận task S2-W4-01 hoặc S2-W4-02), ghi chú vào task-board:
+```
+<!-- WIN4 QUEUED [HH:MM] — sẽ review sau khi hoàn thành S2-W4-XX -->
+```
+
+Submitter không được tự merge trong khi chờ — mọi merge vào `main` đều do Brain thực hiện sau QA PASS.
+
+<Callout kind="info">
+Mục tiêu turnaround 15–20 phút giúp sprint không bị block. Nếu Win 4 liên tục bị backlog nhiều hơn 2 tasks cùng lúc, Brain cần điều chỉnh lịch sprint.
+</Callout>
+
+---
+
+## Xem thêm
+
+- [Debugging Workflow](./debugging-workflow) — khi validation fail và cần fix
+- [Cross-Scope Workflow](./cross-scope-workflow) — khi file cần sửa nằm ngoài scope worker
+- [MDX Gotchas](../help-center/troubleshooting/mdx-gotchas) — catalog lỗi MDX và cách fix
+- [Review Checklist](../knowledge-qa/review-checklist) — checklist chung cho output quality
