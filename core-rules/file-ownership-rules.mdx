@@ -1,0 +1,126 @@
+---
+title: "File Ownership Rules"
+description: "Tại sao ownership nghiêm ngặt, cách xử lý khi cần edit file ngoài scope, và conflict resolution giữa các agents."
+icon: "shield"
+last_reviewed: "2026-04-20"
+---
+
+## Vấn đề cần giải quyết
+
+Khi nhiều agents làm việc song song trên cùng một repo, hai rủi ro chính luôn tồn tại:
+
+**Merge conflicts.** Hai agents edit cùng một file ở cùng thời điểm → git không thể auto-merge → build chặn → mất thời gian resolve thủ công.
+
+**Inconsistency.** Agent B không có đủ context về quyết định thiết kế của Agent A → edit "hợp lý" theo góc nhìn của B → làm hỏng meaning hoặc structure mà A đã dụng công xây dựng.
+
+File ownership rules loại bỏ cả hai rủi ro bằng cách giao từng file cho một owner duy nhất.
+
+
+## CODEOWNERS là nguồn sự thật
+
+File `CODEOWNERS` ở root repo là nơi duy nhất định nghĩa ai own gì. Trước khi edit bất kỳ file nào, agents kiểm tra `CODEOWNERS` để xác nhận scope.
+
+Cấu trúc hiện tại:
+
+| Scope | Owner | Branch |
+|-------|-------|--------|
+| `agent-os-overview/*.mdx` | Win 2 | `win2-framework` |
+| `core-rules/*.mdx` | Win 2 | `win2-framework` |
+| `workflows/*.mdx` | Win 3 | `win3-workflow` |
+| `agent-instructions/*.mdx` | Win 3 | `win3-workflow` |
+| `help-center/**/*.mdx` | Win 4 | `win4-reference-qa` |
+| `knowledge-qa/*.mdx` | Win 4 | `win4-reference-qa` |
+| `scripts/` | Win 4 | `win4-reference-qa` |
+| `plans/`, `*.mdx` (top-level), `components/`, `documentation.json`, `openapi.yaml` | Win 1 | `main` |
+
+
+## Các hành động bị nghiêm cấm
+
+**Không được:**
+
+- Edit file ngoài scope của mình, dù chỉ fix typo
+- Tạo file mới trong folder mà mình không own
+- Merge branch của agent khác vào branch của mình
+- Push trực tiếp lên `main` (Win 1 không dùng worktree, nhưng Win 2/3/4 phải dùng PR flow)
+
+**Exception duy nhất:**
+
+Agents được phép **append** vào `plans/progress.md` và `plans/findings.md` — đây là shared logs, không phải content files. Chỉ append, không edit dòng cũ.
+
+
+## Khi cần edit file ngoài scope
+
+Quy trình chuẩn là **Cross-Scope Request** — không tự edit.
+
+### Bước 1 — Xác định cần gì
+
+Viết rõ: file cần thay đổi, lý do, và nội dung thay đổi cụ thể (inline diff hoặc hướng dẫn rõ ràng).
+
+### Bước 2 — Ghi vào task-board
+
+Vào `plans/task-board.md` section `## Cross-Scope Requests`, thêm entry:
+
+```
+### [YYYY-MM-DD HH:MM] [winN → win1] <short title>
+Reason: <why this edit is needed>
+Patch:
+<inline diff hoặc instructions>
+Status: pending
+```
+
+### Bước 3 — Tiếp tục làm việc khác
+
+Không block chờ. Tiếp tục task tiếp theo. Win 1 sẽ xử lý cross-scope request trong lần sync tiếp.
+
+### Bước 4 — Win 1 apply
+
+Win 1 đọc request, apply patch, đổi Status thành `applied`. Nếu reject, đổi thành `rejected` và giải thích.
+
+**Ví dụ cross-scope request phổ biến:**
+
+Win 2 tạo page `core-rules/file-ownership-rules.mdx` → cần Win 1 thêm path vào `documentation.json`:
+
+```
+### [2026-04-20 00:45] [win2 → win1] Add file-ownership-rules to documentation.json
+Reason: New page created at core-rules/file-ownership-rules.mdx
+Patch:
+In documentation.json, under "core-rules" group, add:
+  { "path": "core-rules/file-ownership-rules" }
+after the entry for "core-rules/global-operating-rules"
+Status: pending
+```
+
+
+## Conflict Resolution
+
+Nếu hai agents vô tình cùng modify một file (ownership violation):
+
+### Detection
+
+Win 4 phát hiện trong QA step khi chạy `scripts/pre-commit-check.sh` hoặc khi Win 1 thấy conflict khi merge.
+
+### Resolution
+
+1. **Win 1 quyết định** file version nào là canonical — thường là version của owner đúng.
+2. **Agent vi phạm** cherry-pick phần thay đổi của mình vào cross-scope request thay vì direct edit.
+3. **Ghi vào `plans/findings.md`** để tránh lặp lại.
+
+### Khi không rõ ai own một file
+
+Đọc `CODEOWNERS`. Nếu file chưa có trong CODEOWNERS (VD: file mới hoàn toàn), mặc định Win 1 own cho đến khi được assign rõ ràng.
+
+
+## Tại sao không dùng branch protection
+
+Repo này hiện tại là single-contributor (Phong). GitHub branch protection sẽ thêm overhead mà không cần thiết ở scale này. Thay vào đó, ownership được enforce bằng **agent self-discipline** — mỗi agent đọc CODEOWNERS trước khi làm và không vi phạm.
+
+Khi team mở rộng hoặc nếu vi phạm xảy ra thường xuyên, Win 1 sẽ bật GitHub CODEOWNERS enforcement.
+
+<Callout kind="info">
+Strict file ownership không phải bureaucracy — đây là cách hai agents có thể làm việc song song mà không cần sync meeting hay real-time communication. Mỗi agent làm trong "lane" của mình, build không bao giờ fail vì conflict.
+</Callout>
+
+
+## Read next
+
+Quay lại [Global Operating Rules](/core-rules/global-operating-rules) để ôn lại các luật nền tảng áp dụng cho mọi agent.

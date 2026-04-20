@@ -15,3 +15,9 @@
 ---
 
 _(Workers: append new entries below. One line per commit. Be concise — context lives in git log, not here.)_
+
+- [2026-04-20 00:45] [win2] Expanded agent-os-overview/introduction.mdx — added "Tại sao hệ thống này tồn tại" section (W2-01)
+- [2026-04-20 00:45] [win2] Created agent-os-overview/multi-agent-collaboration.mdx — 4-agent model doc (W2-02)
+- [2026-04-20 00:45] [win2] Expanded core-rules/global-operating-rules.mdx — added Luật 7 YAGNI/KISS/DRY (W2-03)
+- [2026-04-20 00:45] [win2] Created core-rules/file-ownership-rules.mdx — ownership & cross-scope protocol (W2-04)
+- [2026-04-20 00:45] [win2] Filed cross-scope request for Win 1 to add 2 new paths to documentation.json

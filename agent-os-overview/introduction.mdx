@@ -10,6 +10,19 @@ Phong AI Agent Operating System (Agent OS) là tài liệu vận hành trung tâ
 Site này không phải blog, không phải tutorial, và không phải marketing material. Đây là **tài liệu vận hành** — viết để AI agents và Phong có thể tra cứu nhanh, thực thi đúng, và không cần hỏi lại những gì đã được ghi nhận.
 
 
+## Tại sao hệ thống này tồn tại
+
+Không có tài liệu trung tâm, mỗi AI agent phải đoán cách làm việc từ đầu mỗi session. Phong phải lặp lại context, giải thích quy trình, và sửa lỗi lặp đi lặp lại.
+
+Agent OS giải quyết vấn đề đó bằng ba cơ chế:
+
+**Một nguồn sự thật.** Mọi quy trình, cấu hình, và luật vận hành đều nằm ở đây. Khi Phong quyết định thay đổi cách làm, cập nhật một lần → tất cả agents nhận ngay qua MCP search.
+
+**Self-service cho agent.** Agent không cần hỏi Phong về quy trình đã có tài liệu. Search Agent OS → đọc page tương ứng → thực thi. Phong chỉ cần trả lời câu hỏi cho những gì chưa được document.
+
+**Nhất quán theo thời gian.** Khi hệ thống mở rộng (thêm MCP, thêm workflow, thêm agent), Agent OS là nơi ghi nhận tất cả — không bị mất trong chat history hay memory riêng lẻ của từng session.
+
+
 ## Ai sử dụng site này
 
 ### AI Agents (người dùng chính)

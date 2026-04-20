@@ -138,6 +138,67 @@ Phong không phải lập trình viên. Khi giải thích kỹ thuật, dùng ng
 </Callout>
 
 
+## Luật 7 — YAGNI, KISS, DRY trong workflow của Phong
+
+Ba nguyên tắc này ban đầu là engineering principles, nhưng áp dụng trực tiếp vào cách agent làm việc trong hệ thống này.
+
+### YAGNI — You Aren't Gonna Need It
+
+Không build, không document, không cấu hình những gì Phong chưa cần thực tế.
+
+**Trong workflow:**
+
+- Đừng tạo automation flow cho một task Phong chỉ làm 1 lần/năm — làm thủ công thì nhanh hơn.
+- Đừng viết page Agent OS cho workflow chưa tồn tại. Chỉ document sau khi Phong đã dùng quy trình đó ít nhất một lần và nó hoạt động.
+- Đừng thêm MCP server mới "phòng khi cần" — chỉ thêm khi có task cụ thể.
+
+**Ví dụ:**
+> Phong hỏi: "Anh có nên set up Zapier để tự động sync lead từ DeftForm vào HubSpot không?"
+>
+> Agent trả lời đúng: "Hiện tại anh nhận bao nhiêu lead/tuần? Nếu dưới 10, làm thủ công trong 2 phút nhanh hơn là mất 1 giờ cấu hình Zapier."
+
+---
+
+### KISS — Keep It Simple, Stupid
+
+Khi có nhiều cách giải quyết, chọn cách đơn giản nhất hoạt động được.
+
+**Trong workflow:**
+
+- Nếu một shell script 5 dòng làm được việc, đừng đề xuất build một FastAPI service.
+- Nếu MCP tool sẵn có làm được việc, đừng tạo custom script.
+- Khi viết page Agent OS, ưu tiên hướng dẫn step-by-step ngắn gọn hơn tài liệu kiến trúc phức tạp.
+
+**Ví dụ:**
+> Task: Tự động hóa việc tạo báo cáo market weekly.
+>
+> Option A: Python script + cron job + email notification system (3-4 giờ setup)
+> Option B: Template HTML + 1 lệnh Playwright screenshot + Zernio MCP đăng (20 phút setup)
+>
+> Chọn B. Phong không cần infrastructure, cần output.
+
+---
+
+### DRY — Don't Repeat Yourself
+
+Thông tin chỉ tồn tại ở một nơi. Mọi chỗ khác reference đến nơi đó.
+
+**Trong Agent OS:**
+
+- TREC disclaimer text không được copy-paste vào từng page. Nó nằm trong `core-rules/real-estate-rules.mdx` — các pages khác link đến đó.
+- Brand voice rules không được lặp lại trong mỗi workflow page. Chúng nằm trong `core-rules/content-creation-rules.mdx`.
+- Khi agent cần biết media stack, search Agent OS một lần — không ghi lại vào response rồi lại search lần sau.
+
+**Trong hệ thống:**
+
+- Cấu hình MCP server không được hardcode trong nhiều places. Nằm một nơi, các chỗ khác đọc từ đó.
+- Client information sống trong HubSpot. Không duplicate vào Notes app, không copy vào email draft, không lưu vào memory trừ khi thực sự cần.
+
+<Callout kind="warning">
+Vi phạm DRY phổ biến nhất: agent ghi nhớ thông tin trong session memory thay vì search Agent OS/RKB. Kết quả: thông tin cũ lấn át quy trình mới được update. Luôn search source-of-truth, không dựa vào memory.
+</Callout>
+
+
 ## Read next
 
 Trang tiếp theo định nghĩa luật riêng cho các task liên quan bất động sản — bao gồm khi nào phải search Realtor Knowledge Base, TREC compliance, và cách giao tiếp với client người Việt.
