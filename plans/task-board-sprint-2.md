@@ -2,13 +2,17 @@
 
 **Sprint:** 2
 **Opened:** 2026-04-20 ~11:05 CDT
-**Lead Brain:** Opus 4.7 (main Claude Code CLI session — orchestrator)
-**Executors:** Win 1/2/3/4 = Sonnet 4.6 (hands/tay chân)
+**Revised:** 2026-04-20 ~12:30 CDT (3-worker model after auth issues with 4 CLIs)
+**Lead Brain:** Opus 4.7 (main Claude Code CLI session — orchestrator + Win 1 executor)
+**Executors:** 3 × iTerm2 windows:
+- Win 2 = **Sonnet 4.6** — conceptual writing + diagrams
+- Win 3 = **Sonnet 4.6** — process documentation
+- Win 4 = **Haiku 4.5** — template-based + mechanical (glossary, QA, bash scripting)
 
 **Protocol (Sprint 2 — simplified từ Sprint 1 lesson):**
-- Win 1 owns this file — workers **read-only**
+- Win 1 tasks executed directly by Brain (Opus) in main worktree
 - Workers commit với task ID trong message (e.g. `feat(S2-W2-01): expand architecture`)
-- Cross-scope requests → file riêng: `plans/cross-scope-sprint-2.md` (Win 1 merges)
+- Cross-scope requests → file riêng: `plans/cross-scope-sprint-2.md` (Brain merges)
 - Progress tracked from `git log --grep="S2-W"` — no markdown conflict
 
 **Legend:**
@@ -30,7 +34,7 @@
 
 ## 📋 TASK POOL (16 tasks = 4/worker)
 
-### 🧭 Win 1 — Lead Architect (Sonnet executor)
+### 🧭 Win 1 — Lead Architect (executed by Brain / Opus 4.7)
 Scope: `documentation.json`, top-level `*.mdx`, `/plans/`, `.github/`, scripts orchestration
 
 - [ ] **S2-W1-01** Create `.github/workflows/mdx-validate.yml` — CI runs `scripts/pre-commit-check.sh` + `scripts/check-links.sh` on PR
@@ -38,7 +42,7 @@ Scope: `documentation.json`, top-level `*.mdx`, `/plans/`, `.github/`, scripts o
 - [ ] **S2-W1-03** Apply Sprint 2 cross-scope requests from workers (update `documentation.json` with 5 new page nav entries)
 - [ ] **S2-W1-04** Final merge + deploy verify — pull worker branches, merge, push main, verify MCP reindex
 
-### 🏗️ Win 2 — Framework Author (Sonnet executor)
+### 🏗️ Win 2 — Framework Author (Sonnet 4.6 executor)
 Scope: `agent-os-overview/`, `core-rules/`
 
 - [ ] **S2-W2-01** Expand `agent-os-overview/architecture.mdx` (166 → 250+ lines) — add Mermaid diagram showing 4-agent + filesystem coordination loop
@@ -46,7 +50,7 @@ Scope: `agent-os-overview/`, `core-rules/`
 - [ ] **S2-W2-03** Create `core-rules/communication-rules.mdx` — how agents "talk" (filesystem-based, no runtime IPC), cross-scope protocol, commit message conventions
 - [ ] **S2-W2-04** Create `agent-os-overview/design-principles.mdx` — YAGNI/KISS/DRY + "filesystem as IPC" + "read before write" + "own file ownership"
 
-### 🔀 Win 3 — Workflow Writer (Sonnet executor)
+### 🔀 Win 3 — Workflow Writer (Sonnet 4.6 executor)
 Scope: `workflows/`, `agent-instructions/`
 
 - [ ] **S2-W3-01** Create `workflows/debugging-workflow.mdx` — khi agent gặp error: diagnosis flow, rollback, escalate to Win 1
@@ -54,7 +58,7 @@ Scope: `workflows/`, `agent-instructions/`
 - [ ] **S2-W3-03** Create `workflows/cross-scope-workflow.mdx` — cách request change ngoài scope (template, example, turnaround time)
 - [ ] **S2-W3-04** Expand `agent-instructions/claude-cowork-instructions.mdx` (144 → 200+ lines) — add concrete Cowork command examples
 
-### ✅ Win 4 — Reference & QA (Sonnet executor)
+### ✅ Win 4 — Reference & QA (Haiku 4.5 executor)
 Scope: `help-center/`, `knowledge-qa/`, `scripts/`, QA all workers
 
 - [ ] **S2-W4-01** Create `knowledge-qa/glossary.mdx` — 30+ terms (Win, Lead, Worker, cross-scope, worktree, MDX, pre-commit, MCP, cowork, etc.) with anchors
