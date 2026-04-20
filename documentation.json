@@ -60,6 +60,11 @@
                 "icon": "lock"
               },
               {
+                "title": "Communication Rules",
+                "path": "core-rules/communication-rules",
+                "icon": "message-square"
+              },
+              {
                 "title": "Real Estate Rules",
                 "path": "core-rules/real-estate-rules",
                 "icon": "home"
@@ -109,6 +114,11 @@
                 "title": "Review Workflow",
                 "path": "workflows/review-workflow",
                 "icon": "check-square"
+              },
+              {
+                "title": "Cross-Scope Workflow",
+                "path": "workflows/cross-scope-workflow",
+                "icon": "git-branch"
               }
             ]
           },
