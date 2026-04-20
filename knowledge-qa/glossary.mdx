@@ -1,0 +1,112 @@
+---
+title: "Glossary"
+description: "35+ terms cho multi-agent wiki system"
+---
+
+Danh sách các thuật ngữ kỹ thuật sử dụng trong hệ thống Documentation.AI multi-agent, được sắp xếp theo thứ tự bảng chữ cái.
+
+## A
+
+**Agent Team** — Nhóm gồm 4 Claude Code CLI instances (Win 1–4) chạy song song, mỗi agent sở hữu một phạm vi file riêng biệt. Coordination xảy ra qua filesystem, không có runtime IPC.
+
+**antigravity-memory-palace MCP** — MCP server cung cấp `search_documentation` tool để query nội dung live của Documentation.AI site tại `https://antigravity-memory-palace.documentationai.com/_mcp`. Dùng để verify cross-references và kiểm tra live vs local content parity.
+
+**Auto-mode** — Chế độ vận hành của Claude Code CLI khi agent tự động claim task, implement, commit, và push mà không cần human approval từng bước. Sử dụng trong sprint context khi task-board đã được approve.
+
+## B
+
+**Brain** — Tên không chính thức cho Win 1 (Lead Architect) — agent điều phối toàn bộ sprint, sở hữu `documentation.json` và `plans/`, merge PR từ các worker agents.
+
+**Branch** — Git branch riêng của mỗi worktree agent. Win 2 dùng `win2-content`, Win 3 dùng `win3-workflows`, Win 4 dùng `win4-reference-qa`. Không ai push thẳng lên `main` ngoài Win 1.
+
+## C
+
+**Check-links** — Script `scripts/check-links.sh` quét toàn bộ file `.mdx` để phát hiện broken internal path references (Markdown links, `href=`, `path=` props). Chạy trước khi push để tránh 404 trên live site.
+
+**Claim** — Hành động một agent lấy quyền sở hữu một task từ task-board bằng cách đổi trạng thái từ `TODO` sang `IN-PROGRESS` và commit thay đổi này trước khi chạm vào bất kỳ file content nào.
+
+**Claude Code CLI** — Công cụ command-line của Anthropic cho phép Claude chạy như một autonomous agent, đọc/ghi file, chạy shell commands, và interact với git. Mỗi Win instance là một Claude Code CLI session riêng.
+
+**Claude Desktop Cowork** — Chế độ vận hành Claude Desktop cho phép nhiều Claude instances chia sẻ context và phối hợp qua shared filesystem. Phân biệt với Claude Code CLI chạy trong terminal.
+
+**CODEOWNERS** — File `.github/CODEOWNERS` (hoặc equivalent) định nghĩa file ownership: ai có quyền review PR chứa file nào. Trong sprint, ownership được enforce bởi convention, không nhất thiết bởi GitHub rules.
+
+**Cross-scope request** — Yêu cầu một agent chỉnh sửa file nằm ngoài scope của mình. Phải được submit dưới dạng entry trong `plans/cross-scope-sprint-2.md` và chờ Win 1 áp dụng. Không bao giờ tự ý edit file ngoài scope.
+
+## D
+
+**Documentation.AI** — Nền tảng documentation hosting dùng MDX files, tự động deploy khi push lên `main`. Chỉ hỗ trợ tập hợp components cụ thể (Callout, Steps, Tabs, Columns, Card). Không hỗ trợ Mermaid diagrams.
+
+## H
+
+**Haiku 4.5** — Model Claude nhỏ, nhanh, tiết kiệm chi phí (~3x so với Sonnet). Phù hợp cho lightweight agents, worker agents trong multi-agent system, và các task lặp lại. Không dùng cho orchestration phức tạp.
+
+## I
+
+**it2** — Python package (`pip install it2`) cung cấp CLI để điều khiển iTerm2 từ terminal: tạo tab mới, chạy commands, đọc output. Dùng để bridge Claude Desktop với iTerm2 trên macOS.
+
+## L
+
+**Lead Architect** — Vai trò của Win 1: quản lý `documentation.json`, `plans/`, merge PR, apply cross-scope requests, và resolve ownership conflicts. Đây là agent duy nhất có thể push thẳng lên `main`.
+
+## M
+
+**MCP** — Model Context Protocol — giao thức cho phép Claude kết nối với external services và tools thông qua standardized interface. Ví dụ: `antigravity-memory-palace MCP`, Zernio MCP, Desktop Commander MCP.
+
+**MDX** — Markdown with JSX — format file dùng trong Documentation.AI. Cho phép nhúng React-like components vào Markdown. Cú pháp `{}` phải được escape nếu không phải JSX expression. Không hỗ trợ Mermaid.
+
+**Mintlify** — Platform documentation tương tự Documentation.AI, cũng dùng MDX. Một số patterns từ Mintlify có thể áp dụng nhưng không phải tất cả components đều tương thích.
+
+## O
+
+**Opus 4.7** — Model Claude mạnh nhất, dành cho deep reasoning, complex architectural decisions, và research analysis. Chi phí cao nhất trong dòng Claude 4.x. Không nên dùng cho worker agents thường xuyên.
+
+## P
+
+**Plan mode** — Chế độ của Claude Code CLI yêu cầu agent lập kế hoạch chi tiết trước khi thực thi. Agent phải submit plan qua `ExitPlanMode` và chờ approval trước khi chạm vào bất kỳ file nào.
+
+**Pre-commit check** — Script `scripts/pre-commit-check.sh` kiểm tra 4 lỗi phổ biến: Unicode checkboxes, `<NUMBER` patterns gây JSX parse error, missing frontmatter, và ASCII Vietnamese không có dấu. Bắt buộc chạy trước mỗi commit.
+
+## Q
+
+**QA FAIL** — Trạng thái Win 4 gán cho một PR sau khi `pre-commit-check.sh` phát hiện lỗi. Agent submitting phải fix và resubmit. Win 1 không merge PR có QA FAIL.
+
+**QA PASS** — Trạng thái Win 4 gán cho một PR sau khi tất cả checks pass. Win 1 chỉ merge sau khi nhận QA PASS từ Win 4.
+
+## R
+
+**Remotion** — Framework React-based để tạo video programmatically bằng code. Sử dụng trong workflow tạo market update videos. Project nằm tại `~/Workspace/Claude/market-update/`.
+
+**Review workflow** — Quy trình: Win 2/3 hoàn thành task → đổi trạng thái sang REVIEW → Win 4 kéo branch về và chạy `pre-commit-check.sh` → QA PASS/FAIL → Win 1 merge nếu PASS.
+
+## S
+
+**Scope** — Phạm vi file/thư mục mà mỗi agent được phép chỉnh sửa. Win 1: `documentation.json`, `plans/`; Win 2: `help-center/`; Win 3: `workflows/`; Win 4: `help-center/`, `knowledge-qa/`, `scripts/`. Không bao giờ edit file ngoài scope.
+
+**Sonnet 4.6** — Model Claude tối ưu cho coding và orchestration. Đây là model mặc định cho development work, complex coding tasks, và quản lý multi-agent workflows.
+
+**Sprint** — Đơn vị công việc theo thời gian, thường gồm một tập tasks được lên kế hoạch trước. Sprint 2 là sprint hiện tại của wiki project. Tasks được track trong `plans/task-board-sprint-2.md`.
+
+## T
+
+**Task ID** — Định danh duy nhất cho mỗi task, format `S{sprint}-W{win}-{số thứ tự}`. Ví dụ: `S2-W4-01` là Sprint 2, Win 4, task số 1. Dùng trong commit messages và progress log.
+
+**Task-board** — File `plans/task-board-sprint-2.md` liệt kê tất cả tasks với trạng thái (TODO / IN-PROGRESS / REVIEW / DONE). Đây là single source of truth cho coordination giữa các agents.
+
+## W
+
+**Win 1** — Lead Architect agent. Sở hữu `documentation.json`, `plans/`. Điều phối sprint, merge PRs, apply cross-scope patches, và resolve conflicts. Branch: `main`.
+
+**Win 2** — Content agent. Sở hữu `help-center/` content pages. Tạo và cập nhật documentation articles trong help center. Branch: `win2-content`.
+
+**Win 3** — Workflows agent. Sở hữu `workflows/` directory. Viết workflow guides và process documentation. Branch: `win3-workflows`.
+
+**Win 4** — Reference & QA agent. Sở hữu `help-center/`, `knowledge-qa/`, `scripts/`. Tạo reference docs, FAQ, glossary, và chạy QA checks cho PRs từ Win 2/3. Branch: `win4-reference-qa`.
+
+**Worker** — Tên chung cho Win 2, Win 3, Win 4 — các agents thực thi tasks trong scope của mình, phân biệt với Win 1 (Lead). Workers không push thẳng lên `main`.
+
+**Worktree** — Git worktree cho phép nhiều branches được checkout đồng thời vào các thư mục khác nhau trên cùng một máy. Mỗi Win instance làm việc trong worktree riêng để tránh conflicts: `documentationai-wiki-win2`, `documentationai-wiki-win3`, `documentationai-wiki-win4`.
+
+## Z
+
+**Zernio** — Social media management platform với MCP integration. Cho phép schedule posts, quản lý campaigns, và publish content lên nhiều platforms. Sử dụng trong workflow content creation của Phong To.
