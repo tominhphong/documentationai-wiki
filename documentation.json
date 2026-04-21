@@ -47,6 +47,11 @@
                 "title": "Design Principles",
                 "path": "agent-os-overview/design-principles",
                 "icon": "compass"
+              },
+              {
+                "title": "Known Issues",
+                "path": "agent-os-overview/known-issues",
+                "icon": "alert-triangle"
               }
             ]
           },
@@ -129,6 +134,11 @@
                 "title": "Sprint Retro Workflow",
                 "path": "workflows/sprint-retro-workflow",
                 "icon": "rotate-ccw"
+              },
+              {
+                "title": "Content Maintenance Workflow",
+                "path": "workflows/content-maintenance-workflow",
+                "icon": "refresh-cw"
               }
             ]
           },
