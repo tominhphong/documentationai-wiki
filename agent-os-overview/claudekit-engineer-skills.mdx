@@ -1,0 +1,569 @@
+---
+title: "ClaudeKit Engineer Skills"
+description: "Full catalog ~75 skills trong bộ ClaudeKit Engineer plugin — grouped by 12 categories với purpose + when-to-use."
+last_reviewed: 2026-04-21
+keywords: [claudekit, engineer, skills, catalog, plugins, reference]
+---
+
+## Giới thiệu
+
+ClaudeKit Engineer là plugin kỹ thuật toàn diện nhất trong bộ ClaudeKit — tập hợp khoảng 75 skills chuyên biệt cho development, debugging, deployment, và operations.
+
+Mỗi skill được kích hoạt bằng slash command `/<skill-name>` trong Claude Code, hoặc tự động thông qua Skill tool khi agent nhận diện task phù hợp. Trước mỗi task, dùng skill `find-skills` để discover các skills liên quan thay vì improvise:
+
+```
+/find-skills <query>
+```
+
+Ví dụ: `/find-skills database migration` sẽ surface `databases`, `deploy`, và các skills liên quan database.
+
+---
+
+## 1. Planning and Research
+
+Nhóm skills hỗ trợ lên kế hoạch, nghiên cứu, và phân tích trước khi bắt tay vào code.
+
+#### **ck-plan**
+
+- **Purpose:** Tạo implementation plan chi tiết cho feature hoặc project, bao gồm phases, tasks, và dependencies.
+- **When to use:** Trước mọi feature mới — đặc biệt khi scope không rõ ràng hoặc có nhiều files cần thay đổi.
+- **Example command:** `/ck-plan implement user authentication with JWT`
+
+#### **brainstorm**
+
+- **Purpose:** Generate ý tưởng sáng tạo và đa dạng cho một vấn đề, không giới hạn bởi constraints.
+- **When to use:** Khi cần explore options trước khi commit vào một hướng cụ thể.
+- **Example command:** `/brainstorm ways to improve API response caching`
+
+#### **research**
+
+- **Purpose:** Nghiên cứu sâu về một chủ đề kỹ thuật, tổng hợp thông tin từ nhiều nguồn.
+- **When to use:** Cần background knowledge về library, pattern, hoặc technology mới trước khi implement.
+- **Example command:** `/research best practices for React Server Components`
+
+#### **scout**
+
+- **Purpose:** Khảo sát nhanh codebase hoặc repo để hiểu structure, patterns, và conventions đang dùng.
+- **When to use:** Mở đầu session mới trên codebase chưa quen, hoặc cần nắm context nhanh.
+- **Example command:** `/scout` — tự động scan codebase hiện tại
+
+#### **sequential-thinking**
+
+- **Purpose:** Phân tích vấn đề phức tạp theo từng bước logic, tránh nhảy vọt đến kết luận.
+- **When to use:** Bug khó reproduce, architecture decision có nhiều trade-offs, hoặc debugging session bế tắc.
+- **Example command:** `/sequential-thinking why does the auth token expire prematurely`
+
+#### **find-skills**
+
+- **Purpose:** Discover skills phù hợp với task hiện tại từ toàn bộ catalog ClaudeKit.
+- **When to use:** Đầu mỗi task — check xem đã có skill sẵn trước khi tự làm.
+- **Example command:** `/find-skills seo content writing`
+
+#### **context-engineering**
+
+- **Purpose:** Tối ưu hóa context window — cắt bỏ noise, giữ lại thông tin quan trọng, cải thiện quality của AI response.
+- **When to use:** Session dài bắt đầu chậm, hoặc khi muốn cải thiện prompt quality cho một task phức tạp.
+- **Example command:** `/context-engineering` — analyze và suggest improvements
+
+#### **ask**
+
+- **Purpose:** Đặt câu hỏi làm rõ yêu cầu trước khi thực thi, tránh build sai.
+- **When to use:** Task description mơ hồ hoặc có nhiều cách hiểu hợp lý.
+- **Example command:** `/ask` — generate clarifying questions cho task hiện tại
+
+#### **problem-solving**
+
+- **Purpose:** Framework giải quyết vấn đề có cấu trúc — define problem, root cause analysis, solution options.
+- **When to use:** Gặp technical blocker mà sequential-thinking chưa đủ, hoặc cần present solution options rõ ràng.
+- **Example command:** `/problem-solving database connection pool exhaustion in production`
+
+---
+
+## 2. Coding Core
+
+Nhóm skills cốt lõi cho việc viết và phát triển code.
+
+#### **cook**
+
+- **Purpose:** Activate trước mỗi lần implement feature mới — ensures code follows best practices, patterns, và conventions của codebase.
+- **When to use:** Kích hoạt TRƯỚC khi bắt đầu implement bất kỳ feature nào. Đây là skill bắt buộc trước `frontend-development`, `backend-development`, hoặc `mobile-development`.
+- **Example command:** `/cook` — run trước khi bắt đầu coding session
+
+#### **fix**
+
+- **Purpose:** Activate trước khi sửa bugs — phân tích root cause, đề xuất fix minimal, tránh over-engineering.
+- **When to use:** Kích hoạt TRƯỚC khi sửa bất kỳ bug nào. Tránh fix triệu chứng thay vì nguyên nhân.
+- **Example command:** `/fix` — run khi nhận bug report hoặc failing test
+
+#### **frontend-development**
+
+- **Purpose:** Best practices cho frontend — component structure, state management, performance, accessibility.
+- **When to use:** Implement UI components, pages, hoặc client-side logic.
+- **Example command:** `/frontend-development build a responsive product card grid`
+
+#### **backend-development**
+
+- **Purpose:** Best practices cho backend — API design, error handling, database patterns, security.
+- **When to use:** Build API endpoints, services, middleware, hoặc business logic.
+- **Example command:** `/backend-development create REST API for user profile`
+
+#### **mobile-development**
+
+- **Purpose:** Patterns và best practices cho mobile development — iOS/Android native hoặc cross-platform.
+- **When to use:** Build mobile screens, handle platform-specific behaviors, optimize for mobile constraints.
+- **Example command:** `/mobile-development implement push notification handler`
+
+#### **web-frameworks**
+
+- **Purpose:** Reference cho các web frameworks phổ biến — Next.js, Remix, SvelteKit, Astro, và routing patterns.
+- **When to use:** Cần framework-specific conventions, migration guidance, hoặc framework feature usage.
+- **Example command:** `/web-frameworks Next.js app router data fetching patterns`
+
+---
+
+## 3. Testing
+
+Nhóm skills cho viết tests và đảm bảo code quality qua automated testing.
+
+#### **test**
+
+- **Purpose:** Viết unit tests và integration tests cho code hiện tại, đảm bảo coverage đủ cao.
+- **When to use:** Sau khi implement feature mới, hoặc khi cần add test coverage cho legacy code.
+- **Example command:** `/test write tests for the payment processing service`
+
+#### **web-testing**
+
+- **Purpose:** E2E testing cho web applications — Playwright, Cypress, hoặc testing framework phù hợp.
+- **When to use:** Cần test critical user flows end-to-end, form submissions, hoặc navigation flows.
+- **Example command:** `/web-testing checkout flow from cart to confirmation`
+
+---
+
+## 4. Review and Quality
+
+Nhóm skills đảm bảo code quality, security, và maintainability.
+
+#### **code-review**
+
+- **Purpose:** Review code về quality, readability, patterns, và potential issues — như senior engineer review.
+- **When to use:** Sau khi implement xong, trước khi commit hoặc tạo PR.
+- **Example command:** `/code-review` — review diff hoặc file được chỉ định
+
+#### **security-scan**
+
+- **Purpose:** Scan code tìm security vulnerabilities — OWASP Top 10, injection, auth flaws, hardcoded secrets.
+- **When to use:** Trước khi deploy hoặc khi code liên quan authentication, authorization, user data, payments.
+- **Example command:** `/security-scan` — scan codebase hoặc specific files
+
+#### **ck-security**
+
+- **Purpose:** Security audit sâu hơn security-scan — kiến trúc security, threat modeling, compliance checks.
+- **When to use:** Major feature release, security audit định kỳ, hoặc khi architecture thay đổi lớn.
+- **Example command:** `/ck-security audit authentication flow`
+
+---
+
+## 5. Debugging
+
+Nhóm skills chuyên biệt cho debugging và troubleshooting.
+
+#### **ck-debug**
+
+- **Purpose:** Systematic debugging — reproduce, isolate, root cause analysis, fix, verify.
+- **When to use:** Bug không rõ nguyên nhân, sau khi `/fix` không đủ context.
+- **Example command:** `/ck-debug users getting logged out randomly`
+
+#### **ck-predict**
+
+- **Purpose:** Dự đoán potential bugs và edge cases trước khi chúng xảy ra trong production.
+- **When to use:** Sau khi implement feature phức tạp, trước khi deploy lên production.
+- **Example command:** `/ck-predict` — analyze current changes for risk areas
+
+#### **ck-scenario**
+
+- **Purpose:** Generate test scenarios và edge cases cho một feature, đảm bảo không bỏ sót cases quan trọng.
+- **When to use:** Khi viết test plan, hoặc cần validate feature handling của unusual inputs.
+- **Example command:** `/ck-scenario file upload with various file types and sizes`
+
+#### **ck-autoresearch**
+
+- **Purpose:** Tự động research giải pháp cho error message hoặc bug description, tổng hợp từ docs và community.
+- **When to use:** Gặp error message lạ, dependency conflict, hoặc framework behavior không hiểu.
+- **Example command:** `/ck-autoresearch "TypeError: Cannot read properties of undefined (reading 'map')"`
+
+---
+
+## 6. Build and Deploy
+
+Nhóm skills cho build pipeline, deployment, và git operations.
+
+#### **deploy**
+
+- **Purpose:** Deploy application lên hosting platforms — Vercel, Netlify, Cloudflare Workers, hoặc custom servers.
+- **When to use:** Khi cần deploy lên staging hoặc production, hoặc setup deployment pipeline mới.
+- **Example command:** `/deploy to Vercel with environment variables`
+
+#### **devops**
+
+- **Purpose:** Infrastructure, CI/CD pipelines, Docker, Kubernetes, và cloud configurations.
+- **When to use:** Setup CI/CD, Dockerize app, cấu hình cloud resources, hoặc troubleshoot infrastructure issues.
+- **Example command:** `/devops setup GitHub Actions CI for Node.js app`
+
+#### **git**
+
+- **Purpose:** Conventional commits, branch strategies, safe git operations, PR workflow.
+- **When to use:** Mọi git operation — commit, branch, merge, rebase. Đặc biệt dùng trước khi push.
+- **Example command:** `/git` — generate commit message từ current diff
+
+#### **worktree**
+
+- **Purpose:** Quản lý git worktrees cho parallel development — setup, switch, cleanup worktrees.
+- **When to use:** Cần work trên nhiều branches cùng lúc, hoặc setup Agent Team với isolated worktrees.
+- **Example command:** `/worktree setup feature/new-auth in parallel worktree`
+
+#### **ship**
+
+- **Purpose:** Full shipping pipeline — merge main, test, code review, commit, push. Orchestrates toàn bộ quy trình.
+- **When to use:** Khi feature hoàn chỉnh và ready to ship — skill này chạy end-to-end.
+- **Example command:** `/ship` — trigger full pre-ship checklist và deploy pipeline
+
+---
+
+## 7. Databases
+
+Nhóm skills cho database design, queries, và migrations.
+
+#### **databases**
+
+- **Purpose:** Database design, query optimization, migrations, và patterns cho SQL và NoSQL databases.
+- **When to use:** Thiết kế schema, viết complex queries, optimize slow queries, hoặc setup migrations.
+- **Example command:** `/databases design schema for multi-tenant SaaS application`
+
+---
+
+## 8. Frameworks
+
+Skills chuyên sâu cho specific frameworks và libraries.
+
+#### **tanstack**
+
+- **Purpose:** TanStack ecosystem — TanStack Query, Router, Table, Form. Patterns và best practices.
+- **When to use:** Build với TanStack Query cho data fetching, TanStack Router cho routing.
+- **Example command:** `/tanstack setup infinite scroll with TanStack Query`
+
+#### **shopify**
+
+- **Purpose:** Shopify development — Liquid templates, Shopify API, App development, theme customization.
+- **When to use:** Build Shopify themes, apps, hoặc integrate với Shopify API.
+- **Example command:** `/shopify create custom product metafield display`
+
+#### **better-auth**
+
+- **Purpose:** Better Auth library — setup, configuration, providers, sessions, và advanced patterns.
+- **When to use:** Implement authentication với Better Auth library.
+- **Example command:** `/better-auth setup OAuth with Google and GitHub providers`
+
+#### **react-best-practices**
+
+- **Purpose:** React patterns — hooks, performance optimization, component design, state management.
+- **When to use:** Code review React components, refactor legacy class components, optimize re-renders.
+- **Example command:** `/react-best-practices review this context provider for performance issues`
+
+---
+
+## 9. Design and Visual
+
+Nhóm skills cho thiết kế UI, đồ họa, và visual assets.
+
+#### **design**
+
+- **Purpose:** Brand identity, logo design, visual systems, và design direction cho digital products.
+- **When to use:** Cần tạo hoặc refine visual identity, logos, brand colors, typography.
+- **Example command:** `/design create brand guidelines for a real estate agency`
+
+#### **ui-ux-pro-max**
+
+- **Purpose:** Advanced UI/UX — user research synthesis, interaction design, usability heuristics, design critique.
+- **When to use:** Review UI flows, identify UX issues, improve conversion và user experience.
+- **Example command:** `/ui-ux-pro-max review checkout flow for friction points`
+
+#### **frontend-design**
+
+- **Purpose:** Bridge giữa design và code — design tokens, component library, responsive design implementation.
+- **When to use:** Implement design specs thành code, setup design system, hoặc pixel-perfect UI work.
+- **Example command:** `/frontend-design implement Figma design for hero section`
+
+#### **ui-styling**
+
+- **Purpose:** CSS, Tailwind, styling patterns — từ basic layout đến complex animations.
+- **When to use:** Styling components, fixing responsive issues, hoặc implement custom animations.
+- **Example command:** `/ui-styling create smooth fade-in animation for modal`
+
+#### **ai-artist**
+
+- **Purpose:** Generate images với AI tools — prompts, styles, image editing, và creative direction.
+- **When to use:** Cần tạo marketing images, illustrations, hoặc visual content với AI.
+- **Example command:** `/ai-artist create hero image for real estate landing page`
+
+#### **stitch**
+
+- **Purpose:** Combine và compose visual assets — image manipulation, layout composition, export cho web.
+- **When to use:** Kết hợp nhiều assets thành một image, resize/crop cho social media formats.
+- **Example command:** `/stitch combine product screenshot with background for social post`
+
+#### **mermaidjs-v11**
+
+- **Purpose:** Mermaid.js v11 syntax reference — diagrams, flowcharts, sequence diagrams, ER diagrams.
+- **When to use:** Tạo technical diagrams trong documentation, architecture diagrams, database ERD.
+- **Example command:** `/mermaidjs-v11 create sequence diagram for auth flow`
+
+#### **threejs**
+
+- **Purpose:** Three.js 3D graphics — scenes, geometries, materials, animations, WebGL patterns.
+- **When to use:** Build 3D visualizations, interactive 3D elements cho web, hoặc WebGL applications.
+- **Example command:** `/threejs create rotating 3D product viewer`
+
+#### **shader**
+
+- **Purpose:** GLSL shaders cho WebGL — vertex shaders, fragment shaders, visual effects.
+- **When to use:** Implement custom visual effects, particle systems, hoặc GPU-accelerated animations.
+- **Example command:** `/shader create ripple effect for water surface`
+
+---
+
+## 10. Media Production
+
+Nhóm skills cho video, audio, và media processing.
+
+#### **remotion**
+
+- **Purpose:** Remotion framework cho video creation từ React — compositions, animations, rendering.
+- **When to use:** Tạo marketing videos, data visualizations, hoặc animated content với Remotion.
+- **Example command:** `/remotion create market update video template`
+
+#### **media-processing**
+
+- **Purpose:** FFmpeg và media processing — convert formats, compress, trim, merge audio/video files.
+- **When to use:** Process video/audio files, batch convert media, hoặc extract frames từ video.
+- **Example command:** `/media-processing compress video for web without quality loss`
+
+#### **chrome-devtools**
+
+- **Purpose:** Chrome DevTools mastery — performance profiling, network analysis, debugging, memory leaks.
+- **When to use:** Debug production issues, analyze page performance, investigate network requests.
+- **Example command:** `/chrome-devtools profile page load performance`
+
+---
+
+## 11. MCP and Agents
+
+Nhóm skills cho Model Context Protocol, agent development, và AI orchestration.
+
+#### **use-mcp**
+
+- **Purpose:** Hướng dẫn sử dụng các MCP tools hiệu quả — khi nào dùng tool nào, cách chain tools.
+- **When to use:** Khi có nhiều MCP tools available và cần chọn cách tiếp cận tối ưu.
+- **Example command:** `/use-mcp find best MCP tool for web scraping task`
+
+#### **mcp-builder**
+
+- **Purpose:** Build custom MCP servers — create tools, resources, prompts theo MCP protocol.
+- **When to use:** Cần tạo MCP server mới cho một service hoặc API chưa có MCP.
+- **Example command:** `/mcp-builder create MCP server for internal API`
+
+#### **mcp-management**
+
+- **Purpose:** Quản lý MCP server configurations — install, configure, update, troubleshoot MCP servers.
+- **When to use:** Setup MCP servers mới, debug connection issues, hoặc optimize MCP configuration.
+- **Example command:** `/mcp-management configure new MCP server in settings`
+
+#### **team**
+
+- **Purpose:** Agent Team orchestration — spawn parallel agents, coordinate worktrees, manage cross-agent communication.
+- **When to use:** Task đủ lớn để chia cho nhiều agents chạy song song với isolated scopes.
+- **Example command:** `/team spawn 3 parallel agents for sprint tasks`
+
+#### **skill-creator**
+
+- **Purpose:** Tạo skill mới cho ClaudeKit — từ template, define purpose, triggers, và content.
+- **When to use:** Cần đóng gói một workflow tái sử dụng thành một skill có thể share.
+- **Example command:** `/skill-creator create skill for weekly report generation`
+
+#### **google-adk-python**
+
+- **Purpose:** Google Agent Development Kit (Python) — build agents, tools, orchestration với Google ADK.
+- **When to use:** Build AI agents trên Google Cloud, integrate Gemini models, hoặc deploy với ADK.
+- **Example command:** `/google-adk-python setup multi-agent pipeline with ADK`
+
+#### **ai-multimodal**
+
+- **Purpose:** Phân tích và xử lý multimodal content — hình ảnh, audio, video, documents với AI.
+- **When to use:** Cần describe images, transcribe audio, extract info từ PDFs, hoặc analyze visual content.
+- **Example command:** `/ai-multimodal extract data from invoice PDF`
+
+#### **agent-browser**
+
+- **Purpose:** Browser automation với AI agents — navigate, extract, interact với web pages autonomously.
+- **When to use:** Web scraping phức tạp, automated web testing, hoặc agent cần gather web data.
+- **Example command:** `/agent-browser scrape competitor pricing from website`
+
+#### **gkg**
+
+- **Purpose:** Google Knowledge Graph integration — query entities, relationships, và structured data.
+- **When to use:** Cần entity information, verify facts, hoặc enrich data với structured knowledge.
+- **Example command:** `/gkg lookup entity information for real estate company`
+
+---
+
+## 12. Docs and Meta
+
+Nhóm skills cho documentation, project management, và meta-level workflows.
+
+#### **docs**
+
+- **Purpose:** Viết và maintain technical documentation — API docs, guides, READMEs, changelogs.
+- **When to use:** Sau implement, cần document feature mới hoặc update existing docs.
+- **Example command:** `/docs write API documentation for authentication endpoints`
+
+#### **mintlify**
+
+- **Purpose:** Mintlify documentation platform — MDX syntax, components, navigation config, deployment.
+- **When to use:** Build hoặc maintain Mintlify documentation sites, troubleshoot MDX issues.
+- **Example command:** `/mintlify setup new docs site with custom navigation`
+
+#### **llms**
+
+- **Purpose:** LLM integration patterns — prompt engineering, model selection, cost optimization, eval.
+- **When to use:** Build features dùng LLM APIs, optimize prompts, hoặc debug LLM behavior.
+- **Example command:** `/llms optimize prompt for structured data extraction`
+
+#### **docs-seeker**
+
+- **Purpose:** Find và navigate official documentation cho libraries và frameworks (context7 integration).
+- **When to use:** Cần check API docs, migration guides, hoặc latest documentation trước khi implement.
+- **Example command:** `/docs-seeker find React 19 breaking changes`
+
+#### **markdown-novel-viewer**
+
+- **Purpose:** Render và preview Markdown/MDX files trong browser với formatting đẹp.
+- **When to use:** Preview documentation trước khi commit, hoặc share formatted Markdown.
+- **Example command:** `/markdown-novel-viewer` — preview current file
+
+#### **preview**
+
+- **Purpose:** Generate visual previews — diagrams, ASCII art, slides, hoặc HTML explanations của code/architecture.
+- **When to use:** Explain complex logic, generate architecture diagram, hoặc create slide deck từ content.
+- **Example command:** `/preview --diagram authentication flow`
+
+#### **kanban**
+
+- **Purpose:** Kanban board management — create, update, và track tasks trong kanban format.
+- **When to use:** Quản lý task list dạng visual, track sprint progress, hoặc organize backlog.
+- **Example command:** `/kanban` — show current kanban board
+
+#### **plans-kanban**
+
+- **Purpose:** Kanban view cho plans directory — visualize phases và tasks từ plan files.
+- **When to use:** Track progress của implementation plan, xem đang ở phase nào.
+- **Example command:** `/plans-kanban` — visualize plans/ as kanban
+
+#### **project-management**
+
+- **Purpose:** Project planning, roadmaps, milestones, và delivery tracking.
+- **When to use:** Setup project structure, define milestones, hoặc review project health.
+- **Example command:** `/project-management create roadmap for Q2 features`
+
+#### **project-organization**
+
+- **Purpose:** Organize codebase structure — folder conventions, naming patterns, module architecture.
+- **When to use:** Refactor folder structure, define naming conventions, hoặc onboard new codebase.
+- **Example command:** `/project-organization suggest folder structure for monorepo`
+
+#### **bootstrap**
+
+- **Purpose:** Bootstrap new projects — scaffolding, initial setup, conventions, starter templates.
+- **When to use:** Khởi tạo project mới từ đầu với best practices baked in.
+- **Example command:** `/bootstrap new Next.js SaaS starter with auth and billing`
+
+#### **repomix**
+
+- **Purpose:** Pack toàn bộ codebase thành một file để share với LLMs hoặc analysis tools.
+- **When to use:** Cần share full codebase context với external tool, hoặc create snapshot của repo.
+- **Example command:** `/repomix` — pack current repo
+
+#### **journal**
+
+- **Purpose:** Technical journal entries — document decisions, learnings, và session notes.
+- **When to use:** Sau session phức tạp, document architectural decisions, hoặc capture lessons learned.
+- **Example command:** `/journal log today's debugging session findings`
+
+#### **retro**
+
+- **Purpose:** Sprint retrospective — what went well, what to improve, action items.
+- **When to use:** Cuối sprint hoặc sau major release, review process và improve workflow.
+- **Example command:** `/retro sprint 5 retrospective`
+
+#### **watzup**
+
+- **Purpose:** Tóm tắt trạng thái hiện tại của project — recent changes, open issues, next steps.
+- **When to use:** Đầu session mới cần nắm nhanh trạng thái, hoặc share status với team.
+- **Example command:** `/watzup` — summarize current project state
+
+#### **template-skill**
+
+- **Purpose:** Template để tạo skills mới — boilerplate structure, naming conventions, best practices.
+- **When to use:** Bắt đầu tạo một skill mới, dùng template này thay vì viết từ đầu.
+- **Example command:** `/template-skill` — generate skill template
+
+#### **ck-loop**
+
+- **Purpose:** Continuous loop execution — run task on interval hoặc self-paced iterations.
+- **When to use:** Task cần chạy lặp lại (monitoring, polling, periodic checks).
+- **Example command:** `/ck-loop every 5m check build status`
+
+#### **coding-level**
+
+- **Purpose:** Calibrate code explanation level theo background của người đọc — từ beginner đến expert.
+- **When to use:** Explain code cho người dùng có background khác nhau, hoặc calibrate verbosity.
+- **Example command:** `/coding-level explain this algorithm for a non-developer`
+
+#### **payment-integration**
+
+- **Purpose:** Integrate payment systems — Stripe, PayPal, hoặc payment gateway patterns.
+- **When to use:** Build payment flows, subscription billing, hoặc integrate payment APIs.
+- **Example command:** `/payment-integration setup Stripe subscription billing`
+
+#### **copywriting**
+
+- **Purpose:** Viết copy cho sản phẩm — landing pages, UI microcopy, CTAs, onboarding text.
+- **When to use:** Cần UI text, product copy, hoặc marketing language cho technical interfaces.
+- **Example command:** `/copywriting write CTA button text for upgrade prompt`
+
+#### **web-design-guidelines**
+
+- **Purpose:** Web design best practices — layout, typography, color, responsive design principles.
+- **When to use:** Review UI design, improve visual hierarchy, hoặc check responsive breakpoints.
+- **Example command:** `/web-design-guidelines review landing page layout`
+
+---
+
+## Discovery Flow
+
+Để tận dụng tối đa catalog 75 skills:
+
+**Bước 1 — Find skills trước mọi task:**
+
+```
+/find-skills <domain hoặc task description>
+```
+
+**Bước 2 — Chain skills phù hợp:**
+
+- Build feature: `/cook` → implement → `/test` → `/code-review` → `/git` → `/ship`
+- Fix bug: `/fix` → `/ck-debug` → implement fix → `/test` → `/git`
+- New project: `/ck-plan` → `/bootstrap` → `/cook` → build phases
+
+**Tài liệu liên quan:**
+
+- [Skill Playbooks](/workflows/skill-playbooks) — pre-composed chains cho common use cases
+- [Quick Reference](/knowledge-qa/skill-quick-reference) — lookup table toàn bộ skills
