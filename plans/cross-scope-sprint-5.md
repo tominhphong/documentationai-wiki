@@ -6,7 +6,9 @@
 
 ## Pending
 
-_(empty — waiting on workers)_
+### [2026-04-21 07:11] [win2 → win1] Add claudekit-engineer-skills to nav
+Patch: documentation.json add `{"title": "Engineer Skills Catalog", "path": "agent-os-overview/claudekit-engineer-skills", "icon": "wrench"}` vào group "Agent OS Overview"
+Status: pending
 
 ## Applied
 
