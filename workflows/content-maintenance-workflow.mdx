@@ -1,0 +1,330 @@
+---
+title: "Content Maintenance Workflow"
+description: "Process detect và update stale content: last_reviewed audit, review cadence, update triggers, sunset deprecation."
+last_reviewed: 2026-04-20
+keywords: [maintenance, stale-content, review, cadence, last_reviewed, deprecation]
+---
+
+## Tổng quan
+
+Content không phải static. Mỗi khi Claude model update, MCP endpoint đổi, hoặc Phong thay đổi thông tin business, một phần documentation trở nên lỗi thời. Nếu không có hệ thống detect và fix, wiki trở thành "documentation cemetery" — đầy đủ về mặt hình thức nhưng không đáng tin cậy về mặt nội dung.
+
+Content Maintenance Workflow giải quyết bài toán này bằng 3 cơ chế:
+
+1. **Stale detection** — script tự động đọc `last_reviewed` và flag pages quá N ngày chưa review
+2. **Review cadence** — quy trình định kỳ để Brain phân công và Workers verify
+3. **Deprecation protocol** — quy trình rõ ràng khi 1 page cần sunset hoàn toàn
+
+<Callout kind="info">
+`last_reviewed` frontmatter không chỉ là SEO signal. Đây là hợp đồng giữa writer và reader: "Tôi đã verify content này vào ngày X. Nếu bạn đọc sau đó lâu hơn 30 ngày, hãy tự kiểm tra lại." Workflow này thực thi hợp đồng đó.
+</Callout>
+
+---
+
+## Khi nào cần Maintain Content
+
+Có 4 triggers chính — bất kỳ trigger nào cũng đủ để kick off review:
+
+### Trigger 1 — Age-based
+
+**Rule:** `last_reviewed` > 30 ngày → page là candidate for review.
+
+Đây là trigger passive, không cần sự kiện bên ngoài. Script `check-stale.sh` tự động detect. Một page 60 ngày không review là dấu hiệu cần investigate — chưa chắc nội dung sai, nhưng phải verify.
+
+**Threshold guidelines:**
+- `> 30 ngày` — candidate, thêm vào backlog
+- `> 60 ngày` — high priority, review ngay sprint tới
+- `> 90 ngày` — critical, escalate lên Brain ngay
+
+### Trigger 2 — Change-driven
+
+**Rule:** Bất kỳ thay đổi tech stack nào → audit tất cả affected pages.
+
+| Sự kiện | Pages cần review |
+|---------|-----------------|
+| Claude model update (ví dụ Sonnet 4.5 → 4.6) | `agent-os-overview/components-and-tools`, `known-issues`, welcome text |
+| Mintlify version upgrade | Tất cả pages dùng custom components (Callout, Steps, Card) |
+| MCP endpoint change | `documentation-mcp-usage`, `known-issues` |
+| Script tool update | `CLAUDE.md`, workflow pages reference scripts đó |
+| Phong thay đổi business info | `who-phong-is`, `real-estate-rules` |
+
+Trigger này là **active** — Brain hoặc Worker phát hiện change event, tự scan danh sách affected pages, tạo review tasks ngay.
+
+### Trigger 3 — Reader Feedback
+
+**Rule:** User report nội dung outdated → priority review trong 24h.
+
+Khi Brain nhận feedback từ Phong hoặc user rằng một page có thông tin sai, đó là critical signal. Không đợi sprint cycle — review và fix ngay.
+
+**Ưu tiên:** Reader-reported stale > Age-based stale. Người thật đã bị lừa bởi outdated content.
+
+### Trigger 4 — Sprint Closure QA
+
+**Rule:** QA report của Win 4 flag inconsistency → fix trước khi merge sprint.
+
+Cuối mỗi sprint, Win 4 chạy `pre-commit-check.sh` và `check-links.sh`. Nếu QA report chỉ ra pages có broken links hoặc inconsistent references, đó là maintenance task cho sprint tiếp theo.
+
+---
+
+## Stale Content Detection
+
+Dùng `scripts/check-stale.sh` — script chính để detect pages cần review.
+
+### Cách chạy
+
+```bash
+# Default: flag pages chưa review > 30 ngày
+bash scripts/check-stale.sh --threshold 30
+
+# Custom threshold
+bash scripts/check-stale.sh --threshold 60
+
+# Chạy trên specific directory
+bash scripts/check-stale.sh --threshold 30 --dir workflows/
+
+# Chạy trên toàn bộ content
+bash scripts/check-stale.sh --threshold 30 --dir .
+```
+
+### Output format
+
+```
+=== Stale Content Report — 2026-04-20 ===
+Threshold: 30 days
+
+STALE (> 30 days):
+  agent-os-overview/components-and-tools.mdx  — last_reviewed: 2026-03-01 (50 days ago)
+  help-center/faq.mdx                          — last_reviewed: 2026-02-15 (64 days ago)
+
+REVIEW CANDIDATES (> 20 days):
+  workflows/content-workflow.mdx               — last_reviewed: 2026-04-01 (19 days ago)
+
+FRESH (reviewed < 20 days ago):
+  workflows/sprint-retro-workflow.mdx          — last_reviewed: 2026-04-20 (today)
+
+Summary: 2 stale, 1 candidate, 8 fresh
+```
+
+### CI Integration
+
+Để không phụ thuộc vào manual run, integrate `check-stale.sh` vào CI:
+
+```yaml
+# .github/workflows/stale-check.yml (nếu chưa có)
+name: Stale Content Check
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Mỗi thứ Hai 9:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  check-stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check stale content
+        run: bash scripts/check-stale.sh --threshold 30
+```
+
+<Callout kind="warning">
+CI stale check chỉ nên **report** (exit 0), không nên **fail build** (exit 1). Stale content là signal cho review, không phải deployment blocker. Nếu dùng exit 1, mỗi lần bạn quên review 1 page là cả wiki bị block deploy — quá harsh.
+</Callout>
+
+---
+
+## Review Cadence
+
+<Steps>
+
+<Step title="Monthly: Brain chạy check-stale.sh">
+
+Đầu mỗi tháng (hoặc khi mở sprint mới), Brain chạy:
+
+```bash
+bash scripts/check-stale.sh --threshold 30
+```
+
+Lấy danh sách stale pages. Nếu không có `check-stale.sh` (chưa tạo), dùng lệnh thủ công:
+
+```bash
+# Fallback manual: tìm pages có last_reviewed cũ hơn 30 ngày
+find . -name "*.mdx" -exec grep -l "last_reviewed:" {} \; | while read f; do
+  date_str=$(grep "^last_reviewed:" "$f" | sed 's/last_reviewed: //')
+  echo "$f — $date_str"
+done
+```
+
+</Step>
+
+<Step title="Prioritize: High-traffic + Foundational pages first">
+
+Không phải tất cả stale pages đều bằng nhau. Ưu tiên review theo thứ tự:
+
+1. **Foundational pages** — `system-architecture`, `core-rules/`, `CLAUDE.md` — nếu sai, mọi agent bị ảnh hưởng
+2. **High-traffic pages** — pages được link từ nhiều nơi nhất (check `documentation.json` nav + internal links)
+3. **Active-use pages** — workflows đang được dùng trong sprint hiện tại
+4. **Historical pages** — retro notes, old changelogs — low priority, có thể archive
+
+</Step>
+
+<Step title="Assign review tasks vào sprint backlog">
+
+Brain tạo maintenance tasks trong task board sprint mới, gắn tag `maintenance`:
+
+```markdown
+- [ ] **S5-MAINT-01** Review `agent-os-overview/components-and-tools.mdx` — last_reviewed 50d ago
+  - Owner: win2
+  - Tag: maintenance
+  - Action: read + verify + bump last_reviewed nếu còn accurate
+
+- [ ] **S5-MAINT-02** Review `help-center/faq.mdx` — last_reviewed 64d ago
+  - Owner: win4
+  - Tag: maintenance
+```
+
+Maintenance tasks không nên chiếm quá **20% sprint capacity** — sprint vẫn cần làm new content.
+
+</Step>
+
+<Step title="Worker review: read, verify, update">
+
+Worker assigned thực hiện:
+
+1. **Đọc toàn bộ page** — không scan, đọc thật sự
+2. **Verify từng claim** — check against current reality (Claude version, MCP tools, script paths, etc.)
+3. **Update nếu cần** — sửa thông tin lỗi thời, xóa deprecated notes, thêm context mới
+4. **Bump `last_reviewed`** — CHỈ sau khi đã review và verify, không bump trước
+
+```yaml
+# Ví dụ: page sau khi review
+last_reviewed: 2026-04-20   # <- đây là ngày review thật, không phải ngày commit
+```
+
+</Step>
+
+<Step title="QA pass + merge">
+
+Sau khi Worker update:
+
+1. Chạy `bash scripts/pre-commit-check.sh .` — verify không có errors
+2. Chạy `bash scripts/check-links.sh .` — verify links không broken
+3. Create PR hoặc push to worker branch
+4. Win 4 QA sign off nếu trong sprint context
+5. Brain merge khi sprint closes
+
+</Step>
+
+</Steps>
+
+---
+
+## Update Triggers Chi tiết
+
+Bảng mapping: khi nào xảy ra gì, pages nào bị ảnh hưởng, và action cần làm.
+
+| Sự kiện (Event) | Pages bị ảnh hưởng | Action |
+|-----------------|-------------------|--------|
+| New Claude model release (ví dụ 4.5→4.6) | `agent-os-overview/components-and-tools.mdx`, `agent-os-overview/known-issues.mdx`, welcome text | Verify model names, update version numbers, check feature references |
+| MCP endpoint change | `documentation-mcp-usage`, `agent-os-overview/known-issues.mdx` | Update tool names, re-verify examples |
+| Sprint closure | `changelog`, `plans/task-board-sprint-<N>.md` | Log sprint summary, mark tasks done, bump `last_reviewed` |
+| Script tool update (`pre-commit-check.sh`, `check-links.sh`, etc.) | `CLAUDE.md`, workflow pages referencing script | Update command examples, update expected output format |
+| Phong business info change (license, email, market) | `who-phong-is.mdx`, `real-estate-rules.mdx` | Sync tất cả references, không để outdated contact info trong docs |
+| Mintlify component API change | Tất cả MDX files dùng Callout, Steps, Card, Tab | Verify syntax, test render, fix breaking changes |
+| New workflow added | `documentation.json` nav, pages có "Xem thêm" links | Update nav, add cross-references từ related pages |
+
+---
+
+## Sunset / Deprecation Protocol
+
+Khi 1 page không còn relevant và không nên được update tiếp, dùng deprecation protocol:
+
+### Option A — Soft Deprecation (khuyến nghị)
+
+Giữ page nhưng thêm warning rõ ràng. Dùng khi page còn được link từ nhiều nơi.
+
+```mdx
+<Callout kind="warning">
+**Deprecated** — Nội dung này đã lỗi thời. Xem [<tên-page-mới>](./<path>) để thay thế.
+</Callout>
+```
+
+Đặt Callout này ở **đầu page**, trước mọi nội dung khác. Không xóa content cũ — dùng để backward compat.
+
+### Option B — Hard Deprecation (khi cần clean up)
+
+Xóa page và thêm redirect trong Mintlify config:
+
+```json
+// mint.json — redirects section
+{
+  "redirects": [
+    {
+      "source": "/workflows/old-workflow-name",
+      "destination": "/workflows/new-workflow-name"
+    }
+  ]
+}
+```
+
+**Checklist trước khi delete:**
+- [ ] Xác nhận page không còn được link nội bộ (chạy `check-links.sh`)
+- [ ] Thêm redirect vào `mint.json` nếu URL đã public
+- [ ] Update `documentation.json` nav — xóa entry
+- [ ] Log trong changelog với tag `deprecation`
+
+### Log deprecation trong Changelog
+
+```markdown
+## [2026-04-20]
+
+### Deprecated
+- `workflows/old-workflow-name.mdx` — superseded by `workflows/new-workflow-name.mdx`.
+  Redirect added: `/workflows/old-workflow-name` → `/workflows/new-workflow-name`
+```
+
+<Callout kind="warning">
+**KHÔNG** delete page mà không có redirect nếu URL đã public. Broken links là worst UX — user đang đọc, click link, 404. Luôn redirect trước khi delete. Chỉ bỏ redirect sau 6+ tháng khi traffic về URL cũ đã về 0.
+</Callout>
+
+---
+
+## Anti-Patterns
+
+<Callout kind="warning">
+4 lỗi phổ biến làm maintenance workflow mất tác dụng. Nhận biết sớm để tránh.
+</Callout>
+
+**Anti-pattern 1 — Bump `last_reviewed` mà không đọc content**
+
+Thực hiện: Worker chạy script cập nhật `last_reviewed: 2026-04-20` trên 10 files mà không đọc 1 file nào.
+
+Hậu quả: Stale detection tool báo "all fresh" nhưng content vẫn lỗi thời. Audit system bị vô hiệu hóa.
+
+**Quy tắc:** `last_reviewed` chỉ được bump SAU KHI đọc và verify content. Nếu chưa review, không được chạm vào trường này.
+
+**Anti-pattern 2 — Mass bump via script**
+
+Thực hiện: `find . -name "*.mdx" -exec sed -i '' "s/last_reviewed:.*/last_reviewed: $(date +%Y-%m-%d)/" {} \;`
+
+Hậu quả: Tất cả pages hiện "fresh" mà không có verification nào. Script này defeats hoàn toàn mục đích của `last_reviewed`.
+
+**Anti-pattern 3 — Ignore stale warnings**
+
+Thực hiện: `check-stale.sh` báo 5 pages stale, Brain không tạo tasks, không ai review.
+
+Hậu quả: Technical debt tích lũy. Sau 3 sprints, 20 pages stale. Sau 6 sprints, wiki không còn đáng tin.
+
+**Anti-pattern 4 — Delete page mà không redirect**
+
+Thực hiện: Worker xóa `old-page.mdx` vì "không cần nữa", không thêm redirect, không check links.
+
+Hậu quả: Broken links trong other pages, trong search results, trong external links. User gặp 404.
+
+---
+
+## Xem thêm
+
+- [Review Workflow](./review-workflow) — Win 4 QA process, cách validate content trước merge
+- [Sprint Retrospective Workflow](./sprint-retro-workflow) — retro sau sprint, nơi maintenance tasks thường được identify
+- [Cross-Scope Workflow](./cross-scope-workflow) — khi maintenance cần thay đổi nav (win1 scope)
+- [Debugging Workflow](./debugging-workflow) — khi stale content gây ra errors hoặc agent failures
