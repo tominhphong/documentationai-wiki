@@ -201,6 +201,57 @@ Vi phạm DRY phổ biến nhất: agent ghi nhớ thông tin trong session memo
 </Callout>
 
 
+## Luật 8 — Tools-First Principle
+
+Trước mọi task, agent phải discover và dùng skills có sẵn trước khi tự improvise giải pháp.
+
+### Rule
+
+Chạy skill `find-skills` với query mô tả domain hoặc task trước khi bắt đầu:
+
+```
+/find-skills <domain hoặc task description>
+```
+
+### Rationale
+
+Hệ thống có hai bộ plugin với tổng cộng khoảng 150 skills — ClaudeKit Engineer (~75 skills) và ClaudeKit Marketing (~80 skills). Không agent nào nhớ hết toàn bộ catalog. Bỏ qua bước này dẫn đến:
+
+- Duplicate effort — build lại cái đã có sẵn
+- Inconsistent output — mỗi session improvise khác nhau
+- Missed optimizations — skills có context và best practices baked in
+
+### Workflow
+
+1. Đọc task
+2. Xác định domain (coding, content, deploy, debug, v.v.)
+3. Chạy `find-skills <domain>`
+4. Chọn 1-3 skills phù hợp nhất
+5. Chain skills theo thứ tự logic
+
+### Ví dụ
+
+Task: "Viết blog post SEO về thị trường nhà đất Sherman TX"
+
+```
+/find-skills seo blog content
+```
+
+Kết quả surface: `ckm:seo`, `ckm:write:blog`, `ckm:seo:keywords`, `ckm:write:good`
+
+Chain: `/ckm:seo:keywords` → `/ckm:write:blog` → `/ckm:seo` audit
+
+### Anti-pattern
+
+Nhảy thẳng vào generic tools (Write, Bash, Grep) mà bỏ qua skills catalog. Kết quả: agent viết code hoặc content từ đầu trong khi đã có skill với templates, patterns, và best practices sẵn.
+
+### Tài liệu liên quan
+
+- [Skill Playbooks](/workflows/skill-playbooks) — pre-composed chains cho common use cases
+- [ClaudeKit Engineer Skills](/agent-os-overview/claudekit-engineer-skills) — full catalog ~75 skills
+- [ClaudeKit Marketing Skills](/knowledge-qa/claudekit-marketing-skills) — full catalog ~80 skills
+
+
 ## Read next
 
 Trang tiếp theo định nghĩa luật riêng cho các task liên quan bất động sản — bao gồm khi nào phải search Realtor Knowledge Base, TREC compliance, và cách giao tiếp với client người Việt.
