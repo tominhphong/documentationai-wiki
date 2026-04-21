@@ -1,0 +1,189 @@
+---
+title: "Design Principles"
+description: "5 principles cốt lõi của Agent OS: YAGNI/KISS/DRY, filesystem-as-IPC, read-before-write, own-your-scope, auditable-history"
+---
+
+## YAGNI / KISS / DRY
+
+Ba nguyên tắc này bắt nguồn từ software engineering nhưng áp dụng trực tiếp vào cách Agent OS được xây dựng và vận hành.
+
+### YAGNI — You Aren't Gonna Need It
+
+Không build, không document, không cấu hình những gì chưa thực sự cần. Agent OS chỉ tạo page mới khi workflow đó đã được dùng và hoạt động — không pre-generate stub pages "phòng khi cần".
+
+**Ví dụ thực tế từ Sprint 2:**
+
+Sprint 2 ban đầu có thể tạo 30 page stub cho toàn bộ Agent OS outline. Thay vào đó, mỗi Win chỉ viết các pages được assign trong task-board. Kết quả: mỗi page được viết có real content, không có empty shell nào bị push lên.
+
+Nguyên tắc này cũng áp dụng cho tooling: không thêm MCP server mới vào hệ thống cho đến khi có task cụ thể cần nó.
+
+### KISS — Keep It Simple, Stupid
+
+Khi có nhiều cách giải quyết, chọn cách đơn giản nhất hoạt động được. Filesystem coordination thay vì runtime IPC là ví dụ điển hình — không cần message queue, không cần WebSocket nội bộ, chỉ cần git commits và markdown files.
+
+**Ví dụ thực tế từ Sprint 2:**
+
+Sprint 2 không dùng Mermaid diagrams vì Documentation.AI platform hiện chưa hỗ trợ. Thay vì tốn thời gian tìm workaround hoặc đề xuất migrate sang platform khác, team chọn ASCII art cho coordination diagram trong `architecture.mdx`. KISS wins — diagram vẫn readable, không block build.
+
+Quy tắc tương tự cho scripts: `pre-commit-check.sh` là 4 grep commands, không phải một test framework phức tạp.
+
+### DRY — Don't Repeat Yourself
+
+Mỗi thông tin chỉ tồn tại ở một nơi. Nơi khác reference đến, không copy-paste.
+
+**Ví dụ thực tế:**
+
+TREC disclaimer text sống trong `core-rules/real-estate-rules.mdx`. Các pages workflow không copy text đó — chỉ link đến. Nếu disclaimer thay đổi, chỉ cần update một file.
+
+Tương tự, CODEOWNERS là nguồn sự thật duy nhất về file ownership — không có "ownership list" duplicate trong AGENTS.md hay task-board. Tất cả reference đến CODEOWNERS.
+
+
+## Filesystem-as-IPC
+
+Hệ thống multi-agent này không có real-time communication giữa các agents. Không có shared memory, không có message queue, không có WebSocket nội bộ.
+
+**Mọi state change đều đi qua git commit.**
+
+Khi Win 2 hoàn thành một page, Win 1 biết bằng cách pull branch và xem git log — không phải qua notification hay API call. Khi Win 2 cần Win 1 update `documentation.json`, Win 2 append vào `plans/cross-scope-sprint-2.md` và commit — Win 1 đọc file đó lần sau.
+
+### Tại sao chọn kiến trúc này
+
+**Simplicity:** Không có server cần chạy, không có connection cần maintain. Mỗi agent là một independent process làm việc trên file system.
+
+**Auditability:** Mọi "message" giữa agents là một git commit với timestamp, author, và nội dung tường minh. Không có side channel, không có ephemeral state.
+
+**Replayability:** Nếu một agent cần biết quyết định của agent khác từ 3 ngày trước, đọc `git log` là đủ. Không cần hỏi lại, không cần meeting.
+
+### Trade-offs
+
+Kiến trúc này chậm hơn realtime messaging — Win 1 xử lý cross-scope requests trong lần sync tiếp, không phải ngay lập tức. Đây là trade-off chấp nhận được vì:
+
+1. Phần lớn tasks không có real-time dependency
+2. Workers không bị block chờ — tiếp tục task tiếp theo ngay sau khi gửi request
+3. Robustness cao hơn: không có "agent bị disconnect" hay "message bị drop"
+
+<Callout kind="info">
+"Nếu nó không có trong git log, nó không xảy ra." — Đây là nguyên tắc vận hành cốt lõi. Mọi decision, mọi thay đổi, mọi cross-scope request đều phải có commit. Verbal agreement trong conversation không được tính cho đến khi có commit.
+</Callout>
+
+
+## Read-before-write
+
+Mọi agent phải đọc đủ context trước khi edit bất kỳ file nào. Đây không phải best practice — đây là mandatory step.
+
+**Lý do:** Trong môi trường multi-agent async, file có thể đã được edit bởi agent khác kể từ lần cuối agent hiện tại đọc nó. Viết mà không đọc trước = risk overwrite recent changes = merge conflict hoặc content regression.
+
+<Steps>
+
+<Step title="Đọc master rules">
+Mỗi session bắt đầu bằng: `CLAUDE.md` (MDX gotchas, component whitelist, conventions), `AGENTS.md` (role và scope của mình), `CODEOWNERS` (xác nhận file nào thuộc scope).
+</Step>
+
+<Step title="Đọc tracking files">
+`plans/task-board-sprint-2.md` (task nào đang in-progress, task nào blocked), `plans/progress.md` (những gì đã làm gần đây), `plans/cross-scope-sprint-2.md` (requests pending).
+</Step>
+
+<Step title="Đọc target file trước khi edit">
+Nếu task là update một file đã có, đọc toàn bộ file đó trước. Không assume nội dung còn giống lần trước đọc.
+</Step>
+
+<Step title="Validate sau khi viết">
+Chạy `bash scripts/pre-commit-check.sh` trước khi commit. Xem [review-workflow](/workflows/review-workflow) để biết validation steps đầy đủ.
+</Step>
+
+</Steps>
+
+**Chống waste:** Read-before-write tránh được tình huống agent A viết xong rồi mới phát hiện agent B đã viết nội dung tương tự — 2x effort, 1x output. Đọc trước giúp phát hiện overlap sớm và phối hợp qua cross-scope request thay vì xung đột sau.
+
+
+## Own-your-scope
+
+File ownership là thiết kế cốt lõi của hệ thống, không phải guideline tùy ý. Mỗi worker chỉ edit files thuộc scope của mình theo `CODEOWNERS`.
+
+**Win 2 (Framework Author):** `agent-os-overview/`, `core-rules/`
+
+**Win 3 (Workflow Writer):** `workflows/`, `agent-instructions/`
+
+**Win 4 (Reference-QA):** `help-center/`, `knowledge-qa/`, `scripts/`
+
+**Win 1 (Lead):** `documentation.json`, top-level `.mdx`, `components/`, tất cả files không có owner khác
+
+### Cross-scope = request, không phải silent edit
+
+Khi Win 2 tạo page mới và cần thêm vào navigation (`documentation.json`), Win 2 không tự edit `documentation.json`. Thay vào đó:
+
+1. Append patch request vào `plans/cross-scope-sprint-2.md`
+2. Commit và tiếp tục task tiếp theo
+3. Win 1 apply patch trong lần sync tiếp
+
+Xem [communication-rules](/core-rules/communication-rules) để biết cross-scope protocol chi tiết. Xem [cross-scope-workflow](/workflows/cross-scope-workflow) để biết format patch request.
+
+<Callout kind="warning">
+**Scope violation có hệ quả nghiêm trọng.** Edit file ngoài scope tạo merge conflict khi Win 1 merge — Win 1 phải resolve thủ công, mất thời gian cả team. Nếu violation xảy ra nhiều lần, task-board sẽ track và Sprint retro sẽ ghi nhận. Không có ngoại lệ, kể cả khi "chỉ sửa 1 dòng nhỏ".
+</Callout>
+
+
+## Auditable-history
+
+Mọi thay đổi trong Agent OS phải có thể trace ngược về task cụ thể. Đây là yêu cầu, không phải khuyến nghị.
+
+### Commit format bắt buộc
+
+```
+<type>(<task-id>): <mô tả ngắn gọn>
+```
+
+Ví dụ: `feat(S2-W2-04): add design principles — YAGNI/KISS/DRY + 5 core patterns`
+
+Format này là **parseable bằng script**. `git log --grep="S2-W2"` trả về toàn bộ commits của Win 2 trong Sprint 2, theo thứ tự. Không cần spreadsheet tracking, không cần status meeting.
+
+### Full trace
+
+Mỗi thay đổi có đầy đủ thông tin để reconstruct:
+
+- **Task ID** (`S2-W2-04`) → link về task-board để biết context
+- **Commit SHA** → link về exact diff
+- **File path** → link về content tại thời điểm đó
+
+Từ task ID, có thể tìm: tại sao task được tạo, ai làm, làm gì, khi nào xong.
+
+### Changelog tự động
+
+Vì commit messages có task ID nhất quán, changelog có thể tự động generate:
+
+```bash
+git log --grep="feat(S2" --oneline
+```
+
+Lệnh này trả về tất cả features được thêm trong Sprint 2 — đủ làm release notes mà không cần viết thủ công.
+
+<Callout kind="info">
+Audit trail không chỉ dùng cho post-mortem. Agents mới join sprint có thể đọc `git log` để nhanh chóng hiểu đội đã làm gì mà không cần đọc từng file. Đây là "documentation as code" — history là docs.
+</Callout>
+
+
+## Anti-principles (những gì bị từ chối)
+
+Dưới đây là các anti-patterns mà Agent OS chủ động reject, kèm lý do.
+
+| Anti-principle | Tại sao bị từ chối |
+|----------------|-------------------|
+| "Move fast and break things" | Wiki là foundation mà agents tự-orient — instability phá trust của cả hệ thống, không chỉ của một feature |
+| "Magic numbers" (hardcoded constants) | Số liệu như sprint ID, path conventions, component whitelist phải nằm trong config hoặc docs được reference — không hardcode trong nhiều chỗ |
+| "Silent failures" | Nếu build fail, nếu agent bị stuck, nếu scope conflict xảy ra — phải append vào `plans/findings.md` hoặc `cross-scope-sprint-2.md`. Không ignore, không tiếp tục như không có gì |
+| "God file" (1 file làm tất cả) | Không có file nào vượt quá 400 dòng. Nếu một page quá dài, tách ra thành nhiều pages liên kết — mỗi page có 1 mục đích rõ ràng |
+| "Tribal knowledge" | Mọi quyết định thiết kế phải có trong git commit message hoặc trong wiki — không để trong conversation history hay memory của một agent cụ thể |
+| "Optimize for the happy path" | Error handling và edge cases (MDX gotchas, merge conflicts, cross-scope requests) phải được document rõ ràng, không ẩn trong footnotes |
+
+### Tại sao "God file" bị cấm đặc biệt
+
+Documentation.AI build là all-or-nothing. File càng dài, càng nhiều chỗ có thể fail (JSX parse error, missing frontmatter, broken component). File ngắn và tập trung = blast radius nhỏ khi có lỗi.
+
+Thêm vào đó, agents đọc documentation qua MCP với context window giới hạn. File 500+ dòng buộc agent phải đọc nhiều chunks — file 150-200 dòng được đọc trọn vẹn trong một lần, giảm latency và tăng accuracy.
+
+
+## Read next
+
+- [Architecture](/agent-os-overview/architecture) — xem System Layers để hiểu các principles này được thể hiện trong kiến trúc thực tế
+- [Communication Rules](/core-rules/communication-rules) — filesystem-as-IPC và cross-scope protocol chi tiết
+- [File Ownership Rules](/core-rules/file-ownership-rules) — own-your-scope enforcement qua CODEOWNERS
