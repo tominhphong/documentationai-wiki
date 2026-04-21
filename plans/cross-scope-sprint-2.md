@@ -17,7 +17,9 @@ Status: pending | applied (commit SHA)
 
 ## Pending
 
-_(empty — all requests applied in next commit)_
+### [2026-04-20 21:48] [win2 → win1] Add design-principles to nav
+Patch: documentation.json add `{"title": "Design Principles", "path": "agent-os-overview/design-principles", "icon": "compass"}` vào group "Agent OS Overview"
+Status: pending
 
 ## Applied
 
