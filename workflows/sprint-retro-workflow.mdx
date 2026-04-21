@@ -1,0 +1,303 @@
+---
+title: "Sprint Retrospective Workflow"
+description: "Process chạy retrospective sau mỗi sprint: gather metrics, identify wins/misses, define improvements, log learnings"
+last_reviewed: 2026-04-20
+---
+
+## Tổng quan
+
+Retrospective là cuộc nhìn lại có hệ thống sau khi mỗi sprint kết thúc. Không phải post-mortem, không phải blame session — mà là cơ hội để cả team (Brain + Workers) nhìn nhận những gì đã hoạt động tốt, những gì cần bỏ, và những gì nên bắt đầu làm trong sprint tiếp theo.
+
+Trong hệ thống Documentation.AI wiki với 4 agents, retro quan trọng hơn các team thông thường vì mỗi sprint là một vòng lặp độc lập — lessons learned từ Sprint 2 cần được codify thành sprint backlog của Sprint 3, không để trôi đi.
+
+<Callout kind="info">
+Retro workflow này chạy sau khi sprint chính thức close: main merge xong, QA report Win 4 đã signed off, và Brain đã verify build không bị broken. Không chạy retro khi sprint vẫn còn pending tasks.
+</Callout>
+
+---
+
+## Khi nào chạy Retro
+
+**Trigger điều kiện (tất cả phải đúng):**
+
+| Điều kiện | Cách verify |
+|-----------|------------|
+| Main merge hoàn tất | `git log origin/main --oneline -3` — thấy merge commit từ worker branches |
+| QA report signed off | `plans/qa-report-sprint-<N>.md` tồn tại và có `status: PASS` hoặc `PASS_WITH_NOTES` |
+| Build không broken | `.github/workflows/mdx-validate.yml` PASS trên commit cuối của main |
+| Tất cả tasks closed | Task board không còn `[ ]` trên tất cả W1/W2/W3/W4 tasks (trừ carry-over đã documented) |
+
+**Thời điểm lý tưởng:** Ngay sau khi Brain complete S3-W1-02 (sprint close task). Không để retro qua ngày hôm sau — memory còn fresh, context vẫn trong session.
+
+---
+
+## Bước 1 — Thu thập Retro Inputs
+
+<Steps>
+
+<Step title="Git Metrics">
+
+Đếm số commits trong sprint hiện tại. Dùng grep theo task ID format:
+
+```bash
+# Đếm commits có tag sprint (ví dụ S3)
+git log --grep="S3-W" --pretty=format:"%h %s" | wc -l
+
+# Xem danh sách đầy đủ theo worker
+git log --grep="S3-W1" --pretty=format:"%h %s"
+git log --grep="S3-W2" --pretty=format:"%h %s"
+git log --grep="S3-W3" --pretty=format:"%h %s"
+git log --grep="S3-W4" --pretty=format:"%h %s"
+
+# Total commits từ khi sprint mở đến giờ
+git log --since="2026-04-20" --pretty=format:"%h %s" | wc -l
+```
+
+Ghi lại tổng số commit per worker và tổng sprint.
+
+</Step>
+
+<Step title="Content Volume">
+
+So sánh line count trước và sau sprint:
+
+```bash
+# Total lines trong content sections hiện tại
+wc -l workflows/*.mdx agent-instructions/*.mdx agent-os-overview/*.mdx core-rules/*.mdx help-center/**/*.mdx knowledge-qa/*.mdx 2>/dev/null | tail -1
+
+# Breakdown per section
+echo "workflows:"; wc -l workflows/*.mdx | tail -1
+echo "agent-instructions:"; wc -l agent-instructions/*.mdx | tail -1
+echo "agent-os-overview:"; wc -l agent-os-overview/*.mdx | tail -1
+echo "core-rules:"; wc -l core-rules/*.mdx | tail -1
+
+# Files mới được tạo trong sprint
+git diff --name-only --diff-filter=A origin/main~5...origin/main
+```
+
+</Step>
+
+<Step title="Task Coverage">
+
+Đọc task board và đếm:
+
+```bash
+# Số tasks completed vs total
+grep -c "\[x\]" plans/task-board-sprint-<N>.md
+grep -c "\[ \]" plans/task-board-sprint-<N>.md
+
+# Blocked tasks
+grep -i "blocked\|carry" plans/task-board-sprint-<N>.md
+```
+
+Ghi lại: `X/Y tasks done`, danh sách carry-over nếu có.
+
+</Step>
+
+<Step title="QA Report">
+
+Đọc `plans/qa-report-sprint-<N>.md` — lấy 3 con số chính:
+- Total MDX files + lines
+- Broken links (số lượng — kỳ vọng là 0)
+- Pre-commit errors (kỳ vọng là 0)
+
+</Step>
+
+<Step title="Timing">
+
+```bash
+# Xem commit đầu tiên và cuối cùng của sprint
+git log --grep="S<N>-W" --pretty=format:"%ci %s" | tail -1  # sprint start
+git log --grep="S<N>-W" --pretty=format:"%ci %s" | head -1  # sprint end
+
+# Kiểm tra có script nào hỗ trợ không
+ls scripts/
+bash scripts/check-links.sh . 2>&1 | tail -3
+bash scripts/pre-commit-check.sh . 2>&1 | tail -3
+```
+
+Tính tổng thời gian từ task board open đến sprint close.
+
+</Step>
+
+</Steps>
+
+---
+
+## Bước 2 — Retro 4 Quadrants
+
+Sau khi có đủ data từ Bước 1, điền vào bảng 4 quadrants. Mỗi ô nên có ít nhất 2–3 examples cụ thể, không phải lý thuyết chung.
+
+| Quadrant | Câu hỏi |
+|----------|---------|
+| **Kept Going** | Những gì đã làm tốt, nên tiếp tục? |
+| **Stopped** | Những gì gây friction, nên bỏ? |
+| **Started** | Những gì thiếu, nên bắt đầu làm? |
+| **More Of** | Những gì đã có nhưng cần tăng cường? |
+
+**Ví dụ từ Sprint 2 retro:**
+
+| Kept Going | Stopped |
+|------------|---------|
+| Agent Team subagents chạy parallel — throughput tốt | 4 iTerm CLI sessions — auth conflict, dùng worktrees thay thế |
+| Worktree separation per agent — không có file conflict | Manual copy-paste cross-scope — thay bằng cross-scope-request file |
+| Pre-commit hook bắt lỗi sớm trước push | Commit "xem thử" — commit chỉ khi đã validate |
+
+| More Of | Started |
+|---------|---------|
+| Parallel execution khi tasks độc lập nhau | CI workflow mdx-validate.yml — automated gate |
+| Line count target per file — quality signal | check-links.sh — link integrity automation |
+| Cross-scope request log — visibility cho Brain | last_reviewed frontmatter — SEO + maintenance signal |
+
+<Callout kind="warning">
+Không blame cá nhân cụ thể trong quadrant. Tập trung vào systemic causes — quy trình, tooling, protocol — không phải agent nào đó "làm sai". Mọi lỗi đều là cơ hội cải thiện hệ thống.
+</Callout>
+
+---
+
+## Bước 3 — Action Items
+
+Từ quadrant "Started" và "More Of", định nghĩa action items cụ thể. Mỗi action phải có owner, target sprint, và priority.
+
+**Template:**
+
+```markdown
+- [ ] Mô tả action item rõ ràng và có thể đo lường được
+  - Owner: winN (hoặc Brain nếu là orchestration task)
+  - Target sprint: N+1
+  - Priority: high | medium | low
+```
+
+**Ví dụ action items sau Sprint 2:**
+
+```markdown
+- [ ] Thêm last_reviewed frontmatter vào tất cả 45 content MDX files
+  - Owner: win2, win3, win4
+  - Target sprint: 3
+  - Priority: high
+
+- [ ] Wire 4 help-center files vào documentation.json nav
+  - Owner: win1 (cross-scope)
+  - Target sprint: 3
+  - Priority: high
+
+- [ ] Tạo scripts/check-frontmatter.sh — validate last_reviewed field
+  - Owner: win4
+  - Target sprint: 3
+  - Priority: medium
+
+- [ ] Tăng parallel task execution — avoid sequential bottleneck
+  - Owner: Brain (sprint planning)
+  - Target sprint: 3
+  - Priority: medium
+```
+
+**Rules cho action items:**
+- Mỗi action phải measurable — có thể check off khi done
+- Không quá 6 action items per retro — focus beats volume
+- Priority "high" = phải vào sprint backlog. "medium" = backlog nhưng deprioritizable. "low" = nice-to-have
+
+---
+
+## Bước 4 — Log Retro File
+
+Sau khi hoàn thành analysis, tạo file retro chính thức:
+
+**Naming convention:** `plans/retro-sprint-<N>.md`
+
+**Structure:**
+
+```markdown
+---
+sprint: N
+date: YYYY-MM-DD
+duration: X days (from task-board open to sprint close)
+status: COMPLETED
+---
+
+# Sprint N Retrospective
+
+**Date:** YYYY-MM-DD
+**Prepared by:** Brain (orchestrator)
+**Participants:** Win 1 / Win 2 / Win 3 / Win 4 (retrospective is async)
+
+---
+
+## Sprint Metrics
+
+| Metric | Value |
+|--------|-------|
+| Tasks completed | X / Y |
+| Commits merged to main | N |
+| MDX files total | N |
+| Total content lines | N |
+| Broken links | 0 |
+| Pre-commit errors | 0 |
+| Sprint duration | X days |
+| Carry-over tasks | N (listed below) |
+
+## Carry-over Tasks (if any)
+
+- [ ] Task ID — description — reason for carry-over
+
+## 4 Quadrants
+
+| Kept Going | Stopped |
+|------------|---------|
+| item 1 | item 1 |
+| item 2 | item 2 |
+
+| More Of | Started |
+|---------|---------|
+| item 1 | item 1 |
+| item 2 | item 2 |
+
+## Action Items → Sprint N+1
+
+- [ ] Action 1
+  - Owner: winN
+  - Target sprint: N+1
+  - Priority: high
+
+## Sign-off
+
+Brain: APPROVED
+Win 4 QA: co-signed via qa-report-sprint-<N>.md
+```
+
+---
+
+## Anti-Patterns — Retro Traps Cần Tránh
+
+<Callout kind="warning">
+Những lỗi phổ biến làm retro mất tác dụng. Nếu thấy bất kỳ dấu hiệu nào dưới đây, dừng lại và điều chỉnh.
+</Callout>
+
+**Anti-pattern 1 — Blame cá nhân thay vì systemic causes**
+
+Khi retro có câu như "Win 3 đã viết sai frontmatter", đó là blame, không phải insight. Câu đúng: "Chúng ta thiếu validation gate cho frontmatter — cần scripts/check-frontmatter.sh để bắt lỗi trước khi commit." Mọi lỗi đều là tín hiệu về quy trình, không phải về năng lực cá nhân.
+
+**Anti-pattern 2 — Skip retro khi sprint "smooth"**
+
+Sprint smooth không có nghĩa là không có learnings. Chính những sprint suôn sẻ mới cho thấy rõ nhất những practices nào đang hoạt động tốt — cần được codified vào "Kept Going" để không bị quên ở sprint sau. Sprint 2 smooth → retro vẫn phải chạy → Sprint 3 biết giữ nguyên Agent Team + worktree pattern.
+
+**Anti-pattern 3 — Action items không có owner hay deadline**
+
+"Cần cải thiện documentation" là action item vô nghĩa. "Thêm last_reviewed vào 45 files — win2/win3/win4 — sprint 3 — high priority" là action item có thể theo dõi được. Không có owner = không ai làm. Không có deadline = không bao giờ done.
+
+**Anti-pattern 4 — Brain không track action items ở Sprint N+1 kickoff**
+
+Nếu retro tạo ra 5 action items nhưng Sprint N+1 task board mở ra không thấy chúng đâu, retro trở thành empty ritual. Brain phải đọc `plans/retro-sprint-<N>.md` trước khi viết task board sprint mới — convert action items thành actual tasks với ID.
+
+**Anti-pattern 5 — Retro quá dài**
+
+Retro không phải cần toàn diện — cần actionable. 4 quadrants với 2–3 bullets mỗi ô, tối đa 6 action items, 1 file markdown, dưới 1 giờ. Nếu retro mất hơn 2 giờ, scope quá lớn — cắt bớt và focus vào top 3 learnings.
+
+---
+
+## Xem thêm
+
+- [Multi-Agent Sprint Workflow](./multi-agent-sprint-workflow) — quy trình chạy một sprint đầy đủ
+- [Cross-Scope Workflow](./cross-scope-workflow) — cách escalate tasks ra ngoài scope
+- [Review Workflow](./review-workflow) — Win 4 QA process dẫn đến sprint close
+- [Debugging Workflow](./debugging-workflow) — xử lý lỗi phát sinh trong sprint
