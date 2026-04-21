@@ -1,0 +1,310 @@
+---
+title: "Known Issues"
+description: "Catalog các issues đã gặp trong Sprint 1-3 và cách xử lý. Reference cho future sprints tránh lặp lại."
+last_reviewed: 2026-04-20
+keywords: [known-issues, troubleshooting, learnings, sprints, gotchas, bash, claude-cli, mermaid]
+---
+
+## Mục lục
+
+- [Issue 1 — Claude Code CLI 401 auth khi multiple concurrent sessions](#issue-1)
+- [Issue 2 — Haiku 4.5 input token limit nhỏ hơn Sonnet](#issue-2)
+- [Issue 3 — Bash `set -e` + `(( ))` arithmetic false trap](#issue-3)
+- [Issue 4 — Bash `set -o pipefail` + grep no-match exits script](#issue-4)
+- [Issue 5 — Mermaid diagrams không render trong Mintlify theme](#issue-5)
+- [Issue 6 — Plans/cross-scope merge conflicts khi 2+ workers append](#issue-6)
+- [Issue 7 — GitHub OAuth thiếu workflow scope khi push](#issue-7)
+
+---
+
+## Issue 1 — Claude Code CLI 401 auth khi multiple concurrent sessions {#issue-1}
+
+<Callout kind="error">
+**Critical:** Lỗi này block toàn bộ session của một worker agent. Phải xử lý ngay khi gặp.
+</Callout>
+
+**Symptom**
+
+Một Claude Code CLI session mới báo lỗi authentication sau khi `/login`:
+
+```
+Error: 401 Unauthorized — authentication failed
+```
+
+Hoặc CLI không start được trong một worktree cụ thể, trong khi session khác vẫn chạy bình thường.
+
+**Root cause**
+
+Concurrent session conflict — khi nhiều Claude Code CLI instances chạy đồng thời với cùng một Anthropic API key, OAuth token có thể xung đột tùy theo account tier. Session mới nhất bị từ chối vì token đã được bind vào session cũ.
+
+**Workaround**
+
+Thay vì chạy multiple Claude Code CLI instances độc lập, dùng **Agent Team feature trong một main session**:
+
+1. Chạy `claude` từ repo chính (không phải từng worktree riêng)
+2. Trong main session, dùng Agent Team tools để spawn Win 2/3/4 as sub-agents
+3. Sub-agents nhận task qua filesystem (`plans/task-board.md`, `plans/cross-scope-sprint-N.md`) thay vì separate CLI sessions
+
+**Prevention**
+
+Đây là kiến trúc được recommend cho multi-agent sprint. Không chạy nhiều CLI instances độc lập — chạy một main session và delegate qua Agent Team.
+
+**Links**
+
+- [Multi-Agent Team FAQ](/knowledge-qa/multi-agent-faq)
+- [Install Error Troubleshooting — Claude Code CLI 401](/help-center/troubleshooting/install-error)
+
+---
+
+## Issue 2 — Haiku 4.5 input token limit nhỏ hơn Sonnet {#issue-2}
+
+**Symptom**
+
+Agent được assign model `haiku` trả về lỗi:
+
+```
+Error: Prompt is too long. Max input tokens: ...
+```
+
+Prompt với context files lớn hoặc task phức tạp fail trên Haiku nhưng pass trên Sonnet.
+
+**Root cause**
+
+Haiku 4.5 có context window nhỏ hơn Sonnet 4.6. Long prompts trên under 3000 tokens thường an toàn, nhưng prompts phức tạp kèm nhiều file context có thể vượt giới hạn Haiku.
+
+**Workaround**
+
+- Strip prompt xuống essentials — bỏ instructions lặp lại, chỉ giữ task + files cần thiết
+- Chuyển sang Sonnet 4.6 cho complex tasks yêu cầu large context
+- Estimate safe Haiku prompt size: ~2500 tokens (bao gồm cả system prompt và file content)
+
+**Prevention**
+
+Dùng Haiku cho lightweight tasks (formatting, adding frontmatter, simple edits). Dùng Sonnet cho tasks cần đọc nhiều files, viết nội dung dài, hoặc phân tích phức tạp.
+
+---
+
+## Issue 3 — Bash `set -e` + `(( ))` arithmetic false trap {#issue-3}
+
+<Callout kind="warning">
+**Lỗi này rất khó debug vì script silently exits** — không có error message, chỉ đơn giản là dừng giữa chừng.
+</Callout>
+
+**Symptom**
+
+Bash script silently exits giữa chừng trong một vòng lặp. Không có error message, script chỉ dừng mà không có output tiếp theo. Behavior này xảy ra ngẫu nhiên tùy vào giá trị biến.
+
+**Root cause**
+
+`(( expr ))` trong bash trả về exit code 1 khi expression evaluates to 0 (false). Khi script có `set -e`, bất kỳ command nào trả về non-zero exit code đều trigger script exit ngay lập tức. Kết hợp hai điều này: `(( var ))` khi `var == 0` sẽ kill script.
+
+**Bad pattern:**
+
+```bash
+set -e
+count=0
+for f in *.mdx; do
+  (( count++ ))  # Dies when count is 0 before increment (exit code 1 from (( 0 )))
+  echo "Processing $f"
+done
+```
+
+**Fix:**
+
+```bash
+# Dùng [[ ]] thay (( )) cho comparison
+[[ ${#var} -lt 3 ]]   # OK — returns 0 or 1 cleanly
+(( ${#var} < 3 ))     # DANGEROUS với set -e nếu var length >= 3 → expr = 0 → exit 1
+
+# Hoặc dùng += thay (( ++ ))
+count=$((count + 1))  # arithmetic substitution — safe, không trigger set -e
+```
+
+**Prevention**
+
+Trong scripts với `set -e`: luôn dùng `[[ ]]` cho conditionals. Chỉ dùng `(( ))` khi wrap trong `if (( ... )); then` — vì `if` absorbs non-zero exit codes.
+
+---
+
+## Issue 4 — Bash `set -o pipefail` + grep no-match exits script {#issue-4}
+
+**Symptom**
+
+Script với `set -e` và `set -o pipefail` thoát đột ngột tại dòng có `grep` pipeline. Không có error message. Behavior chỉ xảy ra khi grep không tìm thấy match — khi có match thì bình thường.
+
+**Root cause**
+
+`pipefail` flag làm pipeline fail nếu bất kỳ command nào trong pipe fail. `grep` trả về exit code 1 khi không có match (expected behavior). Kết hợp với `set -e`, "no match" result từ grep kill script.
+
+**Bad pattern:**
+
+```bash
+set -e -o pipefail
+# Script dies here if "keywords:" not found
+x=$(grep "keywords:" "$file" | head -1)
+```
+
+**Fix:**
+
+```bash
+# Append || true để absorb grep no-match
+x=$(grep "keywords:" "$file" | head -1 || true)
+
+# Hoặc check trước
+if grep -q "keywords:" "$file"; then
+  x=$(grep "keywords:" "$file" | head -1)
+fi
+```
+
+**Prevention**
+
+Khi viết scripts với `set -e -o pipefail`, luôn append `|| true` vào grep/find commands khi "no match" là valid/expected state. Đặt comment rõ lý do để tránh người sau xóa đi.
+
+---
+
+## Issue 5 — Mermaid diagrams không render trong Mintlify theme hiện tại {#issue-5}
+
+**Symptom**
+
+Code block với syntax `` ```mermaid `` render as plain text — không có diagram, chỉ thấy raw Mermaid code.
+
+**Root cause**
+
+Mintlify theme hiện tại của Documentation.AI chưa enable Mermaid plugin. Code block được treated như normal code block và hiển thị as-is.
+
+**Workaround**
+
+Ba lựa chọn thay thế, theo thứ tự prefer:
+
+| Lựa chọn | Khi nào dùng | Ví dụ |
+|----------|--------------|-------|
+| ASCII art | Simple flows, trees | `A → B → C` |
+| Markdown table | Data relationships | Header/row structure |
+| Mintlify Steps component | Sequential processes | `<Steps>` / `<Step>` |
+
+**Ví dụ ASCII thay thế Mermaid:**
+
+```
+Claude Desktop
+├── Desktop Commander MCP
+│   └── Terminal (iTerm2/it2)
+├── Zernio MCP
+│   └── Social Media APIs
+└── Remotion
+    └── Video render pipeline
+```
+
+**Future fix**
+
+Check [Mintlify docs](https://mintlify.com) cho Mermaid plugin support. Khi plugin available, cần Win 1 enable trong `docs-config` và convert ASCII art → Mermaid diagrams.
+
+---
+
+## Issue 6 — Plans/cross-scope merge conflicts khi 2+ workers append parallel {#issue-6}
+
+**Symptom**
+
+`git pull` hoặc `git merge` báo conflict trong `plans/cross-scope-sprint-N.md`:
+
+```
+<<<<<<< HEAD
+### [2026-04-20 14:28] [win4 → win1] Add page-A to nav
+=======
+### [2026-04-20 14:29] [win2 → win1] Add page-B to nav
+>>>>>>> origin/win3-workflow
+```
+
+**Root cause**
+
+Hai worker agents cùng append vào `## Pending` section trong cùng khoảng thời gian ngắn. Git không biết cách merge vì cả hai đều append vào cuối file — không có context line chung.
+
+**Fix — giữ CẢ HAI entries:**
+
+```
+### [2026-04-20 14:28] [win4 → win1] Add page-A to nav
+Patch: ...
+Status: pending
+
+### [2026-04-20 14:29] [win2 → win1] Add page-B to nav
+Patch: ...
+Status: pending
+```
+
+Xóa conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), giữ nguyên nội dung cả hai. Brain (Win 1) resolve thủ công — áp dụng cả 2 patches rồi move to `## Applied`.
+
+**Prevention — Sprint 5+**
+
+Có thể split cross-scope file per-worker: `cross-scope-sprint-5-win2.md`, `cross-scope-sprint-5-win3.md`, v.v. Brain merge tất cả khi close sprint. Cách này eliminate conflict hoàn toàn.
+
+```bash
+# Sau khi resolve conflict thủ công
+git add plans/cross-scope-sprint-4.md
+git commit -m "fix: resolve cross-scope merge conflict — keep both entries"
+```
+
+**Links**
+
+- [Install Error Troubleshooting — Merge conflict trong plans/cross-scope](/help-center/troubleshooting/install-error)
+
+---
+
+## Issue 7 — GitHub OAuth thiếu workflow scope khi push {#issue-7}
+
+<Callout kind="warning">
+**One-time fix per machine.** Sau khi refresh token với workflow scope, lỗi này không xuất hiện lại trừ khi token bị revoke.
+</Callout>
+
+**Symptom**
+
+`git push` bị reject với message:
+
+```
+refusing to allow an OAuth App to create or update workflow
+  '.github/workflows/validate-mdx.yml'
+  without 'workflow' scope
+```
+
+**Root cause**
+
+GitHub OAuth token hiện tại được tạo trước khi repo có `.github/workflows/` directory, hoặc token được tạo mà không include `workflow` scope. Lỗi này xuất hiện khi bạn modify bất kỳ file nào trong `.github/workflows/`.
+
+**Fix — one-time action per machine:**
+
+```bash
+# Refresh token và add workflow scope
+gh auth refresh -s workflow --hostname github.com
+```
+
+Browser sẽ mở hoặc hiển thị device code:
+
+```
+! First copy your one-time code: XXXX-XXXX
+Press Enter to open github.com in your browser...
+```
+
+1. Copy code → nhấn Enter
+2. Dán code vào GitHub device authorization page
+3. Click "Authorize GitHub CLI"
+4. Verify sau khi complete:
+
+```bash
+gh auth status
+# Token scopes phải bao gồm: ..., workflow
+```
+
+**Prevention**
+
+Khi setup agent trên máy mới, luôn chạy `gh auth refresh -s workflow` ngay từ đầu trước khi bắt đầu sprint. Ghi vào setup checklist.
+
+**Links**
+
+- [Install Error Troubleshooting — Push rejected: workflow scope missing](/help-center/troubleshooting/install-error)
+
+---
+
+## Xem thêm
+
+- [MDX Gotchas — Common Parse Errors](/help-center/troubleshooting/mdx-gotchas) — syntax errors cụ thể trong MDX
+- [Install Error Troubleshooting](/help-center/troubleshooting/install-error) — lỗi setup và git auth
+- [Multi-Agent Team FAQ](/knowledge-qa/multi-agent-faq) — coordination, ownership, cross-scope protocol
+- [Workflows: Debugging](/workflows/debugging-workflow) — quy trình debug step-by-step
