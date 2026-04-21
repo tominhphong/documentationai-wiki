@@ -7,17 +7,21 @@ keywords: [known-issues, troubleshooting, learnings, sprints, gotchas, bash, cla
 
 ## Mục lục
 
-- [Issue 1 — Claude Code CLI 401 auth khi multiple concurrent sessions](#issue-1)
-- [Issue 2 — Haiku 4.5 input token limit nhỏ hơn Sonnet](#issue-2)
-- [Issue 3 — Bash `set -e` + `(( ))` arithmetic false trap](#issue-3)
-- [Issue 4 — Bash `set -o pipefail` + grep no-match exits script](#issue-4)
-- [Issue 5 — Mermaid diagrams không render trong Mintlify theme](#issue-5)
-- [Issue 6 — Plans/cross-scope merge conflicts khi 2+ workers append](#issue-6)
-- [Issue 7 — GitHub OAuth thiếu workflow scope khi push](#issue-7)
+1. Claude Code CLI 401 auth khi multiple concurrent sessions
+2. Haiku 4.5 input token limit nhỏ hơn Sonnet
+3. Bash `set -e` + `(( ))` arithmetic false trap
+4. Bash `set -o pipefail` + grep no-match exits script
+5. Mermaid diagrams không render trong Mintlify theme
+6. Plans/cross-scope merge conflicts khi 2+ workers append
+7. GitHub OAuth thiếu workflow scope khi push
+
+<Callout kind="info">
+Dùng on-page TOC bên phải (Mintlify auto-sidebar) để nhảy nhanh giữa các Issue.
+</Callout>
 
 ---
 
-## Issue 1 — Claude Code CLI 401 auth khi multiple concurrent sessions {#issue-1}
+## Issue 1 — Claude Code CLI 401 auth khi multiple concurrent sessions
 
 <Callout kind="error">
 **Critical:** Lỗi này block toàn bộ session của một worker agent. Phải xử lý ngay khi gặp.
@@ -56,7 +60,7 @@ Thay vì chạy multiple Claude Code CLI instances độc lập, dùng **Agent T
 
 ---
 
-## Issue 2 — Haiku 4.5 input token limit nhỏ hơn Sonnet {#issue-2}
+## Issue 2 — Haiku 4.5 input token limit nhỏ hơn Sonnet
 
 **Symptom**
 
@@ -84,7 +88,7 @@ Dùng Haiku cho lightweight tasks (formatting, adding frontmatter, simple edits)
 
 ---
 
-## Issue 3 — Bash `set -e` + `(( ))` arithmetic false trap {#issue-3}
+## Issue 3 — Bash `set -e` + `(( ))` arithmetic false trap
 
 <Callout kind="warning">
 **Lỗi này rất khó debug vì script silently exits** — không có error message, chỉ đơn giản là dừng giữa chừng.
@@ -126,7 +130,7 @@ Trong scripts với `set -e`: luôn dùng `[[ ]]` cho conditionals. Chỉ dùng 
 
 ---
 
-## Issue 4 — Bash `set -o pipefail` + grep no-match exits script {#issue-4}
+## Issue 4 — Bash `set -o pipefail` + grep no-match exits script
 
 **Symptom**
 
@@ -162,7 +166,7 @@ Khi viết scripts với `set -e -o pipefail`, luôn append `|| true` vào grep/
 
 ---
 
-## Issue 5 — Mermaid diagrams không render trong Mintlify theme hiện tại {#issue-5}
+## Issue 5 — Mermaid diagrams không render trong Mintlify theme hiện tại
 
 **Symptom**
 
@@ -200,7 +204,7 @@ Check [Mintlify docs](https://mintlify.com) cho Mermaid plugin support. Khi plug
 
 ---
 
-## Issue 6 — Plans/cross-scope merge conflicts khi 2+ workers append parallel {#issue-6}
+## Issue 6 — Plans/cross-scope merge conflicts khi 2+ workers append parallel
 
 **Symptom**
 
@@ -248,7 +252,7 @@ git commit -m "fix: resolve cross-scope merge conflict — keep both entries"
 
 ---
 
-## Issue 7 — GitHub OAuth thiếu workflow scope khi push {#issue-7}
+## Issue 7 — GitHub OAuth thiếu workflow scope khi push
 
 <Callout kind="warning">
 **One-time fix per machine.** Sau khi refresh token với workflow scope, lỗi này không xuất hiện lại trừ khi token bị revoke.
