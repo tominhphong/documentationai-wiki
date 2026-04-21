@@ -11,6 +11,53 @@ Wiki này được xây và duy trì bởi team 4-agent (Brain + 3 workers). M�
 
 ---
 
+<Update label="2026-04-20" description="Sprint 2 CLOSED — 16/16 tasks DONE" tags={["sprint-2", "closeout"]}>
+## Sprint 2 final summary
+
+**Theme:** Depth + Automation. **Duration:** ~3 giờ (4 rounds parallel). **Result:** 16/16 tasks merged to main.
+
+### Totals
+- **5 new pages:** design-principles, communication-rules, debugging-workflow, review-workflow, cross-scope-workflow, glossary + 3 help-center stubs expanded
+- **5,760 lines** across 30 core content files (verified by QA report)
+- **44/44 internal links** valid (check-links.sh)
+- **GitHub Actions CI** live — auto-validate MDX + links on every push/PR
+- **44 MDX files** pass pre-commit (frontmatter, syntax, patterns)
+
+### Process improvements vs Sprint 1
+- Agent Team subagents (3 Sonnet + 1 Haiku) thay 4 iTerm2 CLIs — no auth conflict
+- Win 1 Lead tasks executed by Brain directly (Opus) — freed 1 slot
+- CI workflow (.github/workflows/mdx-validate.yml) auto-blocks broken commits
+- Cross-scope protocol validated: 6 requests across 4 rounds, 0 conflicts after protocol refinement
+
+### QA sign-off
+Win 4 QA report `plans/qa-report-sprint-2.md` — status **PASS_WITH_NOTES**. 2 minor gaps flagged for Sprint 3: 4 help-center MDX not in nav, consider `last_reviewed` frontmatter audit.
+</Update>
+
+<Update label="2026-04-20" description="Sprint 2 Round 4 — Design + QA closeout" tags={["sprint-2", "content", "qa"]}>
+## Round 4 (4 tasks parallel)
+
+- **Design Principles** ([agent-os-overview/design-principles](/agent-os-overview/design-principles)) — mới, 189 lines. 6 sections: YAGNI/KISS/DRY, Filesystem-as-IPC, Read-before-write, Own-your-scope, Auditable-history, Anti-principles. Commit `6a9a933`.
+- **Claude Cowork Instructions** ([agent-instructions/claude-cowork-instructions](/agent-instructions/claude-cowork-instructions)) — expand 144 → 360 lines. Thêm Cowork vs CLI, setup steps, osascript/Remotion/Vbee examples, safety rails, troubleshooting. Commit `d1fad98`.
+- **Sprint 2 QA Report** — `plans/qa-report-sprint-2.md` với 7 checks (pre-commit, check-links, frontmatter, volume, nav, commits, task coverage). Commit `adb4cba`.
+</Update>
+
+<Update label="2026-04-20" description="Sprint 2 Round 3 — Rules + Help Center" tags={["sprint-2", "content"]}>
+## Round 3 (3 tasks parallel)
+
+- **Communication Rules** ([core-rules/communication-rules](/core-rules/communication-rules)) — mới, 218 lines. 6 sections: filesystem-IPC, channels, commit conventions, cross-scope protocol, escalate cases, anti-patterns. Commit `b1e630d`.
+- **Cross-Scope Workflow** ([workflows/cross-scope-workflow](/workflows/cross-scope-workflow)) — mới, 266 lines. Protocol 4 bước, request template, 3 real examples, turnaround expectation. Commit `9e2bc48`.
+- **Help Center stubs expanded** — `faq/getting-started` (20→152), `guides/setup-project` (20→267), `troubleshooting/install-error` (26→282). Commit `d51c951`.
+</Update>
+
+<Update label="2026-04-20" description="Sprint 2 Round 2 — Components + Reviews" tags={["sprint-2", "content", "tooling"]}>
+## Round 2 (3 tasks parallel + 1 CI)
+
+- **Components and Tools** ([agent-os-overview/components-and-tools](/agent-os-overview/components-and-tools)) — expand 219 → 518 lines. 6 tool sections: Claude Cowork, CLI+it2, Agent Team, osascript, Remotion, Zernio, Vbee TTS. Commit `8b77d6a`.
+- **Review Workflow** ([workflows/review-workflow](/workflows/review-workflow)) — mới, 378 lines. Win 4 QA process: 5 steps, review criteria, reject templates, turnaround. Commit `9684bb2`.
+- **Glossary** ([knowledge-qa/glossary](/knowledge-qa/glossary)) — mới, 37 terms alphabetical. Covers agent roles, coordination concepts, tech stack, process, models. Commit `8c7d96c`.
+- **CI workflow** — `.github/workflows/mdx-validate.yml` runs pre-commit + check-links on every push/PR. First run GREEN. Commit `341a758`.
+</Update>
+
 <Update label="2026-04-20" description="Sprint 2 Round 1 — Depth + Automation" tags={["sprint-2", "content", "tooling"]}>
 ## Round 1 (3 tasks parallel)
 

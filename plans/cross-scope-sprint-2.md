@@ -17,11 +17,14 @@ Status: pending | applied (commit SHA)
 
 ## Pending
 
-### [2026-04-20 21:48] [win2 → win1] Add design-principles to nav
-Patch: documentation.json add `{"title": "Design Principles", "path": "agent-os-overview/design-principles", "icon": "compass"}` vào group "Agent OS Overview"
-Status: pending
+_(empty — all applied, Sprint 2 closed)_
 
 ## Applied
+
+### [2026-04-20 21:48] [win2 → win1] Add design-principles to nav
+Patch: documentation.json add `{"title": "Design Principles", "path": "agent-os-overview/design-principles", "icon": "compass"}` vào group "Agent OS Overview"
+Status: **applied**
+
 
 ### [2026-04-20 12:55] [win3 → win1] Add debugging-workflow to nav
 Patch: documentation.json add `{"title": "Debugging Workflow", "path": "workflows/debugging-workflow", "icon": "bug"}` vào group "Workflows"

@@ -42,6 +42,11 @@
                 "title": "Multi-Agent Collaboration",
                 "path": "agent-os-overview/multi-agent-collaboration",
                 "icon": "users"
+              },
+              {
+                "title": "Design Principles",
+                "path": "agent-os-overview/design-principles",
+                "icon": "compass"
               }
             ]
           },
