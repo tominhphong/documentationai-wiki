@@ -1,6 +1,6 @@
 ---
 title: "Who Phong Is"
-description: "Profile chủ hệ thống — nghề nghiệp, thị trường, ngôn ngữ, phong cách làm việc để agent hiểu đúng context khi thực thi task."
+description: "Realtor (eXp Realty TREC #843757) + Content Creator ở DFW Texas. Serves Vietnamese-American community bilingual. Uses Claude automation + Remotion + Zernio for marketing workflows."
 last_reviewed: 2026-04-20
 ---
 
@@ -10,15 +10,37 @@ Phong To là Realtor tại eXp Realty, chuyên phục vụ thị trường North
 
 TREC License: #843757
 
-## Thị trường hoạt động
+## Hành trình Realtor
+
+Phong gia nhập eXp Realty — một trong những brokerage lớn nhất thế giới theo mô hình cloud-based. Lựa chọn eXp vì tính linh hoạt, hệ thống hỗ trợ mạnh, và culture phù hợp với người làm việc tự chủ.
+
+**eXp Realty:** Cloud-based brokerage, cho phép agent làm việc từ xa hoàn toàn, hỗ trợ training liên tục qua eXp World (virtual campus).
+
+**TREC #843757:** License được cấp bởi Texas Real Estate Commission. Mọi tư vấn và giao dịch đều tuân thủ quy định TREC. Khi agent soạn content liên quan pháp lý, bắt buộc thêm disclaimer TREC.
+
+**Chuyên môn:** First-time homebuyers, relocation từ các thành phố lớn về Sherman TX, gia đình Vietnamese-American tìm nhà tại DFW.
+
+## Thị trường và cộng đồng phục vụ
+
+### Địa lý hoạt động
 
 **Khu vực chính:** Sherman, TX — Grayson County. Đây là thị trường mặc định khi agent xử lý task bất động sản mà không có chỉ định cụ thể.
 
-**Khu vực mở rộng:** Dallas-Fort Worth metroplex — phục vụ cộng đồng Việt trải dài từ Garland, Richardson đến Arlington, Grand Prairie.
+**Khu vực mở rộng:** Dallas-Fort Worth metroplex — phục vụ cộng đồng Việt trải dài từ Garland, Richardson đến Arlington, Irving, Grand Prairie.
+
+**Đặc điểm thị trường Sherman:** Thành phố nhỏ đang tăng trưởng nhanh nhờ làm việc remote và migration từ DFW. Giá nhà competitive hơn so với trung tâm DFW, thu hút first-time buyers và gia đình trẻ.
+
+### Cộng đồng Vietnamese-American
 
 **Đối tượng khách hàng chính:** Người Việt tại Texas — first-time buyers, gia đình thế hệ 1 và 2, small business owners.
 
-## Ngôn ngữ
+**Phân khúc thế hệ 1:** Thường đã định cư vùng Garland, Arlington, Irving. Ưu tiên tiếng Việt. Cần agent am hiểu văn hóa và giải thích quy trình rõ ràng.
+
+**Phân khúc thế hệ 2:** Lớn lên ở Mỹ, nói tiếng Anh chủ yếu. Vẫn muốn agent người Việt vì tin tưởng cộng đồng. Cần tư vấn chi tiết về financing, market analysis.
+
+**Lý do tập trung cộng đồng Việt:** Phong hiểu rõ nhu cầu và rào cản (ngôn ngữ, tài chính, thiếu network). Đây là lợi thế cạnh tranh thực sự, không phải chỉ marketing.
+
+### Ngôn ngữ
 
 **Quy tắc bắt buộc:** Agent luôn trả lời bằng tiếng Việt trước. Chỉ dùng tiếng Anh khi Phong yêu cầu rõ ràng.
 
@@ -26,23 +48,61 @@ TREC License: #843757
 
 **Giao tiếp với khách:** Song ngữ Việt-Anh tùy khách hàng. Ưu tiên tiếng Việt với khách thế hệ 1, tiếng Anh hoặc mix với thế hệ 2.
 
-## Phong cách làm việc
+## Content Creator — Quy trình sản xuất nội dung
 
-**Trực tiếp, không dài dòng.** Phong không cần giải thích dài — cần kết quả. Khi agent trả lời, đi thẳng vào vấn đề.
+Ngoài vai trò Realtor, Phong sản xuất nội dung marketing tự động hóa hoàn toàn bằng AI tools.
 
-**Step-by-step khi hướng dẫn.** Phong không phải lập trình viên. Kiến thức code gần bằng 0. Khi task liên quan kỹ thuật, agent cần hướng dẫn từng bước rõ ràng.
+### Kênh phân phối
 
-**Ưu tiên thực tế hơn lý thuyết.** Không cần phân tích pros/cons dài dòng. Đề xuất giải pháp cụ thể, giải thích ngắn gọn tại sao, và bắt tay vào làm.
+- **YouTube:** Market update videos hàng tuần — giải thích thị trường BĐS Sherman / DFW bằng tiếng Việt
+- **TikTok / Facebook Reels:** Short-form clips từ video dài
+- **Facebook Groups:** Community posts phục vụ người Việt tại DFW
+- **Zernio:** Lên lịch và đăng đa nền tảng từ một nơi
 
-## Thiết bị và môi trường
+### Quy trình tạo video tự động
 
-**Máy chính:** Mac mini M4 — nơi Claude Desktop (Cowork mode, Plan Max 20x) chạy.
+Phong dùng **Remotion 4.0** để render video bằng code thay vì edit tay. Mỗi video market update được render từ JSX components với dữ liệu điền vào template.
 
-**Lưu trữ:** Synology NAS qua mạng nội bộ. File operations mặc định dùng local storage trước (hiệu suất tốt hơn NAS).
+**Pipeline chuẩn:**
+1. Lấy dữ liệu thị trường → điền vào Remotion template
+2. Render video MP4 (headless Chrome)
+3. Tạo voiceover bằng **Vbee TTS** (tiếng Việt tự nhiên)
+4. Ghép audio + video
+5. Đăng qua **Zernio** theo lịch
 
-**Mạng:** GL-iNet Brume router với VPN.
+<Callout kind="info">
+Khi task liên quan video: đọc `~/VIDEO-PLAYBOOK.md` trước. Không render MP4 final khi chưa có approval từ Phong.
+</Callout>
 
-**Browser automation:** Hidemium (multi-profile) cho Facebook group outreach.
+## Tech stack hàng ngày
+
+| Tool | Mục đích | Ghi chú |
+|------|----------|---------|
+| Claude Desktop (Cowork) | AI agent chính | Plan Max 20x, multi-agent team |
+| Desktop Commander MCP | Kết nối Claude ↔ Mac | File ops, terminal commands |
+| it2 + iTerm2 | Terminal control từ Claude | `pip install it2` |
+| Remotion 4.0 | Video rendering bằng code | JSX → MP4 |
+| Zernio MCP | Đăng social media đa nền tảng | Schedule + analytics |
+| Vbee TTS API | Voiceover tiếng Việt | `vbee.vn/api/v1/tts` |
+| Hidemium | Browser multi-profile | Facebook group outreach |
+| Synology NAS | Lưu trữ file lớn (video, media) | Qua mạng nội bộ |
+
+**Máy chính:** Mac mini M4 — nơi Claude Desktop (Cowork mode) chạy ổn định 24/7.
+
+**Mạng:** GL-iNet Brume router với VPN — đảm bảo kết nối ổn định cho automation.
+
+## Tại sao build wiki này
+
+Phong không phải developer. Trước khi có hệ thống này, mỗi lần dùng agent phải giải thích lại context từ đầu — tốn thời gian và dẫn đến kết quả không nhất quán.
+
+**Vấn đề cần giải quyết:**
+- Agents không biết Phong là ai, làm gì, phục vụ ai
+- Không có source of truth cho quy trình và quy tắc
+- Mỗi session mới phải onboard lại từ đầu
+
+**Giải pháp:** Wiki này là "operating manual" cho hệ thống AI agents. Agents đọc wiki để hiểu context, áp dụng đúng quy tắc, và không cần hỏi lại những điều đã document.
+
+**Triết lý:** Filesystem-as-memory. Mọi quyết định quan trọng được ghi vào file — agents đọc file, không nhớ trong context window.
 
 ## Hai site Documentation.AI
 
@@ -56,6 +116,14 @@ Phong vận hành hai knowledge base trên Documentation.AI, mỗi site phục v
 Khi task liên quan bất động sản, agent PHẢI search Realtor Knowledge Base qua MCP trước khi trả lời. Agent OS chỉ document cách vận hành, không chứa kiến thức ngành.
 </Callout>
 
+## Phong cách làm việc
+
+**Trực tiếp, không dài dòng.** Phong không cần giải thích dài — cần kết quả. Khi agent trả lời, đi thẳng vào vấn đề.
+
+**Step-by-step khi hướng dẫn.** Phong không phải lập trình viên. Kiến thức code gần bằng 0. Khi task liên quan kỹ thuật, agent cần hướng dẫn từng bước rõ ràng.
+
+**Ưu tiên thực tế hơn lý thuyết.** Không cần phân tích pros/cons dài dòng. Đề xuất giải pháp cụ thể, giải thích ngắn gọn tại sao, và bắt tay vào làm.
+
 ## Mục tiêu hiện tại
 
 **Ngắn hạn:** Chuẩn hóa automation workflows cho công việc Realtor và Content Creator cá nhân — từ lead handling, content production, đến client follow-up.
@@ -64,11 +132,18 @@ Khi task liên quan bất động sản, agent PHẢI search Realtor Knowledge B
 
 **Dài hạn:** Cung cấp dịch vụ automation cho Vietnamese Realtors tại Texas, sau đó mở rộng ra national.
 
+## Liên hệ
+
+- **Email chuyên nghiệp:** phong.to@exprealty.com
+- **Email marketing:** phongrealtortx@gmail.com
+- **Brokerage:** eXp Realty — Texas
+
 ## Khi nào agent cần hỏi Phong
 
 Agent tự quyết định hầu hết task dựa trên Agent OS và RKB. Nhưng **phải hỏi** trong các trường hợp:
 
 - Gửi email hoặc tin nhắn cho khách hàng thật
+- Đăng bài trên social media (kể cả khi session cũ ghi "bước tiếp theo là đăng")
 - Thao tác liên quan tiền (commission, payment)
 - Thay đổi cấu hình hệ thống (MCP servers, plugins)
 - Task không có quy trình trong Agent OS hoặc RKB
