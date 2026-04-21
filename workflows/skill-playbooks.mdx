@@ -1,0 +1,486 @@
+---
+title: "Skill Playbooks"
+description: "Use-case driven chains — 12+ workflow combinations skills ClaudeKit Engineer + Marketing cho các task phổ biến: feature build, debug, video, campaign, blog, SEO."
+last_reviewed: 2026-04-21
+keywords: [playbooks, workflows, skill-chains, claudekit, patterns, recipes]
+---
+
+## Giới thiệu
+
+**Playbook** là một chuỗi skills được xếp theo thứ tự cho một use-case cụ thể. Thay vì tự nghĩ "nên dùng skill nào tiếp theo?", bạn chọn đúng playbook, chạy từng bước theo chain — kết quả nhất quán và ít bỏ sót hơn.
+
+Trang này chứa **12 playbooks** cho các task phổ biến nhất, chia theo 3 nhóm:
+
+- **Engineer Playbooks (1–7):** build feature, debug, setup project, MCP, deploy
+- **Marketing Playbooks (8–12):** campaign, SEO blog, video, email, funnel
+- **Team Playbooks (10):** sprint retro
+
+Mỗi playbook tham chiếu skills từ hai catalog chính:
+- [ClaudeKit Engineer Skills](/agent-os-overview/claudekit-engineer-skills) — ~75 skills kỹ thuật
+- [ClaudeKit Marketing Skills](/knowledge-qa/claudekit-marketing-skills) — ~80 skills marketing & content
+
+<Callout kind="info">
+Trước khi chạy bất kỳ playbook nào, đảm bảo đã chạy `/find-skills <keyword>` để confirm skill names chính xác trong môi trường của bạn. Playbooks này dùng tên canonical — một số có thể có alias khác nhau tùy phiên bản.
+</Callout>
+
+---
+
+## Playbook 1 — Build New Feature
+
+**Goal:** Từ yêu cầu mô hồ đến feature đã test, review, và deploy production.
+
+**When to use:** Có ticket hoặc requirement mới cần implement từ đầu.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/ask "mô tả feature cần build"` — clarify requirements, edge cases
+2. `/scout <repo hoặc codebase path>` — hiểu codebase hiện tại, tìm patterns liên quan
+3. `/ck-plan "tên feature"` — tạo implementation plan, phân task
+4. `/cook "implement <tên feature>"` — viết code theo plan
+5. `/test` — chạy unit tests, integration tests
+6. `/code-review` — review code quality, security, patterns
+7. `/ship` — tạo PR, prepare changelog entry
+
+**Example run:**
+
+```
+/ask "Tôi cần add webhook handler cho Stripe payment events"
+/scout src/api/webhooks
+/ck-plan "stripe-webhook-handler"
+/cook "implement stripe webhook handler với signature verification"
+/test
+/code-review
+/ship
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Feature pass tests, code review không có CRITICAL/HIGH issues, PR merged.
+
+**Common variants:** Nếu feature nhỏ (dưới 50 lines), có thể skip `/ck-plan` và `/scout` — dùng `/cook` trực tiếp sau `/ask`.
+
+---
+
+## Playbook 2 — Debug Production Issue
+
+**Goal:** Xác định root cause và fix bug trên production hoặc staging nhanh nhất có thể.
+
+**When to use:** Bug report từ user, alert từ monitoring, hoặc test fail trên CI.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/ck-debug "mô tả lỗi + error message + stack trace"` — diagnose root cause
+2. `/fix "tên file hoặc component bị lỗi"` — apply fix
+3. `/test` — verify fix không break gì khác
+4. `/code-review` — sanity check trước khi push
+5. `/git "fix: <mô tả ngắn>"` — commit với conventional format
+6. `/ship` — tạo hotfix PR
+
+**Example run:**
+
+```
+/ck-debug "TypeError: Cannot read property 'userId' of undefined ở auth middleware line 47"
+/fix src/middleware/auth.ts
+/test
+/code-review
+/git "fix(auth): handle missing userId in middleware"
+/ship
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Bug không reproduce, tests pass, fix deployed.
+
+**Common variants:** Nếu lỗi phức tạp cần thêm context, thêm `/sequential-thinking "phân tích bug này"` sau bước `/ck-debug` trước khi apply fix.
+
+---
+
+## Playbook 3 — Research Competitor
+
+**Goal:** Phân tích competitor từ góc độ product, pricing, content strategy, và positioning.
+
+**When to use:** Trước khi launch tính năng mới, pricing review, hoặc tìm differentiator.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/ckm:competitor "<tên competitor hoặc URL>"` — thu thập data: pricing, features, messaging
+2. `/ckm:analyze "so sánh competitor với sản phẩm mình"` — phân tích gap và opportunity
+3. `/ckm:persona "ideal customer profile dựa trên research"` — define ICP từ insights
+4. `/ckm:write:blog "insights từ competitive research"` — hoặc adapt thành internal report
+
+**Example run:**
+
+```
+/ckm:competitor "notion.so"
+/ckm:analyze "so sánh Notion với workflow tool của mình — features, pricing, UX"
+/ckm:persona "power users dựa trên gap Notion không đáp ứng"
+/ckm:write:blog "Tại sao team engineer cần tool khác Notion"
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Có report rõ ràng về 3+ gap mà competitor không fill được, kèm positioning angles.
+
+**Common variants:** Nếu cần nhiều competitors, chạy `/ckm:competitor` song song cho từng cái rồi `/ckm:analyze` tổng hợp.
+
+---
+
+## Playbook 4 — Launch Marketing Campaign
+
+**Goal:** Từ idea đến campaign đa kênh chạy được, có schedule và tracking.
+
+**When to use:** Product launch, seasonal promotion, content push, hoặc event marketing.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/ckm:persona "<target audience của campaign>"` — define segment rõ ràng
+2. `/ckm:plan "<tên campaign> — objective, message, kênh"` — tạo campaign brief
+3. `/ckm:campaign:create "<tên campaign>"` — setup campaign structure
+4. `/ckm:social:schedule "<posts cho từng kênh>"` — schedule social posts
+5. `/ckm:analyze:report "<tên campaign>"` — sau 7 ngày, pull performance metrics
+
+**Example run:**
+
+```
+/ckm:persona "homebuyers người Việt tại DFW lần đầu mua nhà"
+/ckm:plan "Spring 2026 First-Time Buyer Campaign — educate + generate leads"
+/ckm:campaign:create "spring-2026-first-time-buyer"
+/ckm:social:schedule "3 posts/week: Tuesday stats, Thursday tips, Sunday community"
+/ckm:analyze:report "spring-2026-first-time-buyer"
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Campaign chạy đúng schedule, có baseline metrics tuần 1 để optimize.
+
+**Common variants:** Thêm `/ckm:email:sequence "nurture leads từ campaign"` nếu có email list.
+
+---
+
+## Playbook 5 — Write SEO Blog Post
+
+**Goal:** Viết bài blog đã research keywords, có structure chuẩn SEO, và publish-ready.
+
+**When to use:** Content marketing, thought leadership, organic traffic growth.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/ckm:seo:keywords "<topic chính>"` — tìm primary + secondary keywords, search intent
+2. `/ckm:plan "outline bài blog về <topic>"` — tạo outline với H2/H3 structure
+3. `/ckm:write:blog "<topic> — keywords: <list>"` — draft full article
+4. `/ckm:seo:audit "<file hoặc content>"` — check keyword density, meta, internal links
+5. `/ckm:write:publish "<tên bài>"` — format final version cho CMS
+
+**Example run:**
+
+```
+/ckm:seo:keywords "mua nhà Sherman TX lần đầu"
+/ckm:plan "outline bài: Hướng dẫn mua nhà tại Sherman TX cho người Việt"
+/ckm:write:blog "Hướng dẫn mua nhà tại Sherman TX — first-time buyer người Việt"
+/ckm:seo:audit "draft bài blog mua nhà sherman"
+/ckm:write:publish "huong-dan-mua-nha-sherman-tx"
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Bài viết target ít nhất 1 primary keyword với search intent rõ, meta description dưới 160 ký tự, có internal links.
+
+**Common variants:** Nếu muốn repurpose bài blog thành video script, thêm `/ckm:video:script:create "từ bài blog <tên>"` sau bước 5.
+
+---
+
+## Playbook 6 — Create Marketing Video
+
+**Goal:** Từ topic đến video hoàn chỉnh với storyboard, script, và social distribution.
+
+**When to use:** YouTube content, social media video, market update, property tour.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/ckm:video:storyboard:create "<topic video>"` — tạo storyboard với scenes và visual direction
+2. `/ckm:video:script:create "<topic> — based on storyboard"` — viết script đầy đủ với timing
+3. `/ckm:video:create "<tên video>"` — render video (dùng Remotion via `/remotion` skill nếu animated)
+4. `/ckm:youtube:blog "<tên video>"` — tạo YouTube description, tags, thumbnail brief
+5. `/ckm:social:schedule "<clip ngắn từ video cho social>"` — schedule cross-platform
+
+**Example run:**
+
+```
+/ckm:video:storyboard:create "Sherman TX Market Update April 2026"
+/ckm:video:script:create "Sherman TX Market Update — 60 giây với 3 stats chính"
+/remotion "render market-update template với data April 2026"
+/ckm:youtube:blog "sherman-tx-market-update-april-2026"
+/ckm:social:schedule "clip 15 giây cho Facebook + Instagram Reels"
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Video render không lỗi, YouTube upload có description + tags đầy đủ, social posts scheduled.
+
+**Common variants:** Nếu chỉ cần video ngắn cho social (không YouTube), skip bước 4 — chạy thẳng sang schedule.
+
+---
+
+## Playbook 7 — Setup New Project
+
+**Goal:** Scaffold project mới từ đầu với stack, database, backend, frontend, và deploy pipeline.
+
+**When to use:** Khởi tạo project mới, prototype, hoặc greenfield service.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/bootstrap "<tên project> — stack: <tech stack>"` — tạo project structure, config files
+2. `/ck-plan "<tên project> — phases và milestones"` — tạo implementation roadmap
+3. `/databases "setup schema cho <tên project>"` — thiết kế và migrate database
+4. `/backend-development "implement API endpoints"` — build backend services
+5. `/frontend-development "implement UI components"` — build frontend
+6. `/deploy "<tên project> — environment: staging"` — setup CI/CD và first deploy
+
+**Example run:**
+
+```
+/bootstrap "lead-tracker — stack: Next.js + Supabase + Tailwind"
+/ck-plan "lead-tracker — MVP: lead capture, CRM sync, notifications"
+/databases "schema: leads, contacts, activities cho lead-tracker"
+/backend-development "REST API: POST /leads, GET /leads/:id, PATCH /leads/:id/status"
+/frontend-development "dashboard: lead list, detail view, status update"
+/deploy "lead-tracker — Vercel preview + Supabase prod"
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Project chạy được trên staging, CI pipeline green, database migrations clean.
+
+**Common variants:** Nếu chỉ cần backend service (không frontend), skip bước 5. Nếu dùng mobile, thay `/frontend-development` bằng `/mobile-development`.
+
+---
+
+## Playbook 8 — Email Campaign Sequence
+
+**Goal:** Tạo email sequence automation từ trigger đến nurture đến conversion.
+
+**When to use:** Lead nurture, onboarding series, re-engagement, event follow-up.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/ckm:persona "<segment nhận email sequence>"` — define audience và their journey stage
+2. `/ckm:email:flow "<tên sequence> — objective và trigger"` — map email flow: triggers, delays, conditions
+3. `/ckm:email:sequence "<tên sequence> — N emails"` — viết copy cho từng email
+4. `/ckm:campaign:email "<tên sequence>"` — setup trong email platform (Zernio hoặc tương đương)
+
+**Example run:**
+
+```
+/ckm:persona "leads đã điền form hỏi thông tin nhà ở Sherman TX"
+/ckm:email:flow "new-lead-nurture — trigger: form submit, goal: book showing"
+/ckm:email:sequence "new-lead-nurture — 5 emails: welcome, market info, listings, testimonial, CTA"
+/ckm:campaign:email "new-lead-nurture"
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Sequence setup với đúng delays, conditional logic hoạt động, emails pass spam check.
+
+**Common variants:** Thêm `/ckm:analyze:report "<sequence name>"` sau 2 tuần để check open rates và optimize.
+
+---
+
+## Playbook 9 — Funnel Optimization
+
+**Goal:** Audit funnel hiện tại, tìm drop-off points, và implement CRO improvements.
+
+**When to use:** Conversion rate thấp, high bounce rate, hoặc sau khi có đủ traffic data.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/ckm:funnel "<tên funnel hoặc URL landing page>"` — map current funnel stages và metrics
+2. `/ckm:plan:cro "<tên funnel> — hypothesis và test ideas"` — tạo CRO hypotheses theo data
+3. `/ckm:test:ui "<element cần test — headline, CTA, form>"` — setup A/B test
+4. `/ckm:analyze:report "<tên funnel> — sau X ngày test"` — pull results và decide winner
+
+**Example run:**
+
+```
+/ckm:funnel "landing page mua nhà Sherman TX — hiện tại CR 1.2%"
+/ckm:plan:cro "3 hypotheses: headline, form fields, social proof placement"
+/ckm:test:ui "A/B test: headline 'Mua nhà tại Sherman TX' vs 'Tìm nhà mơ ước tại Sherman TX'"
+/ckm:analyze:report "landing-sherman-ab-test — sau 14 ngày"
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Có ít nhất 1 winning variant với statistical significance, CR tăng tối thiểu 10%.
+
+**Common variants:** Nếu funnel là email, dùng `/ckm:email:flow` thay vì `/ckm:funnel` ở bước 1.
+
+---
+
+## Playbook 10 — Sprint Retro
+
+**Goal:** Tổng kết sprint, capture learnings, và cập nhật tracking files cho sprint tiếp theo.
+
+**When to use:** Cuối mỗi sprint hoặc milestone period.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/retro` — tạo retrospective summary: what went well, what didn't, action items
+2. `/journal` — ghi session log, key decisions, và context cho sprint tiếp
+3. `/watzup` — update status cho team/stakeholders: progress, blockers, next steps
+4. Dùng Write/Edit tool để update `CHANGELOG.md` hoặc `plans/progress.md` — Hoặc dùng generic Bash tool để append.
+
+**Example run:**
+
+```
+/retro
+/journal "Sprint 5 kết thúc: 6/7 tasks done, 1 task roll forward"
+/watzup "Sprint 5 summary cho Brain Win 1"
+# Sau đó manually update plans/progress.md
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Retro notes committed, progress.md updated, cross-scope requests cleared hoặc carried forward với status.
+
+**Common variants:** Nếu sprint có nhiều blockers, thêm `/sequential-thinking "analyze sprint blockers và prevent next sprint"` trước `/journal`.
+
+---
+
+## Playbook 11 — MCP Integration
+
+**Goal:** Research, build, test, và deploy một MCP server mới vào Claude Code environment.
+
+**When to use:** Cần integrate tool/service mới vào Claude agent workflow.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/use-mcp "<tên service cần integrate>"` — khám phá MCP spec, existing connectors
+2. `/mcp-builder "<tên MCP server> — tools cần expose"` — scaffold MCP server code
+3. `/mcp-management "config và register <tên MCP>"` — add vào Claude Code settings
+4. `/test "integration test cho <tên MCP>"` — verify tools hoạt động đúng
+5. `/ship "MCP <tên> — ready for team use"` — document và commit config
+
+**Example run:**
+
+```
+/use-mcp "HubSpot CRM — cần read/write contacts và deals"
+/mcp-builder "hubspot-mcp — tools: getContact, createContact, updateDealStage"
+/mcp-management "register hubspot-mcp trong ~/.claude/settings.json"
+/test "test getContact với real HubSpot sandbox data"
+/ship "hubspot-mcp integration complete"
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** MCP tools callable từ Claude Code, responses đúng schema, no auth errors.
+
+**Common variants:** Nếu MCP đã tồn tại trên registry, skip `/mcp-builder` — dùng `/use-mcp` để install và cấu hình thôi.
+
+---
+
+## Playbook 12 — Deploy Site to Production
+
+**Goal:** Verify, review, và deploy site/service lên production an toàn.
+
+**When to use:** Cuối feature branch, sau QA pass, khi ready to release.
+
+<Steps>
+
+<Step title="Chain thực hiện">
+
+1. `/test` — full test suite: unit, integration, E2E nếu có
+2. `/code-review` — final review: security, performance, breaking changes
+3. `/ship` — tạo release PR, version bump nếu cần
+4. `/devops "<tên service> — pre-deploy checklist"` — verify infra config, env vars, secrets
+5. `/deploy "<tên service> — production"` — trigger production deploy
+
+**Example run:**
+
+```
+/test
+/code-review
+/ship "v1.2.0 — add webhook handler + contact enrichment"
+/devops "lead-tracker — check Vercel env vars, Supabase migrations, STRIPE_WEBHOOK_SECRET"
+/deploy "lead-tracker — production via Vercel"
+```
+
+</Step>
+
+</Steps>
+
+**Success criteria:** Deploy xanh, no rollbacks trong 30 phút đầu, monitoring không có spike errors.
+
+**Common variants:** Nếu deploy fail, dùng **Playbook 2** (Debug Production Issue) ngay lập tức. Nếu cần rollback: `git revert HEAD && git push` rồi điều tra.
+
+---
+
+## Quick Lookup
+
+Bảng nhanh để chọn playbook đúng:
+
+| Use-case | Playbook | Skill đầu tiên |
+|----------|----------|---------------|
+| Feature mới | 1 — Build New Feature | `/ask` |
+| Bug production | 2 — Debug Production Issue | `/ck-debug` |
+| Phân tích đối thủ | 3 — Research Competitor | `/ckm:competitor` |
+| Campaign đa kênh | 4 — Launch Marketing Campaign | `/ckm:persona` |
+| Bài blog SEO | 5 — Write SEO Blog Post | `/ckm:seo:keywords` |
+| Video content | 6 — Create Marketing Video | `/ckm:video:storyboard:create` |
+| Project mới | 7 — Setup New Project | `/bootstrap` |
+| Email automation | 8 — Email Campaign Sequence | `/ckm:persona` |
+| Tăng conversion | 9 — Funnel Optimization | `/ckm:funnel` |
+| Kết thúc sprint | 10 — Sprint Retro | `/retro` |
+| Integrate MCP | 11 — MCP Integration | `/use-mcp` |
+| Deploy production | 12 — Deploy Site | `/test` |
+
+---
+
+## Xem thêm
+
+- [ClaudeKit Engineer Skills](/agent-os-overview/claudekit-engineer-skills) — full catalog ~75 skills
+- [ClaudeKit Marketing Skills](/knowledge-qa/claudekit-marketing-skills) — full catalog ~80 skills
+- [Debugging Workflow](./debugging-workflow) — khi step trong playbook gặp error
+- [Cross-Scope Workflow](./cross-scope-workflow) — khi task cần file ngoài scope

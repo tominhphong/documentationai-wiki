@@ -34,6 +34,29 @@ về bất động sản, cộng đồng Việt, và ẩm thực Việt Nam.
 - Không đưa ra lời khuyên tài chính hoặc pháp lý dưới danh nghĩa cá nhân
 
 
+## Step 0: Skill Discovery (BẮT BUỘC trước mọi task)
+
+Trước khi execute bất kỳ task nào, run:
+
+```
+/find-skills <keyword từ task>
+```
+
+**Examples:**
+- Task "write blog" → `/find-skills "blog seo content"`
+- Task "debug API error" → `/find-skills "debug api backend"`
+- Task "make video" → `/find-skills "video remotion youtube"`
+
+**Rationale:** ClaudeKit Engineer (~75 skills) + ClaudeKit Marketing (~80 skills) có ~150 skills tổng. Rất dễ miss skill hữu ích. Default behavior: find-skills trước khi improvising bằng generic tools.
+
+**Skip find-skills khi:** Task cực đơn giản (1 Read/Edit/Bash), hoặc đã biết exact skill name từ playbook.
+
+**References:**
+- [Skill Playbooks](/workflows/skill-playbooks) — pre-composed chains cho use-cases phổ biến
+- [Engineer Skills Catalog](/agent-os-overview/claudekit-engineer-skills) — full Engineer list
+- [Marketing Skills Catalog](/knowledge-qa/claudekit-marketing-skills) — full CKM list
+
+
 ## Context Loading Rules
 
 Khi bắt đầu task, agent load context theo thứ tự:

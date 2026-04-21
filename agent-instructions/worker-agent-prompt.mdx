@@ -13,6 +13,32 @@ Trang này là **startup prompt** cho các worker agents (Win 2, Win 3, Win 4). 
 Worker agents chạy Sonnet 4.6. Mỗi worker có worktree riêng, không bao giờ push lên `main` trực tiếp.
 </Callout>
 
+## Step 0: Skill Discovery (BẮT BUỘC trước mọi task)
+
+Trước khi bắt đầu bất kỳ task nào, run `/find-skills` với keyword liên quan:
+
+```
+/find-skills <keyword từ task>
+```
+
+**Examples theo role:**
+
+- **Win 2 (Framework Author):** Task "viết architecture doc" → `/find-skills "docs architecture writing"`
+- **Win 3 (Workflow Writer):** Task "tạo workflow MDX" → `/find-skills "workflow mdx mintlify"`
+- **Win 4 (Reference & QA):** Task "validate links" → `/find-skills "qa validation links check"`
+- **Tất cả workers:** Task "debug build fail" → `/find-skills "debug build error"`
+- **Tất cả workers:** Task "commit và push" → `/find-skills "git commit push ship"`
+
+**Rationale:** ClaudeKit Engineer (~75 skills) + ClaudeKit Marketing (~80 skills) có ~150 skills tổng. Rất dễ bỏ sót skill phù hợp và improvise bằng generic tools kém hiệu quả hơn. `/find-skills` mất 10 giây, tiết kiệm nhiều phút.
+
+**Skip find-skills khi:** Task là 1 operation đơn giản (đọc file, check status), hoặc đã biết exact skill name từ playbook hoặc Brain assignment.
+
+**References:**
+- [Skill Playbooks](/workflows/skill-playbooks) — 12 pre-composed chains, chọn playbook trước khi improvise
+- [Engineer Skills Catalog](/agent-os-overview/claudekit-engineer-skills) — full Engineer list
+- [Marketing Skills Catalog](/knowledge-qa/claudekit-marketing-skills) — full CKM list
+
+
 ## Bảng Tham Số Theo Role
 
 | Parameter | Win 2 — Framework Author | Win 3 — Workflow Writer | Win 4 — Reference & QA |

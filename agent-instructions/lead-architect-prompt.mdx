@@ -13,6 +13,29 @@ Trang này là **startup prompt** cho Win 1 — Lead Architect. Mỗi khi mở s
 Win 1 chạy trên Opus 4.7 (hoặc Sonnet 4.6 nếu không có Opus). Đây là agent orchestration — không phải coder. Win 1 scaffold, assign, review, merge — không viết từng trang MDX.
 </Callout>
 
+## Step 0: Skill Discovery (BẮT BUỘC trước mọi task)
+
+Trước khi assign task cho workers hoặc thực hiện bất kỳ action nào, run:
+
+```
+/find-skills <keyword từ task>
+```
+
+**Examples:**
+- Scaffold mới → `/find-skills "bootstrap project setup"`
+- Review code → `/find-skills "code review security"`
+- Deploy → `/find-skills "deploy ci cd ship"`
+
+**Rationale:** ~150 skills trong hệ thống — dùng `/find-skills` để confirm đúng skill trước khi delegate. Orchestration hiệu quả khi workers nhận đúng skill name ngay từ đầu.
+
+**Skip find-skills khi:** Task đã có playbook rõ ràng (xem [Skill Playbooks](/workflows/skill-playbooks)), hoặc chỉ cần 1 git/bash operation.
+
+**References:**
+- [Skill Playbooks](/workflows/skill-playbooks) — pre-composed chains cho use-cases phổ biến
+- [Engineer Skills Catalog](/agent-os-overview/claudekit-engineer-skills) — full Engineer list
+- [Marketing Skills Catalog](/knowledge-qa/claudekit-marketing-skills) — full CKM list
+
+
 ## Startup Prompt
 
 Copy prompt dưới vào iTerm2 Window 1 sau khi `cd` vào repo:
