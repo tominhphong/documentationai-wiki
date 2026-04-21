@@ -1,0 +1,532 @@
+---
+title: "ClaudeKit Marketing Skills"
+description: "Full catalog ~80 skills CKM + sales — grouped by 11 categories: content, campaign, social, email, SEO, video, brand, analytics, funnel, persona."
+last_reviewed: 2026-04-21
+keywords: [claudekit-marketing, ckm, skills, catalog, seo, content, campaign]
+---
+
+ClaudeKit Marketing (CKM) là plugin marketing dành cho ClaudeKit Engineer, cung cấp hơn 80 skills chuyên biệt cho content, campaign, social media, email, SEO, video, brand, analytics, funnel, persona, và infrastructure. Mỗi skill được kích hoạt qua định dạng slash command `/ckm:<name>` thông qua Skill tool trong Claude Code CLI.
+
+**Cách kích hoạt một skill:**
+
+```
+/ckm:write:blog
+```
+
+Hoặc chỉ định topic rõ ràng:
+
+```
+/ckm:campaign:create "Q2 Product Launch"
+```
+
+**Trước khi bắt đầu bất kỳ marketing task nào**, luôn chạy `/find-skills` để xác nhận skill đúng nhất cho use-case của bạn:
+
+```
+/find-skills blog content writing
+```
+
+Xem thêm: [Find Skills](/agent-os-overview/claudekit-engineer-skills) | [Skill Playbooks](/workflows/skill-playbooks)
+
+---
+
+## 1. Content Writing
+
+Nhóm skills viết content từ blog dài, bài đăng tối ưu chuyển đổi, đến publish và audit hiệu suất. Dùng khi cần tạo nội dung văn bản chất lượng cao cho bất kỳ kênh nào.
+
+#### **ckm:write:good**
+
+- **Purpose:** Viết content chất lượng cao theo nguyên tắc "good writing" — rõ ràng, súc tích, thuyết phục. Áp dụng các quy tắc viết lách chuyên nghiệp để tạo ra văn bản dễ đọc, dễ nhớ.
+- **When to use:** Khi cần viết bất kỳ dạng nội dung nào từ đầu, đặc biệt là khi chất lượng ngôn ngữ là ưu tiên hàng đầu.
+- **Command:** `/ckm:write:good`
+
+#### **ckm:write:cro**
+
+- **Purpose:** Viết content tối ưu tỉ lệ chuyển đổi (CRO — Conversion Rate Optimization). Sử dụng copywriting frameworks như AIDA, PAS, Before-After-Bridge để thúc đẩy hành động cụ thể từ người đọc.
+- **When to use:** Landing pages, email CTAs, product descriptions, quảng cáo — bất kỳ nội dung nào cần người đọc thực hiện hành động ngay.
+- **Command:** `/ckm:write:cro`
+
+#### **ckm:write:publish**
+
+- **Purpose:** Chuẩn bị và publish content đã viết lên các nền tảng. Bao gồm format, metadata, tags, scheduling và submission workflow.
+- **When to use:** Sau khi nội dung đã được viết và approve, cần publish lên CMS, blog, hoặc documentation site.
+- **Command:** `/ckm:write:publish`
+
+#### **ckm:write:blog**
+
+- **Purpose:** Tạo bài blog đầy đủ từ outline đến finished draft, bao gồm SEO title, meta description, headings cấu trúc, và internal linking suggestions.
+- **When to use:** Khi cần tạo blog post dài (1000+ từ) cho website hoặc nền tảng blog. Tốt nhất cho evergreen content và thought leadership.
+- **Command:** `/ckm:write:blog`
+
+#### **ckm:write:blog:youtube**
+
+- **Purpose:** Chuyển đổi transcript hoặc nội dung YouTube video thành bài blog chuẩn SEO. Tái sử dụng tối đa nội dung video đã có.
+- **When to use:** Sau khi có video YouTube đã publish, muốn tạo thêm text content từ cùng nội dung đó để tăng SEO footprint.
+- **Command:** `/ckm:write:blog:youtube`
+
+#### **ckm:write:audit**
+
+- **Purpose:** Phân tích và audit nội dung hiện có — kiểm tra chất lượng, tính nhất quán, SEO gaps, và đề xuất cải thiện cụ thể.
+- **When to use:** Review nội dung trước khi publish, hoặc audit định kỳ portfolio content đã có để cập nhật và cải thiện.
+- **Command:** `/ckm:write:audit`
+
+#### **ckm:write:formula**
+
+- **Purpose:** Áp dụng các copywriting formulas cổ điển (AIDA, PAS, FAB, STAR, ACCA) vào content cụ thể. Có thể chỉ định formula hoặc để AI chọn formula phù hợp nhất.
+- **When to use:** Khi cần viết marketing copy theo cấu trúc đã được chứng minh, đặc biệt cho sales pages và email marketing.
+- **Command:** `/ckm:write:formula`
+
+#### **ckm:write:fast**
+
+- **Purpose:** Tạo content nhanh theo format ngắn — social post, email subject line, ad copy, tagline — với tốc độ cao và volume lớn.
+- **When to use:** Cần tạo nhiều variations nhanh để A/B test, hoặc khi deadline gấp và cần draft trong vài phút.
+- **Command:** `/ckm:write:fast`
+
+#### **ckm:write:enhance**
+
+- **Purpose:** Nâng cấp và cải thiện nội dung đã có — làm cho rõ ràng hơn, hấp dẫn hơn, thuyết phục hơn — mà không thay đổi thông điệp cốt lõi.
+- **When to use:** Có nội dung draft thô cần polish, hoặc nội dung cũ cần refresh mà không muốn viết lại hoàn toàn.
+- **Command:** `/ckm:write:enhance`
+
+---
+
+## 2. Email
+
+Skills quản lý toàn bộ email marketing — từ single email, đến automation flow, đến nurture sequence dài hạn.
+
+#### **ckm:email**
+
+- **Purpose:** Viết email marketing đơn lẻ với subject line, preview text, body, và CTA được tối ưu cho deliverability và open rate.
+- **When to use:** Newsletter, announcement email, promotional blast, transactional email — bất kỳ khi nào cần viết một email marketing cụ thể.
+- **Command:** `/ckm:email`
+
+#### **ckm:email:flow**
+
+- **Purpose:** Thiết kế và viết email automation flow — chuỗi emails được trigger bởi behavior người dùng (signup, purchase, abandonment, milestone).
+- **When to use:** Xây dựng onboarding flows, win-back campaigns, re-engagement series, hoặc behavioral trigger sequences.
+- **Command:** `/ckm:email:flow`
+
+#### **ckm:email:sequence**
+
+- **Purpose:** Tạo email nurture sequence theo thời gian — drip campaign giáo dục, nurture leads từ awareness đến conversion theo timeline định sẵn.
+- **When to use:** Khi cần chuỗi emails gửi theo ngày/tuần cố định sau một event (opt-in, webinar signup, free trial start).
+- **Command:** `/ckm:email:sequence`
+
+---
+
+## 3. Social Media
+
+Skills quản lý social media từ tạo post đơn lẻ đến lên lịch toàn bộ content calendar, và cross-platform publishing.
+
+#### **ckm:social**
+
+- **Purpose:** Tạo social media post cho một hoặc nhiều nền tảng với caption, hashtags, và format phù hợp từng platform (LinkedIn, Twitter/X, Facebook, Instagram, TikTok).
+- **When to use:** Khi cần tạo post cho social media ngay, đặc biệt khi muốn AI điều chỉnh tone và format theo từng nền tảng.
+- **Command:** `/ckm:social`
+
+#### **ckm:social:schedule**
+
+- **Purpose:** Lên lịch và quản lý social media content calendar — tạo posting schedule, batch content cho một tuần hoặc một tháng, tích hợp với scheduling tools.
+- **When to use:** Khi cần plan content calendar trước, batch-create nhiều posts cùng lúc, hoặc maintain consistent posting frequency.
+- **Command:** `/ckm:social:schedule`
+
+#### **crosspost**
+
+- **Purpose:** Tự động cross-post nội dung từ một nền tảng sang nhiều nền tảng khác, điều chỉnh format và tone phù hợp với từng platform.
+- **When to use:** Sau khi có content gốc (blog, video, podcast), muốn distribute rộng rãi trên tất cả social channels mà không mất nhiều thời gian manual editing.
+- **Command:** `/crosspost`
+
+---
+
+## 4. Campaign Management
+
+Skills quản lý toàn bộ lifecycle của một marketing campaign — từ tạo, theo dõi trạng thái, đến phân tích kết quả.
+
+#### **ckm:campaign**
+
+- **Purpose:** Overview và quản lý tổng thể marketing campaigns đang chạy — xem status, metrics, và quick actions cho tất cả campaigns.
+- **When to use:** Dashboard view để monitor nhiều campaigns cùng lúc, hoặc khi cần quick overview trước meeting.
+- **Command:** `/ckm:campaign`
+
+#### **ckm:campaign:create**
+
+- **Purpose:** Tạo marketing campaign mới từ đầu — xác định mục tiêu, target audience, budget, channels, timeline, và key messages.
+- **When to use:** Launching sản phẩm mới, seasonal campaign, event promotion, hoặc bất kỳ initiative marketing có-thời-hạn nào.
+- **Command:** `/ckm:campaign:create`
+
+#### **ckm:campaign:email**
+
+- **Purpose:** Quản lý email component của một campaign — tạo email series, segment list, setup automation triggers cho campaign cụ thể.
+- **When to use:** Khi campaign có email marketing component cần được coordinate với các channels khác.
+- **Command:** `/ckm:campaign:email`
+
+#### **ckm:campaign:status**
+
+- **Purpose:** Check và report trạng thái hiện tại của một campaign cụ thể — metrics, milestones đã đạt, vấn đề cần giải quyết.
+- **When to use:** Daily standup, weekly campaign review, hoặc khi stakeholders hỏi về tiến độ campaign.
+- **Command:** `/ckm:campaign:status`
+
+#### **ckm:campaign:analyze**
+
+- **Purpose:** Phân tích sâu kết quả campaign sau khi kết thúc hoặc giữa chừng — ROI, channel performance, audience insights, và recommendations cho lần tiếp theo.
+- **When to use:** Post-campaign debrief, mid-campaign optimization, hoặc khi cần data-driven insights để cải thiện strategy.
+- **Command:** `/ckm:campaign:analyze`
+
+---
+
+## 5. SEO
+
+Skills tối ưu hóa công cụ tìm kiếm — từ audit kỹ thuật, nghiên cứu keywords, đến programmatic SEO ở scale lớn.
+
+#### **ckm:seo**
+
+- **Purpose:** General SEO assistant — trả lời câu hỏi về SEO, đưa ra recommendations, và help với on-page optimization cho nội dung cụ thể.
+- **When to use:** Khi cần SEO guidance nhanh, on-page optimization tips, hoặc muốn check một trang có đang được optimize đúng cách không.
+- **Command:** `/ckm:seo`
+
+#### **ckm:seo:audit**
+
+- **Purpose:** Audit toàn diện SEO của một trang hoặc website — kỹ thuật, on-page, content gaps, internal linking, và actionable fix list theo priority.
+- **When to use:** Trước khi launch site mới, quarterly SEO review, hoặc khi organic traffic bị drop không rõ nguyên nhân.
+- **Command:** `/ckm:seo:audit`
+
+#### **ckm:seo:keywords**
+
+- **Purpose:** Nghiên cứu và phân tích keywords — tìm opportunities, cluster keywords theo intent, và prioritize theo volume vs. difficulty.
+- **When to use:** Lên kế hoạch content mới, expand keyword universe, hoặc muốn understand search demand cho topic cụ thể.
+- **Command:** `/ckm:seo:keywords`
+
+#### **ckm:seo:pseo**
+
+- **Purpose:** Programmatic SEO — tạo template và pipeline để generate hàng trăm hoặc hàng nghìn SEO-optimized pages từ structured data.
+- **When to use:** Khi có large dataset (locations, products, comparisons) cần được biến thành nhiều landing pages theo pattern nhất quán.
+- **Command:** `/ckm:seo:pseo`
+
+---
+
+## 6. Video Production
+
+Skills hỗ trợ toàn bộ quy trình tạo video — từ storyboard, script, đến production và repurposing thành các format khác.
+
+#### **ckm:video:storyboard:create**
+
+- **Purpose:** Tạo storyboard chi tiết cho video — mô tả từng scene, visual, B-roll, và transition. Bao gồm cả shot list và production notes.
+- **When to use:** Trước khi bắt đầu quay bất kỳ video nào — explainer, product demo, testimonial, hoặc social short-form.
+- **Command:** `/ckm:video:storyboard:create`
+
+#### **ckm:video:script:create**
+
+- **Purpose:** Viết script đầy đủ cho video với dialogue, voiceover, on-screen text, và cues. Điều chỉnh tone và length theo platform target.
+- **When to use:** YouTube long-form, explainer video, TikTok/Reels short, webinar presentation — bất kỳ video nào cần script trước khi quay.
+- **Command:** `/ckm:video:script:create`
+
+#### **ckm:video:create**
+
+- **Purpose:** Orchestrate toàn bộ quá trình tạo video — từ concept đến final output, kết hợp storyboard, script, và production workflow.
+- **When to use:** Khi cần end-to-end video creation support, đặc biệt với Remotion hoặc AI video tools.
+- **Command:** `/ckm:video:create`
+
+#### **ckm:youtube:blog**
+
+- **Purpose:** Chuyển đổi YouTube video thành blog post chuẩn SEO với title, meta description, body content, và internal links.
+- **When to use:** Repurpose video content thành text để tăng SEO và phục vụ audience prefer đọc hơn xem.
+- **Command:** `/ckm:youtube:blog`
+
+#### **ckm:youtube:infographic**
+
+- **Purpose:** Tạo infographic từ nội dung YouTube video — trích xuất key points, statistics, và visualize thành format chia sẻ được trên social.
+- **When to use:** Repurpose video content thành visual asset cho Pinterest, LinkedIn, và Instagram.
+- **Command:** `/ckm:youtube:infographic`
+
+#### **ckm:youtube:social**
+
+- **Purpose:** Tạo social media posts từ YouTube video — captions, clips description, và multi-platform promotional content để drive views.
+- **When to use:** Sau khi publish YouTube video, muốn promote nó trên tất cả social channels với content được customize từng platform.
+- **Command:** `/ckm:youtube:social`
+
+---
+
+## 7. Brand & Design
+
+Skills quản lý brand identity và tạo design assets. Core skill là `ckm:brand:update`; design execution dùng external skills.
+
+#### **ckm:brand:update**
+
+- **Purpose:** Cập nhật brand guidelines — colors, typography, messaging pillars, tone of voice, và visual identity standards. Đảm bảo consistency across all channels.
+- **When to use:** Khi brand identity thay đổi, cần document brand guidelines mới, hoặc onboard team member mới vào brand standards.
+- **Command:** `/ckm:brand:update`
+
+**Design execution skills** (dùng kết hợp với CKM):
+
+- `/design` — general design direction và visual concepts
+- `/logo-design` — logo creation và variation
+- `/banner-design` — banner và social media graphics
+- `/ai-artist` — AI-generated images và visual content
+
+---
+
+## 8. Analytics
+
+Skills phân tích dữ liệu marketing và tạo reports để inform decisions.
+
+#### **ckm:analyze**
+
+- **Purpose:** Phân tích marketing data — traffic, conversions, engagement, revenue attribution — và đưa ra actionable insights thay vì chỉ present numbers.
+- **When to use:** Monthly business review, campaign performance check, hoặc khi cần understand "why" đằng sau một metric change.
+- **Command:** `/ckm:analyze`
+
+#### **ckm:analyze:report**
+
+- **Purpose:** Tạo marketing performance report có cấu trúc — executive summary, metrics dashboard, trend analysis, và recommendations. Format sẵn sàng để share với stakeholders.
+- **When to use:** Weekly/monthly reporting, board presentations, client reports, hoặc bất kỳ khi nào cần communicate performance data một cách chuyên nghiệp.
+- **Command:** `/ckm:analyze:report`
+
+---
+
+## 9. Strategy & Planning
+
+Skills lập kế hoạch marketing chiến lược — từ plan tổng thể đến các kịch bản phức tạp và parallel execution.
+
+#### **ckm:plan**
+
+- **Purpose:** Tạo marketing plan tổng thể — goals, strategy, tactics, timeline, budget allocation, và success metrics. Structured document có thể execute ngay.
+- **When to use:** Quarterly planning, annual marketing strategy, hoặc khi cần plan cho một initiative marketing lớn.
+- **Command:** `/ckm:plan`
+
+#### **ckm:plan:archive**
+
+- **Purpose:** Archive và document marketing plans đã hoàn thành — lessons learned, what worked, what didn't, và recommendations cho lần tiếp theo.
+- **When to use:** Sau khi kết thúc một campaign hoặc planning cycle, trước khi bắt đầu cycle mới.
+- **Command:** `/ckm:plan:archive`
+
+#### **ckm:plan:validate**
+
+- **Purpose:** Validate marketing plan trước khi execute — check assumptions, identify gaps, assess feasibility, và flag risks.
+- **When to use:** Trước khi commit resources cho một marketing plan, đặc biệt là plans lớn hoặc high-stakes.
+- **Command:** `/ckm:plan:validate`
+
+#### **ckm:plan:cro**
+
+- **Purpose:** Tạo conversion rate optimization plan — identify conversion bottlenecks, prioritize tests, design experiments, và track results.
+- **When to use:** Khi conversion rates đang thấp và cần systematic approach để improve, hoặc khi muốn optimize existing funnel.
+- **Command:** `/ckm:plan:cro`
+
+#### **ckm:plan:parallel**
+
+- **Purpose:** Lên kế hoạch và orchestrate nhiều marketing workstreams chạy song song — phân chia resources, dependencies, và milestones.
+- **When to use:** Khi có nhiều campaigns hoặc initiatives cần chạy đồng thời và cần coordination rõ ràng.
+- **Command:** `/ckm:plan:parallel`
+
+#### **ckm:plan:hard**
+
+- **Purpose:** Tạo plan cho marketing challenges khó — tình huống competitive pressure cao, budget hạn chế, hoặc timeline gấp. Focus vào pragmatic solutions.
+- **When to use:** Khi facing tough marketing constraints và cần plan thực tế thay vì lý tưởng.
+- **Command:** `/ckm:plan:hard`
+
+#### **ckm:plan:two**
+
+- **Purpose:** Tạo hai phiên bản plan song song (Plan A và Plan B) — một ambitious và một conservative — để team có options khi circumstances thay đổi.
+- **When to use:** Khi có significant uncertainty về budget, market conditions, hoặc competitive landscape.
+- **Command:** `/ckm:plan:two`
+
+#### **ckm:plan:fast**
+
+- **Purpose:** Tạo marketing plan nhanh trong thời gian giới hạn — stripped-down version tập trung vào essentials, đủ để bắt đầu execute ngay.
+- **When to use:** Emergency campaigns, last-minute opportunities, hoặc khi cần "good enough plan now" hơn là "perfect plan later".
+- **Command:** `/ckm:plan:fast`
+
+#### **ckm:plan:ci**
+
+- **Purpose:** Tích hợp marketing planning vào CI/CD-like workflow — automated checks, approval gates, và deployment triggers cho marketing content pipeline.
+- **When to use:** Teams muốn bring engineering discipline vào marketing operations, hoặc khi marketing content cần approval workflow tự động.
+- **Command:** `/ckm:plan:ci`
+
+---
+
+## 10. Persona & Funnel
+
+Skills xây dựng customer personas và thiết kế marketing funnel end-to-end, cộng với competitive intelligence.
+
+#### **ckm:persona**
+
+- **Purpose:** Tạo detailed buyer personas — demographics, psychographics, pain points, goals, objections, và preferred channels. Backed by research, not assumptions.
+- **When to use:** Khi starting a new product line, entering a new market, hoặc realizing current messaging không resonating với target audience.
+- **Command:** `/ckm:persona`
+
+#### **ckm:funnel**
+
+- **Purpose:** Thiết kế và optimize marketing funnel — awareness đến acquisition đến retention, với content và tactics phù hợp từng stage.
+- **When to use:** Building marketing strategy từ đầu, hoặc auditing existing funnel để tìm leaks và optimization opportunities.
+- **Command:** `/ckm:funnel`
+
+#### **ckm:competitor**
+
+- **Purpose:** Phân tích competitive landscape — positioning, messaging, channels, pricing, strengths/weaknesses — và identify gaps để exploit.
+- **When to use:** Trước khi launch campaign mới, khi competitive dynamics thay đổi, hoặc muốn understand how competitors are winning.
+- **Command:** `/ckm:competitor`
+
+---
+
+## 11. Infrastructure
+
+Skills quản lý ClaudeKit Marketing infrastructure — hub, dashboard, workflows, storage, và developer tools.
+
+#### **ckm:init**
+
+- **Purpose:** Initialize CKM workspace — setup cấu trúc thư mục, config files, và initial brand context cho project mới.
+- **Command:** `/ckm:init`
+
+#### **ckm:hub**
+
+- **Purpose:** Marketing operations hub — central view của tất cả marketing assets, campaigns, và workflows đang active.
+- **Command:** `/ckm:hub`
+
+#### **ckm:dashboard**
+
+- **Purpose:** Marketing performance dashboard — metrics overview, campaign status, content calendar, và quick-access actions.
+- **Command:** `/ckm:dashboard`
+
+#### **ckm:kanban**
+
+- **Purpose:** Kanban board cho marketing tasks — visual workflow management cho content pipeline, campaign tasks, và team coordination.
+- **Command:** `/ckm:kanban`
+
+#### **ckm:journal**
+
+- **Purpose:** Marketing journal — ghi lại decisions, experiments, learnings, và observations. Institutional memory cho team.
+- **Command:** `/ckm:journal`
+
+#### **ckm:watzup**
+
+- **Purpose:** Quick status update — "what's up" với tất cả ongoing marketing activities. Morning briefing format.
+- **Command:** `/ckm:watzup`
+
+#### **ckm:ask**
+
+- **Purpose:** Ask marketing questions và get expert answers — marketing strategy advice, best practices, benchmarks, và recommendations.
+- **Command:** `/ckm:ask`
+
+#### **ckm:preview**
+
+- **Purpose:** Preview marketing content trước khi publish — visual preview của emails, social posts, landing pages trong context thực tế.
+- **Command:** `/ckm:preview`
+
+#### **ckm:worktree**
+
+- **Purpose:** Manage git worktrees cho parallel marketing content development — isolate work-in-progress campaigns.
+- **Command:** `/ckm:worktree`
+
+#### **ckm:use-mcp**
+
+- **Purpose:** Activate và configure MCP tools cho marketing workflows — Zernio, analytics platforms, CRM integrations.
+- **Command:** `/ckm:use-mcp`
+
+**Playback & Storage:**
+
+| Skill | Purpose |
+|-------|---------|
+| `/ckm:play` | Launch marketing playbook session |
+| `/ckm:play:next` | Advance to next step trong active playbook |
+| `/ckm:play:status` | Check progress của current playbook |
+| `/ckm:play:create` | Tạo custom marketing playbook mới |
+| `/ckm:play:goals` | Set và track goals cho playbook session |
+| `/ckm:storage:url` | Store và retrieve URLs trong CKM storage |
+| `/ckm:storage:list` | List stored assets |
+| `/ckm:storage:upload` | Upload assets vào CKM storage |
+| `/ckm:storage:sync` | Sync local assets với remote storage |
+| `/ckm:slides:create` | Tạo marketing presentation slides |
+
+**Skill Management (CKM-specific):**
+
+| Skill | Purpose |
+|-------|---------|
+| `/ckm:skill:fix-logs` | Fix skill execution logs và errors |
+| `/ckm:skill:add` | Add new skill vào CKM catalog |
+| `/ckm:skill:create` | Tạo custom CKM skill từ đầu |
+| `/ckm:skill:optimize` | Optimize existing skill performance |
+| `/ckm:skill:update` | Update skill với new capabilities |
+| `/ckm:skill:plan` | Plan skill development roadmap |
+| `/ckm:skill:optimize:auto` | Auto-optimize skills dựa trên usage patterns |
+
+**Testing & Docs:**
+
+| Skill | Purpose |
+|-------|---------|
+| `/ckm:test:workflow` | Test marketing workflow end-to-end |
+| `/ckm:test:ui` | Test marketing UI components |
+| `/ckm:docs:llms` | Generate LLM-optimized marketing docs |
+| `/ckm:docs:init` | Initialize documentation cho marketing project |
+| `/ckm:docs:update` | Update marketing documentation |
+| `/ckm:docs:summarize` | Summarize marketing docs thành executive brief |
+
+---
+
+## 12. Sales
+
+Sales skills sử dụng namespace `sales:*` riêng biệt, được thiết kế cho sales teams và account executives sử dụng AI để prepare, execute, và follow-up sales activities.
+
+#### **sales:call-prep**
+
+- **Purpose:** Chuẩn bị cho sales call — research prospect, prepare talking points, anticipate objections, và create personalized agenda.
+- **When to use:** 30-60 phút trước bất kỳ sales call, discovery call, hoặc demo session nào.
+- **Command:** `/sales:call-prep`
+
+#### **sales:pipeline-review**
+
+- **Purpose:** Review và analyze sales pipeline — deal health, stage distribution, forecast accuracy, và recommendations để accelerate deals.
+- **When to use:** Weekly pipeline review, QBR preparation, hoặc khi cần understand pipeline health nhanh.
+- **Command:** `/sales:pipeline-review`
+
+#### **sales:competitive-intelligence**
+
+- **Purpose:** Thu thập và analyze competitive intelligence relevant đến active deals — competitor strengths/weaknesses, win/loss patterns, và battle cards.
+- **When to use:** Khi prospect đang evaluate competitors, hoặc khi cần update competitive positioning.
+- **Command:** `/sales:competitive-intelligence`
+
+#### **sales:call-summary**
+
+- **Purpose:** Tạo structured summary sau sales call — key takeaways, action items, next steps, và CRM notes ready to log.
+- **When to use:** Ngay sau mỗi sales call để capture insights trong khi còn fresh và update CRM efficiently.
+- **Command:** `/sales:call-summary`
+
+#### **sales:account-research**
+
+- **Purpose:** Deep research về một account — company background, industry trends, key stakeholders, pain points, và buying signals.
+- **When to use:** Trước khi tiếp cận prospect mới, hoặc chuẩn bị cho expansion conversation với existing customer.
+- **Command:** `/sales:account-research`
+
+#### **sales:daily-briefing**
+
+- **Purpose:** Daily briefing cho sales rep — priority accounts, follow-up actions, deals closing today, và market news relevant to pipeline.
+- **When to use:** Mỗi sáng để start sales day với clarity và focus đúng priorities.
+- **Command:** `/sales:daily-briefing`
+
+#### **sales:create-an-asset**
+
+- **Purpose:** Tạo sales assets — one-pagers, case studies, proposal templates, ROI calculators, và presentation decks.
+- **When to use:** Khi cần sales collateral cho deal cụ thể hoặc muốn create reusable templates cho team.
+- **Command:** `/sales:create-an-asset`
+
+#### **sales:draft-outreach**
+
+- **Purpose:** Viết personalized outreach messages — cold emails, LinkedIn messages, và follow-up sequences được customized cho từng prospect.
+- **When to use:** Khi bắt đầu prospecting campaign hoặc cần follow-up với prospect sau event/meeting.
+- **Command:** `/sales:draft-outreach`
+
+#### **sales:forecast**
+
+- **Purpose:** Tạo sales forecast — dự đoán revenue, analyze pipeline coverage, identify risks, và create scenario models (best/worst/likely case).
+- **When to use:** Monthly/quarterly forecasting, board reporting, hoặc khi cần data-driven revenue projection.
+- **Command:** `/sales:forecast`
+
+---
+
+## Discovery Flow
+
+Không chắc dùng skill nào? Theo quy trình sau:
+
+1. **Find the right skill:** `/find-skills <keyword>` — search theo use-case, không cần nhớ tên
+2. **See all Engineer skills:** [ClaudeKit Engineer Skills Catalog](/agent-os-overview/claudekit-engineer-skills) — ~75 skills cho development
+3. **Explore workflow chains:** [Skill Playbooks](/workflows/skill-playbooks) — composed workflows kết hợp nhiều skills
+4. **Quick lookup:** [Skill Quick Reference](/knowledge-qa/skill-quick-reference) — cheatsheet dạng bảng theo intent
+
+**Tip:** Mỗi skill đều có fallback — nếu một skill không fit chính xác use-case, đọc `Purpose` và `When to use` của 2-3 skills liên quan để chọn đúng nhất.
