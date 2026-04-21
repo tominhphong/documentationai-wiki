@@ -17,23 +17,24 @@ while IFS= read -r -d '' file; do
   esac
 
   # Extract frontmatter (between first --- and second ---)
+  # Use || true on grep to avoid pipefail when field missing
   frontmatter=$(awk '/^---$/{flag++; next} flag==1' "$file" | head -n 20)
 
-  title=$(echo "$frontmatter" | grep -E '^title:' | head -1 | sed 's/^title: *//' | sed 's/^"//;s/"$//')
-  description=$(echo "$frontmatter" | grep -E '^description:' | head -1 | sed 's/^description: *//' | sed 's/^"//;s/"$//')
-  last_reviewed=$(echo "$frontmatter" | grep -E '^last_reviewed:' | head -1 | sed 's/^last_reviewed: *//' | sed 's/^"//;s/"$//')
+  title=$(echo "$frontmatter" | grep -E '^title:' | head -1 | sed 's/^title: *//' | sed 's/^"//;s/"$//' || true)
+  description=$(echo "$frontmatter" | grep -E '^description:' | head -1 | sed 's/^description: *//' | sed 's/^"//;s/"$//' || true)
+  last_reviewed=$(echo "$frontmatter" | grep -E '^last_reviewed:' | head -1 | sed 's/^last_reviewed: *//' | sed 's/^"//;s/"$//' || true)
 
-  # Validate title length 3-80
+  # Validate title length 3-80 (use [[ ]] to avoid set -e triggering on (( )) exit 1)
   if [[ -z "$title" ]]; then
     echo "MISSING title: $file"; has_error=1
-  elif (( ${#title} < 3 || ${#title} > 80 )); then
+  elif [[ ${#title} -lt 3 || ${#title} -gt 80 ]]; then
     echo "TITLE LENGTH (${#title}, need 3-80): $file"; has_error=1
   fi
 
   # Validate description length 50-200
   if [[ -z "$description" ]]; then
     echo "MISSING description: $file"; has_error=1
-  elif (( ${#description} < 50 || ${#description} > 200 )); then
+  elif [[ ${#description} -lt 50 || ${#description} -gt 200 ]]; then
     echo "DESC LENGTH (${#description}, need 50-200): $file"; has_error=1
   fi
 

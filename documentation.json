@@ -124,6 +124,11 @@
                 "title": "Cross-Scope Workflow",
                 "path": "workflows/cross-scope-workflow",
                 "icon": "git-branch"
+              },
+              {
+                "title": "Sprint Retro Workflow",
+                "path": "workflows/sprint-retro-workflow",
+                "icon": "rotate-ccw"
               }
             ]
           },

@@ -28,3 +28,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run check-links.sh
         run: bash scripts/check-links.sh .
+
+  check-frontmatter:
+    name: Frontmatter validation (title, description, last_reviewed)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run check-frontmatter.sh
+        run: bash scripts/check-frontmatter.sh .
