@@ -213,6 +213,48 @@ Content here.
 
 ---
 
+## Gotcha 8 — GFM Heading Anchor `&#123;#anchor&#125;` Not Supported
+
+**Symptom:** Deploy fails với error từ Documentation.AI:
+
+```
+Failed to parse MDX content: Could not parse expression with acorn (line N, column M)
+```
+
+Column M thường trùng vị trí của `{#anchor}` syntax.
+
+**Root cause:** MDX v3 parser đọc mọi `{...}` như JSX expression. `{#issue-1}` bắt đầu bằng `#` → acorn không parse được vì `#` không phải valid JavaScript identifier start.
+
+GFM (GitHub Flavored Markdown) có support `{#anchor}` cho custom heading IDs, nhưng Mintlify dùng pure MDX — không cho pass-through GFM extension này.
+
+**Example (BAD):**
+
+```markdown
+## Issue 1 — Claude Code 401 auth {#issue-1}
+```
+
+**Example (GOOD):**
+
+```markdown
+## Issue 1 — Claude Code 401 auth
+```
+
+**Fix:**
+
+Remove manual anchors — Mintlify tự sinh heading IDs từ heading text (slugified).
+
+Bulk strip:
+
+```bash
+sed -i '' 's/ {#[a-z0-9-]*}$//' path/to/file.mdx
+```
+
+Cho TOC: thay `[text](#issue-1)` linked list → numbered list plain text. On-page sidebar TOC (Mintlify auto-generate) vẫn nhảy trong page được.
+
+**First seen:** Sprint 4, file `agent-os-overview/known-issues.mdx`. Fix commit `1e734e3`. Full write-up: [Known Issues — Issue 8](/agent-os-overview/known-issues).
+
+---
+
 ## Quick Reference Table
 
 | # | Pattern | Symptom | Fix |
@@ -224,3 +266,4 @@ Content here.
 | 5 | ASCII Vietnamese | Wrong text / bad search | Write full Unicode diacritics |
 | 6 | `.mdx` in `documentation.json` path | 404 / missing from nav | Remove `.mdx` extension from path |
 | 7 | `# H1` in body | Duplicate title | Start at `## H2` |
+| 8 | `&#123;#anchor&#125;` heading syntax | MDX acorn parse error blocks deploy | Remove manual anchors, use Mintlify auto-IDs |

@@ -14,6 +14,7 @@ keywords: [known-issues, troubleshooting, learnings, sprints, gotchas, bash, cla
 5. Mermaid diagrams không render trong Mintlify theme
 6. Plans/cross-scope merge conflicts khi 2+ workers append
 7. GitHub OAuth thiếu workflow scope khi push
+8. Mintlify MDX v3 không parse được `&#123;#anchor&#125;` heading syntax
 
 <Callout kind="info">
 Dùng on-page TOC bên phải (Mintlify auto-sidebar) để nhảy nhanh giữa các Issue.
@@ -303,6 +304,57 @@ Khi setup agent trên máy mới, luôn chạy `gh auth refresh -s workflow` nga
 **Links**
 
 - [Install Error Troubleshooting — Push rejected: workflow scope missing](/help-center/troubleshooting/install-error)
+
+---
+
+## Issue 8 — Mintlify MDX v3 không parse được `&#123;#anchor&#125;` heading syntax
+
+<Callout kind="error">
+**Blocking deploy.** Documentation.AI reject entire file với "Could not parse expression with acorn" error. Phát hiện Sprint 4.
+</Callout>
+
+**Symptom**
+
+Deploy logs báo:
+
+```
+Invalid content format in 'agent-os-overview/known-issues.mdx':
+Failed to parse MDX content: Could not parse expression with acorn (line 20, column 73)
+```
+
+Line 20 chứa heading kiểu GFM anchor:
+
+```markdown
+## Issue 1 — Some title {#issue-1}
+```
+
+**Root cause**
+
+MDX v3 parser (acorn) đọc `{...}` ở bất kỳ đâu ngoài code fence như JSX expression. `#issue-1` bắt đầu bằng `#` không phải valid JavaScript identifier → acorn fail.
+
+GFM (GitHub Flavored Markdown) support `{#anchor}` heading IDs, nhưng Mintlify dùng pure MDX — không cho pass-through markdown extension.
+
+**Fix**
+
+Remove all manual `{#anchor}` syntax — Mintlify tự sinh heading IDs từ text.
+
+```bash
+# Strip tất cả {#...} từ H2 headings
+sed -i '' 's/ {#[a-z0-9-]*}$//' path/to/file.mdx
+```
+
+Update TOC: thay linked list `[text](#anchor)` → numbered list plain text. On-page TOC sidebar (Mintlify auto-generate) vẫn work.
+
+**Prevention**
+
+- **Rule:** Không dùng `{...}` trong markdown content trừ khi thực sự là JSX expression hợp lệ
+- Pre-commit `scripts/pre-commit-check.sh` nên thêm check regex: `\{#[^}]*\}` ngoài code fence → warning
+- Future: codify vào CLAUDE.md MDX conventions section
+
+**Links**
+
+- [MDX Gotchas — Curly braces and JSX expressions](/help-center/troubleshooting/mdx-gotchas)
+- Fix commit: `1e734e3`
 
 ---
 
