@@ -52,6 +52,11 @@
                 "title": "Known Issues",
                 "path": "agent-os-overview/known-issues",
                 "icon": "alert-triangle"
+              },
+              {
+                "title": "Engineer Skills Catalog",
+                "path": "agent-os-overview/claudekit-engineer-skills",
+                "icon": "wrench"
               }
             ]
           },
@@ -139,6 +144,11 @@
                 "title": "Content Maintenance Workflow",
                 "path": "workflows/content-maintenance-workflow",
                 "icon": "refresh-cw"
+              },
+              {
+                "title": "Skill Playbooks",
+                "path": "workflows/skill-playbooks",
+                "icon": "list-checks"
               }
             ]
           },
@@ -191,6 +201,16 @@
                 "title": "Glossary",
                 "path": "knowledge-qa/glossary",
                 "icon": "book-open"
+              },
+              {
+                "title": "Marketing Skills Catalog",
+                "path": "knowledge-qa/claudekit-marketing-skills",
+                "icon": "megaphone"
+              },
+              {
+                "title": "Skill Quick Reference",
+                "path": "knowledge-qa/skill-quick-reference",
+                "icon": "bookmark"
               }
             ]
           }
