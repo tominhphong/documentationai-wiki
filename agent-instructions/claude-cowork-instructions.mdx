@@ -142,3 +142,219 @@ Dùng Agent tool (subagent) khi:
 Không dùng subagent khi:
 - Task đơn giản, hoàn thành trong 2-3 tool calls
 - Đã có đủ context, không cần research thêm
+
+
+## Cowork mode vs Standalone CLI
+
+Khi nào dùng Cowork mode, khi nào dùng Claude Code CLI?
+
+| Tình huống | Cowork mode | Standalone CLI |
+|---|---|---|
+| Điều khiển hệ thống (iTerm2, osascript, Automator) | Dùng | Không dùng |
+| Automation workflows (Remotion render, Vbee TTS, Zernio) | Dùng | Không dùng |
+| Pure coding hoặc documentation (code review, MDX editing) | Có thể dùng | Ưu tiên dùng |
+| Cần isolation hoàn toàn, không system control | Không cần | Dùng |
+
+**Nguyên tắc chọn:** Nếu task cần điều khiển ứng dụng trên Mac (Desktop Commander, osascript, Playwright, Zernio publish) → Cowork mode. Nếu task là pure text/code và không cần tương tác hệ thống → Standalone CLI đủ.
+
+
+## Setup Cowork mode
+
+<Steps>
+
+<Step title="1 — Mở Claude Desktop app">
+
+Tải và cài Claude Desktop từ `claude.ai/download`. Đây là app khác với Claude Code CLI.
+
+</Step>
+
+<Step title="2 — Bật Cowork mode">
+
+Vào **Settings → Enable Cowork mode**. Sau khi bật, agent có thêm quyền gọi MCP servers và Agent tools.
+
+</Step>
+
+<Step title="3 — Grant Permissions">
+
+macOS yêu cầu cấp quyền cho 2 mục trong **System Settings**:
+
+- **Accessibility** → cho phép osascript điều khiển ứng dụng
+- **Automation** → cho phép Desktop Commander quản lý process
+
+Vào: System Settings → Privacy & Security → Accessibility → bật Claude Desktop.
+
+</Step>
+
+<Step title="4 — Test osascript">
+
+Yêu cầu agent chạy lệnh test để xác nhận iTerm2 kết nối:
+
+```bash
+osascript -e 'tell application "iTerm" to activate'
+```
+
+Nếu iTerm2 mở lên (hoặc focus) → OK. Nếu lỗi "Not authorized" → kiểm tra lại Accessibility permission.
+
+</Step>
+
+<Step title="5 — Verify Desktop Commander MCP">
+
+Trong conversation, hỏi agent: "List all connected MCP servers". Desktop Commander phải xuất hiện trong danh sách. Nếu không thấy, kiểm tra `~/.claude/claude_desktop_config.json` — entry `desktop-commander` phải có `command` và `args` đúng.
+
+</Step>
+
+</Steps>
+
+
+## Common Cowork commands
+
+Các lệnh osascript và shell thường dùng nhất trong Cowork mode:
+
+**Tạo iTerm2 window mới và chạy command:**
+
+```bash
+osascript <<'EOF'
+tell application "iTerm"
+  set w to (create window with default profile)
+  tell current session of w to write text "cd ~/Workspace/Claude/market-update && npm run dev"
+end tell
+EOF
+```
+
+**Đọc nội dung session iTerm2 hiện tại:**
+
+```bash
+osascript <<'EOF'
+tell application "iTerm"
+  tell current session of current window
+    return contents
+  end tell
+end tell
+EOF
+```
+
+**Remotion preview (xem trước video trên browser):**
+
+```bash
+cd ~/Workspace/Claude/market-update && npm run dev
+```
+
+**Vbee TTS — generate voiceover MP3:**
+
+```bash
+curl -X POST "https://vbee.vn/api/v1/tts" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $VBEE_API_KEY" \
+  -d '{
+    "input_text": "Thị trường bất động sản Sherman TX tháng 4 năm 2026",
+    "voice_code": "hn_female_ngochuyen_full_48k-fhg",
+    "output_type": "mp3"
+  }' \
+  -o ~/Content/media/2026-04/voiceover.mp3
+```
+
+**Desktop Commander — đọc file lớn không dùng Read tool:**
+
+Dùng MCP tool `mcp__Desktop_Commander__read_file` với `path` tuyệt đối. Phù hợp khi file vượt 2000 dòng.
+
+
+## Safety rails
+
+<Callout kind="warning">
+Các hành động sau NGHIÊM CẤM thực hiện mà không hỏi Phong trước:
+
+- **Đăng bài lên mạng xã hội** qua Zernio (`posts_publish_now`, `posts_create` với `scheduled_at` trong quá khứ) — luôn hỏi Phong xác nhận trước khi publish hoặc schedule.
+- **Render MP4 final** — chỉ render preview PNG trước. Xem preview, hỏi "Anh approve không?" rồi mới render MP4.
+- **Commit hoặc push** file `.env`, credentials, API keys lên git bất kỳ.
+- **Xóa hoặc overwrite** file media trong `~/Content/media/` mà chưa backup.
+
+Chi tiết 5 nguyên tắc bắt buộc: đọc `~/CLAUDE.md` → section **"5 NGUYÊN TẮC BẮT BUỘC"**.
+</Callout>
+
+
+## Typical Cowork session flow
+
+<Steps>
+
+<Step title="1 — Đọc 3 file tracking">
+
+Đây là bước BẮT BUỘC trước khi làm BẤT CỨ việc gì:
+
+```bash
+cat ~/findings.md
+cat ~/progress.md
+cat ~/task_plan.md
+```
+
+`findings.md` chứa lỗi đã biết và cấu hình kỹ thuật. `progress.md` là tiến độ session trước. `task_plan.md` là kế hoạch tổng thể.
+
+</Step>
+
+<Step title="2 — Xác định task scope">
+
+Phân loại yêu cầu: content creation, real estate post, automation workflow, hay technical fix? Chọn đúng skill hoặc MCP server trước khi bắt đầu.
+
+</Step>
+
+<Step title="3 — Execute với đúng tool">
+
+- System control → osascript hoặc Desktop Commander
+- Social media → Zernio MCP (nhớ safety rails)
+- Browser automation → Playwright MCP
+- File operations → Desktop Commander hoặc Bash
+
+</Step>
+
+<Step title="4 — Cập nhật 3 file tracking">
+
+Sau khi hoàn thành, append kết quả vào 3 file tracking:
+
+```bash
+echo "[$(date '+%Y-%m-%d %H:%M')] [task-name] completed — <kết quả>" >> ~/progress.md
+```
+
+</Step>
+
+<Step title="5 — Report lại Phong">
+
+Báo cáo ngắn gọn: đã làm gì, output ở đâu (link `computer://` nếu có file), bước tiếp theo nếu cần Phong action.
+
+</Step>
+
+</Steps>
+
+
+## Troubleshooting Cowork
+
+**Vấn đề 1: osascript bị lỗi "Not authorized to send Apple events"**
+
+iTerm2 chưa được cấp Accessibility permission. Fix:
+
+1. System Settings → Privacy & Security → Accessibility
+2. Tìm Claude Desktop trong danh sách → bật toggle
+3. Nếu Claude Desktop không có trong danh sách: chạy thử một lệnh osascript, macOS sẽ prompt permission dialog
+
+**Vấn đề 2: iTerm2 không nhận lệnh (osascript chạy nhưng không có gì xảy ra)**
+
+iTerm2 chưa được activate trước khi gọi. Fix: thêm `activate` trước khi `write text`:
+
+```bash
+osascript -e 'tell application "iTerm" to activate'
+```
+
+Đợi 0.5 giây rồi mới gửi lệnh tiếp theo.
+
+**Vấn đề 3: Process bị stuck (npm run dev không dừng, render bị treo)**
+
+Dùng Desktop Commander để kill process:
+
+```bash
+# Tìm process ID
+mcp__Desktop_Commander__list_processes
+
+# Kill theo tên
+pkill -f "remotion"
+pkill -f "vbee"
+```
+
+Hoặc dùng `mcp__Desktop_Commander__force_terminate` với process ID tương ứng.
