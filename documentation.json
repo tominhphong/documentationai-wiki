@@ -61,6 +61,16 @@
             ]
           },
           {
+            "group": "Phong's Playbook",
+            "icon": "book-open",
+            "pages": [
+              { "title": "Overview", "path": "phong-playbook/index", "icon": "user" },
+              { "title": "Case 1: 107-Page RKB in 4 Sprints", "path": "phong-playbook/case-01-rkb-4-sprint-build", "icon": "layers" },
+              { "title": "Case 2: Mortgage App in One Week", "path": "phong-playbook/case-02-mortgage-app-week", "icon": "calculator" },
+              { "title": "Case 3: Vietnamese Content Pipeline", "path": "phong-playbook/case-03-vietnamese-content-pipeline", "icon": "video" }
+            ]
+          },
+          {
             "group": "Core Rules",
             "icon": "shield",
             "pages": [

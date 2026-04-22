@@ -1,0 +1,237 @@
+---
+title: "Case Study: Mortgage Compare App from Idea to Deploy in One Week"
+description: "How Phong built a full-stack multi-scenario mortgage comparison app using Next.js, Cloudflare D1/R2/Workers, and 4 parallel sprints — shipped in 7 days at $0/month."
+last_reviewed: 2026-04-22
+data_freshness: "2026-04 (Sprint 6)"
+---
+
+# Case Study: Mortgage Compare App from Idea to Deploy in One Week
+
+## Context
+
+### Business Need
+
+Vietnamese-American homebuyers often bring complex financial profiles to consultations — 1099 contractor income, multiple co-borrowers, gift funds, varying down payment scenarios. Phong needed a tool to run side-by-side mortgage comparisons live during client meetings, not after.
+
+### Starting Point
+
+No existing app. Phong had a clear mental model of what a "financial advisor" would check before advising a buyer, and a list of 12+ criteria he wanted the tool to cover.
+
+### Goal / Success Criteria
+
+- Compare up to 4 mortgage scenarios side-by-side in real time
+- Cover 12+ financial advisor criteria: TCO, tax savings (2026 rules), rent vs buy, refinance break-even, recast analysis, opportunity cost
+- Deploy on free tier — $0/month operational cost
+- Accessible from any device (responsive design)
+- Data persists across sessions (cloud sync)
+
+---
+
+## Timeline
+
+**Day 1–2 (Sprint 1): Core math + UI foundation**
+
+- Basic mortgage payment calculator logic (P&I, insurance, tax, PMI)
+- Next.js 16.2.4 + React 19 + Tailwind v4 + shadcn/ui scaffold
+- State management: React context + useReducer pattern
+- 3 parallel worktrees: `agent-ui`, `agent-math`, `agent-state`
+- Result: working calculator with 1-scenario UI
+
+**Day 3–4 (Sprint 2): Advanced features**
+
+- Dark mode (next-themes) — fully implemented in one sprint
+- DTI (debt-to-income) affordability calculator
+- PMI logic: automatic removal at 80% LTV, split PMI options
+- Scenario comparison grid (up to 4 scenarios)
+
+**Day 5–6 (Sprint 3): Financial advisor criteria**
+
+- TCO (total cost of ownership) over 5/10/30 year horizons
+- Tax 2026 rules: Mortgage Interest Deduction capped at $750K, SALT deduction capped at $10K
+- MCC (Mortgage Credit Certificate) integration for first-time buyers
+- Rent vs buy break-even analysis
+- Refinance break-even (months to recoup closing costs)
+- Recast calculator (lump-sum principal + recast fee)
+- Opportunity cost: what the down payment could earn if invested instead
+
+**Day 7 (Sprint 4): Cloudflare backend**
+
+- Cloudflare D1 (SQLite at the edge) — stores saved scenarios
+- Cloudflare R2 — stores exported PDF comparisons
+- Cloudflare Worker API — REST endpoints for save/load/export
+- Frontend cloud sync: scenarios persist across devices
+- Deploy: Vercel (frontend, free tier) + Cloudflare (backend, free tier)
+
+---
+
+## Technical Approach
+
+### Stack
+
+| Layer | Technology | Why |
+|-------|-----------|-----|
+| Frontend | Next.js 16.2.4 + React 19 | App Router, server components, edge-ready |
+| Styling | Tailwind v4 + shadcn/ui | Fast theming, accessible components |
+| Dark mode | next-themes | Zero-config theme switching |
+| Backend | Cloudflare Worker (TypeScript) | Edge latency, free tier generous |
+| Database | Cloudflare D1 (SQLite) | Relational, free tier, co-located with Worker |
+| Storage | Cloudflare R2 | S3-compatible, free egress, PDF exports |
+| Deploy | Vercel + Cloudflare | Both free tier, $0/month total |
+
+### Multi-Agent Pattern
+
+```
+Brain (Opus)
+  ├── Worktree agent-ui      → src/components/**, src/app/**
+  ├── Worktree agent-math    → src/lib/calculators/**
+  ├── Worktree agent-state   → src/lib/store/**, src/hooks/**
+  └── Worktree agent-worker  → cloudflare/worker/**, cloudflare/d1/**
+```
+
+Sprint 4 added a 5th agent:
+
+```
+  └── Worktree agent-sync    → src/lib/sync/**, src/app/api/**
+```
+
+### Key Design Decisions
+
+1. **Edge-first backend:** Cloudflare Workers run at the network edge — sub-50ms response times globally, included in the free tier up to 100K requests/day.
+2. **D1 over Postgres:** For a single-user tool, D1 is simpler and free. No connection pooling, no cold starts.
+3. **shadcn/ui over custom components:** Accessible by default, Tailwind-native, copy-paste installation means no dependency lock-in.
+4. **Calculation accuracy over UI polish:** Sprint 1 prioritized correct math. UI refinement came after all calculations were verified against known-good mortgage amortization tables.
+
+---
+
+## Workflow in Action
+
+### Spawning the Sprint 4 Backend Agents
+
+```
+# Brain prompt for Sprint 4
+"Sprint 4: Cloudflare backend integration.
+
+Spawn 2 agents in parallel:
+
+agent-worker (worktree: worktree-agent-worker):
+  File ownership: cloudflare/**
+  Task: Create Worker with D1 database schema + R2 bucket integration.
+  Endpoints needed:
+    POST /scenarios — save scenario JSON to D1
+    GET  /scenarios/:id — load saved scenario
+    POST /export — store PDF to R2, return presigned URL
+  Use TypeScript. Handle CORS for Vercel frontend origin.
+
+agent-sync (worktree: worktree-agent-sync):
+  File ownership: src/lib/sync/**, src/hooks/useCloudSync.ts
+  Task: Frontend sync hook. On scenario save, call POST /scenarios.
+  On app load, offer to restore last saved session.
+  Use SWR for cache + revalidation.
+
+Both agents report back with: file count, line count, any open questions.
+Do NOT touch each other's files."
+```
+
+### The Contract Mismatch Bug (and 3-Minute Fix)
+
+After Sprint 4, a smoke test revealed that `agent-worker` and `agent-sync` had a contract mismatch:
+
+- `agent-worker` expected `POST /scenarios` body: `{ inputs_json: string }`
+- `agent-sync` sent: `{ inputs: object }` (non-serialized)
+
+**How it was caught:** Brain ran a smoke test prompt against the live Worker endpoint after deploy, observed a 400 error, and read both agents' code side by side.
+
+**Fix (3 minutes):**
+
+```
+# Brain diagnosis prompt
+"agent-worker expects inputs_json (string). agent-sync sends inputs (object).
+Fix: update useCloudSync.ts to JSON.stringify before POST.
+No other file changes needed."
+```
+
+One targeted edit to `src/hooks/useCloudSync.ts`. No rewrite, no rollback. This is the value of clear file ownership — the bug was isolated to one file.
+
+### Example: Rent vs Buy Calculation
+
+```typescript
+// src/lib/calculators/rent-vs-buy.ts
+export function calcRentVsBuyBreakeven(params: RentVsBuyParams): number {
+  const monthlyOwningCost = params.mortgage + params.tax + params.insurance
+    + params.hoa + params.maintenance - params.taxSavingsMonthly;
+  const monthlyRentCost = params.monthlyRent * (1 + params.rentInflationRate);
+  const monthlySavings = monthlyRentCost - monthlyOwningCost;
+  if (monthlySavings <= 0) return Infinity; // never breaks even
+  return Math.ceil(params.closingCosts / monthlySavings);
+}
+```
+
+---
+
+## Challenges and Lessons
+
+### Challenge 1: Tailwind v4 breaking changes
+
+Tailwind v4 changed how config is loaded — no more `tailwind.config.js` by default. The initial scaffold used v3 patterns that failed silently.
+
+**Fix:** Agent-ui switched to the v4 CSS-native config (`@import "tailwindcss"` in globals.css). Lesson: always check the major version of every dependency before scaffolding.
+
+### Challenge 2: D1 SQLite dialect differences
+
+D1 uses SQLite, but some SQL patterns common in Postgres (e.g., `RETURNING *` in some contexts, certain JSON operators) behaved differently.
+
+**Fix:** agent-worker ran all schema migrations against a local D1 emulator (`wrangler d1 execute --local`) before deploying to production. Added this step to the sprint checklist.
+
+### Challenge 3: Vercel + Cloudflare CORS
+
+The Cloudflare Worker initially rejected requests from the Vercel preview URL because CORS headers only allowed the production domain.
+
+**Fix:** Worker reads `ALLOWED_ORIGINS` from environment variable — supports comma-separated list including Vercel preview URLs (`*.vercel.app`).
+
+---
+
+## Outcome
+
+| Metric | Value |
+|--------|-------|
+| Time to ship | 7 days (4 sprints) |
+| Total agents used | 5 Sonnet workers + 1 Opus Brain |
+| Financial criteria covered | 12+ (TCO, DTI, PMI, MID, SALT, MCC, rent vs buy, refinance, recast, opportunity cost) |
+| Frontend deploy | https://mortgage-compare-app.vercel.app |
+| Worker API | https://mortgage-compare-api.phongrealtortx.workers.dev |
+| Monthly cost | $0 (both free tiers) |
+| Contract mismatch bug | Found and fixed in 3 minutes via smoke test |
+
+---
+
+## Replication Guide
+
+<Steps>
+  <Step title="Scaffold Next.js with Tailwind v4 + shadcn">
+    `npx create-next-app@latest --typescript`
+    Then install Tailwind v4 and shadcn/ui per their v4 docs.
+    Verify Tailwind renders before adding any business logic.
+  </Step>
+  <Step title="Build calculator logic first, UI second">
+    Write pure TypeScript functions for every calculation. Test them with known inputs before wiring up the UI. Wrong math is worse than ugly UI.
+  </Step>
+  <Step title="Set up Cloudflare Worker + D1">
+    `npm create cloudflare@latest`
+    Define your D1 schema in a migration file. Test locally with `wrangler d1 execute --local` before deploying.
+  </Step>
+  <Step title="Define the API contract before splitting agents">
+    Write a short contract doc (even just comments) specifying request/response shapes before spawning frontend and backend agents. This prevents the inputs vs inputs_json class of bugs.
+  </Step>
+  <Step title="Run a smoke test before calling the sprint done">
+    After both agents complete, Brain runs one end-to-end test: create a scenario via UI, save to cloud, reload page, verify scenario reloads. This catches integration bugs the unit tests miss.
+  </Step>
+</Steps>
+
+---
+
+## Related
+
+- [Agent OS Overview](/agent-os-overview/introduction) — multi-agent orchestration framework
+- [Git Worktree Patterns](/agent-os-overview/architecture) — parallel agent setup
+- [Cloudflare D1 Docs](https://developers.cloudflare.com/d1/) — SQLite at the edge
+- [Case Study 1: RKB 4-Sprint Build](/phong-playbook/case-01-rkb-4-sprint-build) — longer-horizon multi-sprint pattern

@@ -1,0 +1,218 @@
+---
+title: "Case Study: 107-Page Realtor Knowledge Base in 4 Sprints"
+description: "How Phong built a 107-page Mintlify documentation site from scratch using Brain + 5 parallel Sonnet agents across 4 sprints in April 2026."
+last_reviewed: 2026-04-22
+data_freshness: "2026-04 (Sprint 6)"
+---
+
+# Case Study: 107-Page Realtor Knowledge Base in 4 Sprints
+
+## Context
+
+### Business Need
+
+Phong needed a single authoritative source of truth for Texas real estate knowledge — negotiation scripts, mortgage calculators, cultural guides, and market data — that he could reference during client calls and share with prospects.
+
+### Starting Point
+
+Zero. No existing documentation system, no templates, no MDX experience.
+
+### Goal / Success Criteria
+
+- A Mintlify-compatible documentation site with real, usable content
+- Searchable, linkable pages that can be shared with Vietnamese-American clients
+- Maintained via GitHub with CI validation so content stays accurate
+- Live at a public URL: https://phong-to.documentationai.com
+
+---
+
+## Timeline
+
+**Sprint 1 (Week 1, April 2026)**
+- Topic focus: negotiation tactics, mortgage calculators, buyer/seller checklists
+- 3 git worktrees spawned in parallel
+- Agent 1: negotiation scripts + offer strategy pages
+- Agent 2: mortgage payment + affordability calculators (MDX)
+- Agent 3: validation scripts (pre-commit, check-links, check-frontmatter)
+- Merged ~35 pages, ~3,800 lines
+
+**Sprint 2 (Week 2)**
+- Topic focus: blue tape walkthrough process + feng shui integration for Vietnamese buyers
+- Cultural content: compass directions, room color meanings, number symbolism
+- 2 parallel agents (content + QA)
+- Merged ~18 pages, ~2,100 lines
+
+**Sprint 3 (Week 3)**
+- Topic focus: Sherman TX deep-dive + DFW submarkets
+- 5 new pages on Grayson County specifics, school districts, commute corridors
+- 1,682 lines shipped in a single sprint
+- Agent 3 ran link validation on every new page before merge
+
+**Sprint 4 (Week 4)**
+- Topic focus: Vietnamese buyer end-to-end playbook + 40-day closing cheatsheet
+- 473 lines on the 40-day cheatsheet alone (day-by-day client guide)
+- Content fully bilingual: English headings, Vietnamese call-out blocks
+
+**Total across all sprints:** 107 pages, ~12,000+ lines of MDX
+
+---
+
+## Technical Approach
+
+### Tools Used
+
+| Tool | Role |
+|------|------|
+| Claude Code (Cowork mode) | Primary interface — always-on Brain session |
+| Claude Opus (Brain) | Orchestrator — holds plan, delegates tasks |
+| Claude Sonnet x5 (Workers) | Content writers, validator, commit agent |
+| Git worktrees | Parallel branches, zero merge conflicts |
+| Mintlify | Documentation platform, MDX rendering |
+| GitHub Actions | CI — runs validation on every push |
+| Desktop Commander MCP | Shell access from Claude session |
+
+### Multi-Agent Pattern
+
+```
+Brain (Opus)
+  ├── Worktree A: agent-negotiation   → content/negotiation/**
+  ├── Worktree B: agent-mortgage      → content/mortgage/**
+  ├── Worktree C: agent-validation    → scripts/**, .github/**
+  ├── Worktree D: agent-market        → content/markets/**
+  └── Worktree E: agent-playbook      → content/buyer-playbook/**
+```
+
+Rules enforced by Brain:
+- Each agent owns distinct glob patterns — no overlap
+- Agent-validation reviews all new MDX before any merge
+- Merge order: validation branch first, content branches second, main last
+
+### Key Design Decisions
+
+1. **Validation-first:** Three scripts (`pre-commit-check.sh`, `check-links.sh`, `check-frontmatter.sh`) were built in Sprint 1 and run on every new file before commit.
+2. **Frontmatter standard:** Every page requires `title`, `description`, `last_reviewed`, `data_freshness` — enforced by `check-frontmatter.sh`.
+3. **No Mermaid diagrams:** MDX v3 parse errors with complex diagrams led to a policy of ASCII art + Callout/Steps components only.
+4. **Full Vietnamese diacritics in source:** All Vietnamese text uses Unicode diacritics directly in JSX/MDX — never romanized shortcuts.
+
+---
+
+## Workflow in Action
+
+### Step 1: Brain spawns agents
+
+```
+# Brain prompt (Opus session)
+"Sprint 3 begins. Topic: Sherman TX market deep-dive + DFW submarkets.
+Spawn 2 agents via Task tool:
+  Agent 1 (worktree: agent-market-sherman):
+    File ownership: content/markets/sherman-tx/**
+    Deliverable: 3 pages on Grayson County — schools, commute, market stats
+  Agent 2 (worktree: agent-market-dfw):
+    File ownership: content/markets/dfw-submarkets/**
+    Deliverable: 2 pages on McKinney, Frisco, Allen corridors
+  After both complete, Agent 3 (validator) runs check scripts.
+  Report back with line counts and any validation failures."
+```
+
+### Step 2: Agent writes MDX
+
+```mdx
+---
+title: "Sherman TX Market Overview"
+description: "Current market conditions, school districts, and commute corridors for Grayson County buyers."
+last_reviewed: 2026-04-15
+data_freshness: "2026-04 (Sprint 3)"
+---
+
+# Sherman TX Market Overview
+
+<Callout kind="info">
+  Data current as of April 2026. Grayson County MLS stats updated monthly.
+</Callout>
+
+## Why Sherman?
+
+Sherman sits at the intersection of affordability and access...
+```
+
+### Step 3: Validator runs checks
+
+```bash
+bash scripts/pre-commit-check.sh
+bash scripts/check-links.sh 2>&1 | tail -5
+bash scripts/check-frontmatter.sh 2>&1 | tail -15
+```
+
+### Step 4: Brain merges
+
+Brain receives validation report, resolves any failures, then merges worktrees in order: validator branch → content branches → main.
+
+---
+
+## Challenges and Lessons
+
+### Challenge 1: MDX v3 parse errors
+
+Early sprints used `{#anchor}` heading syntax and bare `{}` in text blocks. Both cause MDX v3 parse failures.
+
+**Fix:** Added lint rules to `pre-commit-check.sh` to catch these patterns before commit. Playbook rule: never use `{#anchor}`, always escape `{}` in prose.
+
+### Challenge 2: Agent context drift
+
+By Sprint 3, individual Sonnet agents occasionally lost track of the file ownership rules and tried to edit shared files.
+
+**Fix:** Brain now injects file ownership glob patterns into every agent prompt, not just the first one. Explicit beats implicit.
+
+### Challenge 3: Frontmatter drift
+
+Some pages in Sprint 1 had inconsistent `data_freshness` formats (`"April 2026"` vs `"2026-04"`).
+
+**Fix:** `check-frontmatter.sh` now enforces exact format: `"YYYY-MM (Sprint N)"`. CI fails on any deviation.
+
+---
+
+## Outcome
+
+| Metric | Value |
+|--------|-------|
+| Total pages | 107 |
+| Total lines | ~12,000+ |
+| Sprints | 4 (April 2026) |
+| Agents used | 5 parallel Sonnet workers + 1 Opus Brain |
+| CI checks | 3 validation scripts, all passing |
+| Live URL | https://phong-to.documentationai.com |
+| Cost | Claude subscription (no per-page cost) |
+
+---
+
+## Replication Guide
+
+Follow these steps to build your own knowledge base with this pattern:
+
+<Steps>
+  <Step title="Set up Mintlify repo">
+    Fork the Mintlify starter and configure `documentation.json` with your nav structure. Set up GitHub Actions with the validation scripts.
+  </Step>
+  <Step title="Write validation scripts first">
+    Build `pre-commit-check.sh`, `check-links.sh`, and `check-frontmatter.sh` before writing a single content page. These scripts are your safety net for the entire project.
+  </Step>
+  <Step title="Define file ownership">
+    Map out which topics belong to which directories. Create a glob ownership table. Never let two agents touch the same directory.
+  </Step>
+  <Step title="Set up git worktrees">
+    `git worktree add ../worktree-agent-1 -b agent-1-content`
+    Repeat for each parallel agent. Each agent commits only to its own worktree branch.
+  </Step>
+  <Step title="Run Brain + Worker sprints">
+    Brain (Opus) holds the sprint plan. Sonnet workers execute in parallel. Brain merges after validation passes.
+  </Step>
+</Steps>
+
+---
+
+## Related
+
+- [Agent OS Overview](/agent-os-overview/introduction) — the multi-agent framework underlying this workflow
+- [Git Worktree Patterns](/agent-os-overview/architecture) — how to set up parallel worktrees
+- [Mintlify MDX Reference](/core-rules/content-creation-rules) — component library used in these pages
+- [Vietnamese Buyer Playbook](https://phong-to.documentationai.com) — the live output

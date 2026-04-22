@@ -1,0 +1,277 @@
+---
+title: "Case Study: Vietnamese Real Estate Content Pipeline for DFW"
+description: "How Phong creates bilingual real estate content for the Vietnamese-American community in DFW — Facebook, YouTube, email, and WhatsApp — using Claude Code, Remotion, Zernio, and Vbee."
+last_reviewed: 2026-04-22
+data_freshness: "2026-04 (Sprint 6)"
+---
+
+# Case Study: Vietnamese Real Estate Content Pipeline for DFW
+
+## Context
+
+### Business Need
+
+The Vietnamese-American community in DFW is large, underserved by Vietnamese-language real estate content, and makes housing decisions within an extended family framework. Phong's competitive edge is trust, language, and cultural fluency — not paid ads or reach metrics.
+
+### Starting Point
+
+Phong was writing posts manually, one at a time, in both Vietnamese and English. Video production required a separate tool, TTS was a separate step, and social scheduling was manual. Each piece of content took 2–3 hours end-to-end.
+
+### Goal / Success Criteria
+
+- End-to-end pipeline: topic to published post in under 30 minutes
+- Vietnamese text with full diacritics (not romanized shortcuts)
+- Video voiceover in authentic Vietnamese accent (not text-to-screen only)
+- Cultural adaptations built into templates — not added as an afterthought
+- Metric: client inquiries and community trust, not raw follower count
+
+---
+
+## Content Types and Stack
+
+| Content Type | Tool | Output |
+|-------------|------|--------|
+| Facebook posts | content-viet skill + Zernio MCP | Scheduled post with image |
+| YouTube videos | Remotion 4.0 + Vbee API | MP4 + Vietnamese voiceover |
+| Blog articles | content-viet skill + Mintlify MDX | Published wiki page |
+| Client emails | email-writer skill | Bilingual email (Viet + English) |
+| WhatsApp group messages | content-viet skill | Short-form update for group chats |
+
+### Core Tools
+
+- **content-viet skill** — Claude Code skill that auto-generates Vietnamese real estate content. Takes a topic + data inputs, returns Facebook post, email draft, and short WhatsApp version in one call.
+- **email-writer skill** — bilingual client email generator. Produces a Vietnamese paragraph followed by an English translation in the same email body.
+- **Remotion 4.0** — React-based programmatic video. Phong's `market-update` template has 4 scenes: Title, Stats, Metrics, CTA.
+- **Vbee API** — Vietnamese TTS. Endpoint: `https://vbee.vn/api/v1/tts`. Produces MP3 voiceover synced to Remotion video length.
+- **Zernio (Late) MCP** — social media scheduling without leaving the Claude session. Supports Facebook, YouTube, and more.
+
+---
+
+## Timeline: A Typical Content Week
+
+**Monday: Topic selection**
+
+Phong identifies the week's topic — e.g., "April 2026 Sherman TX market update" — based on MLS data, client questions from the prior week, or community events (Lunar New Year, tax season, etc.).
+
+**Tuesday: Content generation**
+
+```
+# content-viet skill prompt
+"Topic: Sherman TX April 2026 thị trường nhà đất.
+Data: median price $285K, days on market 22, inventory up 8%.
+Audience: Vietnamese-American first-time buyers in DFW.
+Generate: Facebook post (Vietnamese, 150–200 words), email draft (bilingual),
+WhatsApp update (50 words max Vietnamese).
+Tone: knowledgeable neighbor, not salesperson."
+```
+
+Output is reviewed, lightly edited, and saved to `Content/media/2026-04/`.
+
+**Wednesday: Video production**
+
+Remotion `market-update` template is populated with the week's stats. Vbee API call generates the voiceover MP3. Remotion renders the final MP4.
+
+**Thursday: Scheduling**
+
+Zernio MCP schedules the Facebook post and YouTube video via `mcp__zernio__posts_create`. WhatsApp message is sent manually to community groups — Zernio does not support WhatsApp broadcast at scale for this use case.
+
+**Friday: Community engagement**
+
+Phong responds to comments and DMs. Claude Code drafts reply suggestions when questions are complex (mortgage math, legal questions requiring referral).
+
+---
+
+## Technical Approach
+
+### Remotion Video Structure
+
+```
+~/Workspace/Claude/market-update/src/
+├── Root.jsx                  # Remotion composition root
+├── index.js                  # entry point
+└── MarketUpdate/
+    ├── index.jsx             # 4-scene orchestrator
+    ├── TitleScene.jsx        # Phong's name + market name + date
+    ├── StatsScene.jsx        # median price, DOM, inventory
+    ├── MetricsScene.jsx      # month-over-month comparison bars
+    └── CTAScene.jsx          # contact info + call to action
+```
+
+Strict rendering rules enforced in every scene:
+
+```jsx
+// ALWAYS use SAFE constants — never shorthand padding
+paddingLeft: SAFE.left,   // 120px
+paddingRight: SAFE.right, // 120px
+paddingTop: SAFE.top,     // 180px
+
+// NEVER use emoji — renders as hollow square in headless Chrome
+// NEVER use shorthand: padding: '0 80px' — wrong values
+
+// ALWAYS full Unicode diacritics
+const headline = "Thị trường nhà đất Sherman TX";
+// NEVER: "Thi truong nha dat Sherman TX"
+```
+
+### Vbee TTS Integration
+
+```javascript
+// Vbee API call pattern
+const response = await fetch("https://vbee.vn/api/v1/tts", {
+  method: "POST",
+  headers: { "Authorization": `Bearer ${VBEE_API_KEY}` },
+  body: JSON.stringify({
+    text: vietnameseScript,
+    voice_code: "hn_female_ngochuyen_full_48k-fhg", // Northern accent
+    speed: 0.95,
+    output_format: "mp3"
+  })
+});
+// Save MP3 to Content/media/YYYY-MM/<name>-voiceover.mp3
+```
+
+The golden copy MP3 is saved alongside the video file. If the video needs a re-render, the same MP3 is reused — no new TTS call needed.
+
+### Zernio MCP Scheduling
+
+```
+# Zernio scheduling (inside Claude session)
+Use mcp__zernio__posts_create to schedule:
+  - platform: facebook
+  - account_id: [Phong's FB page]
+  - content: [Vietnamese post text]
+  - scheduled_at: "2026-04-24T09:00:00-05:00"  (Thursday 9am CDT)
+  - media: [path to preview PNG]
+
+IMPORTANT: NEVER schedule without explicit approval from Phong.
+Always show the draft post and scheduled time for review first.
+```
+
+---
+
+## Cultural Adaptations
+
+These are built into the content-viet skill templates, not added manually each time:
+
+**Lunar calendar awareness**
+
+Content around Tết (Lunar New Year) follows a different rhythm: avoid listing launches in the week before Tết, include auspicious framing for spring listings.
+
+**1099 income scripts**
+
+Many Vietnamese-American clients are self-employed contractors. The content-viet skill includes a standard block explaining how lenders handle 1099 income — 2-year average, bank statements as supplement.
+
+**Feng shui integration**
+
+For listings, Phong notes compass orientation, bedroom count relative to family size, and avoids framing north-facing entrances as neutral. These details appear naturally in listing descriptions, not as a separate section.
+
+**Family decision-making dynamics**
+
+Vietnamese homebuying decisions involve parents, in-laws, and sometimes adult children. Content acknowledges this explicitly: "Mời cả gia đình đến xem nhà" (Invite the whole family to view the home) rather than addressing only the buyer couple.
+
+**Number symbolism**
+
+Listing prices that include "8" (phát — prosperity) or avoid "4" (tử — death) are noted in client emails when relevant. Not superstition — cultural fluency.
+
+---
+
+## Workflow in Action: Full Example
+
+**Input:** April 2026 Sherman TX market data
+
+**Step 1 — content-viet generates drafts:**
+
+```
+Facebook post (Vietnamese):
+"Cập nhật thị trường nhà đất Sherman TX tháng 4/2026!
+Giá trung bình: $285,000 — tăng nhẹ so với tháng trước.
+Thời gian bán trung bình: 22 ngày — thị trường vẫn còn nhanh.
+Lượng nhà bán tăng 8% — cơ hội cho người mua đang tìm kiếm.
+Anh chị có câu hỏi về thị trường? Nhắn tin cho Phong nhé!
+TREC #843757 | phongrealtortx@gmail.com"
+```
+
+**Step 2 — Remotion renders video:**
+
+Stats from the post are passed to `StatsScene.jsx`. Remotion renders 30-second MP4 at 1080x1920 (vertical for Reels/Shorts).
+
+**Step 3 — Vbee generates voiceover:**
+
+The Facebook post text becomes the voiceover script. Vbee returns an MP3. The MP3 is embedded in the Remotion composition for final render.
+
+**Step 4 — Phong reviews:**
+
+Preview PNG + MP4 draft reviewed before scheduling. Any edits go back to Step 1.
+
+**Step 5 — Zernio schedules:**
+
+Post scheduled for Thursday 9am CDT. YouTube Shorts version scheduled for Friday 7am CDT.
+
+**Total time:** 25–40 minutes per weekly update, down from 2–3 hours manual.
+
+---
+
+## Challenges and Lessons
+
+### Challenge 1: Vietnamese diacritics in Remotion
+
+Early renders showed garbled characters because the headless Chrome environment used for rendering did not have Vietnamese fonts loaded.
+
+**Fix:** Added `@fontsource/be-vietnam-pro` to the Remotion project. Explicitly set `fontFamily: "Be Vietnam Pro"` in all text elements. Never rely on system font fallbacks in headless rendering.
+
+### Challenge 2: Emoji rendering
+
+Emoji in JSX/MDX renders as hollow squares (`□`) in headless Chrome. Several early videos shipped with broken emoji in the CTA scene.
+
+**Fix:** Strict rule in CLAUDE.md and content templates: no emoji in any Remotion scene text. Use text labels instead (`"Lien he"` instead of the phone emoji).
+
+### Challenge 3: Zernio auto-publish risk
+
+An early session summary noted "next step: schedule post." In the following session, Claude nearly published automatically before Phong had reviewed the draft.
+
+**Fix:** Explicit rule added to CLAUDE.md: "NEVER schedule or publish via Zernio without explicit approval from Phong in the current session. Always show the draft and ask." This rule is non-negotiable.
+
+---
+
+## Outcome
+
+| Metric | Value |
+|--------|-------|
+| Time per content piece | 25–40 minutes (down from 2–3 hours) |
+| Content types automated | 5 (Facebook, YouTube, blog, email, WhatsApp) |
+| Language accuracy | Full Vietnamese diacritics, Northern accent TTS |
+| Cultural adaptations | Lunar calendar, 1099 scripts, feng shui, family dynamics, number symbolism |
+| Primary success metric | Client inquiries and community trust |
+| Cost | Claude subscription + Vbee API (pay-per-character, low volume = low cost) |
+
+---
+
+## Replication Guide
+
+<Steps>
+  <Step title="Identify your audience's cultural context">
+    Before building any template, list the top 5 cultural factors that affect your audience's housing decisions. Build these into your prompt templates, not as manual additions.
+  </Step>
+  <Step title="Set up Remotion with the right font">
+    Install `@fontsource/your-target-language-font` before writing any scene components. Test a render with your target language text before building the full template.
+  </Step>
+  <Step title="Establish a TTS golden copy workflow">
+    Generate the voiceover MP3 once, save it as the golden copy alongside the video file. Only regenerate if the script changes — TTS APIs charge per character.
+  </Step>
+  <Step title="Connect Zernio MCP to your social accounts">
+    Use `mcp__zernio__connect_get_connect_url` to link your social accounts. Test with a draft post before scheduling anything live.
+  </Step>
+  <Step title="Add explicit approval gates">
+    Any tool that publishes content publicly must have an explicit human approval step. Write this rule into your CLAUDE.md. Claude will not violate it if it is clearly stated.
+  </Step>
+</Steps>
+
+---
+
+## Related
+
+- [Agent OS Overview](/agent-os-overview/introduction) — the multi-agent framework used throughout
+- [Case Study 1: RKB 4-Sprint Build](/phong-playbook/case-01-rkb-4-sprint-build) — long-form content production
+- [Case Study 2: Mortgage App Week](/phong-playbook/case-02-mortgage-app-week) — tool-building for client service
+- [Remotion Documentation](https://remotion.dev) — programmatic video framework
+- [Vbee TTS](https://vbee.vn) — Vietnamese text-to-speech API
