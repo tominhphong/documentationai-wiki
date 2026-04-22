@@ -211,14 +211,14 @@ Hệ thống Agent OS hiện tại vận hành với 4 agent làm việc song so
 
 **Luồng claim task (5 bước):**
 
-1. Worker đọc `plans/task-board-sprint-2.md` → chọn task `[ ]` phù hợp scope
+1. Worker đọc `plans/task-board-sprint-<N>.md` → chọn task `[ ]` phù hợp scope
 2. Worker commit+push lên worktree branch riêng (`win2-framework`, `win3-workflow`, `win4-reference-qa`)
 3. Win 4 chạy `scripts/pre-commit-check.sh` → QA pass/fail
 4. Brain (Opus) review PR → merge vào `main`
 5. Documentation.AI auto-deploy → MCP reindex → wiki searchable
 
 <Callout kind="info">
-Không có runtime IPC. Toàn bộ phối hợp qua filesystem: `plans/progress.md` (append-only log), `plans/task-board.md` (status updates), `plans/cross-scope-sprint-2.md` (cross-scope requests). Workers không gọi nhau trực tiếp.
+Không có runtime IPC. Toàn bộ phối hợp qua filesystem: `plans/progress.md` (append-only log), `plans/task-board.md` (status updates), `plans/cross-scope-sprint-<N>.md` (cross-scope requests). Workers không gọi nhau trực tiếp.
 </Callout>
 
 
@@ -255,9 +255,9 @@ Quy tắc quan trọng: `path` trong JSON **không có** đuôi `.mdx`. Sai 1 k�
 
 | File | Vai trò |
 |------|---------|
-| `plans/task-board-sprint-2.md` | Kanban: `[ ]` TODO → `[>]` IN-PROGRESS → `[R]` REVIEW → `[x]` DONE |
+| `plans/task-board-sprint-<N>.md` | Kanban: `[ ]` TODO → `[>]` IN-PROGRESS → `[R]` REVIEW → `[x]` DONE |
 | `plans/progress.md` | Append-only activity log: `[HH:MM] [winN] <action>` |
-| `plans/cross-scope-sprint-2.md` | Cross-scope patch requests từ workers gửi Lead |
+| `plans/cross-scope-sprint-<N>.md` | Cross-scope patch requests từ workers gửi Lead |
 | `CLAUDE.md` | Master rules: MDX gotchas, voice/style, component whitelist |
 | `AGENTS.md` | Role definitions, file ownership per agent |
 | `CODEOWNERS` | Git-level ownership enforcement |

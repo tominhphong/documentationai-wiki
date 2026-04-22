@@ -8,6 +8,10 @@ keywords: [multi-agent, collaboration, team, worker, brain, lead-architect, win1
 
 ## Tổng quan mô hình
 
+<Callout kind="warning">
+Trang này mô tả mô hình **Filesystem-IPC (4-iTerm)** — đây là legacy/debug mode. Cho production sprints, xem [Architecture Decision: Filesystem-IPC vs Agent Team SDK](/agent-os-overview/architecture-decision-ipc-vs-sdk) để chọn đúng kiến trúc.
+</Callout>
+
 Wiki này được xây và duy trì bởi một team 4 agents chạy song song trên 4 iTerm2 windows (Win 1–4), mỗi agent là một instance `claude` CLI độc lập. Không có runtime communication giữa các agents — tất cả coordination thông qua filesystem (git + markdown files trong `plans/`).
 
 Mô hình này là ví dụ thực tế của **multi-agent collaboration** được document trong chính wiki này.

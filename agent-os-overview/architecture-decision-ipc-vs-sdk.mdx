@@ -1,0 +1,125 @@
+---
+title: "Architecture Decision: Filesystem-IPC vs Agent Team SDK"
+description: "Khi nào dùng mô hình 4-iTerm filesystem-IPC và khi nào dùng Agent Team SDK (SendMessage/TaskUpdate). Giải thích tại sao hai mô hình tồn tại song song."
+last_reviewed: 2026-04-22
+keywords: [architecture, filesystem-ipc, agent-team-sdk, sendmessage, taskupdate, decision, legacy, recommended]
+---
+
+<Callout kind="info">
+Đọc page này trước khi chọn kiến trúc cho một sprint mới. Hai mô hình có trade-offs rõ ràng — chọn đúng tránh auth conflicts và công việc thừa.
+</Callout>
+
+## Tóm tắt quyết định
+
+| Tiêu chí | Filesystem-IPC (4 iTerm) | Agent Team SDK |
+|----------|--------------------------|----------------|
+| Trạng thái | **Legacy / Debug mode** | **Recommended cho prod** |
+| Coordination | Git commits + markdown files | `SendMessage`, `TaskUpdate`, `TaskList` |
+| Auth | Mỗi CLI session cần token riêng → conflict risk | Một main session, sub-agents không cần auth riêng |
+| Visibility | `git log` | `TaskList`, message history trong session |
+| Khi dùng | Debug, audit, offline work | Sprint mới, multi-agent tasks |
+
+---
+
+## Mô hình 1 — Filesystem-IPC (4 iTerm windows)
+
+Wiki này được build bằng mô hình này trong Sprint 1–2. Bốn Claude Code CLI instances chạy song song, mỗi instance là một iTerm2 window.
+
+**Cách hoạt động:**
+
+- Win 1 (Lead) tạo tasks trong `plans/task-board-sprint-<N>.md`
+- Win 2/3/4 (Workers) claim tasks bằng cách commit thay đổi lên worktree branch riêng
+- Tất cả coordination qua filesystem: `plans/progress.md`, `plans/cross-scope-sprint-<N>.md`
+- Không có runtime IPC — agents "giao tiếp" qua git commits
+
+**Điểm mạnh:**
+
+- Toàn bộ history trong git log — auditable và replayable
+- Không cần setup đặc biệt ngoài git worktrees
+- Phù hợp khi cần verify từng step thủ công
+
+**Hạn chế:**
+
+- Mỗi CLI session cần Anthropic API key riêng → dễ gặp Issue 1 (401 auth conflict)
+- Không có real-time visibility — lead phải poll git log để biết worker đang làm gì
+- Setup phức tạp hơn: 4 terminal windows, 4 worktrees, quản lý manually
+
+<Callout kind="warning">
+Nếu gặp lỗi **401 Unauthorized** khi start CLI session thứ 2 trở lên, đây là dấu hiệu cần chuyển sang Agent Team SDK. Xem [Known Issues — Issue 1](/agent-os-overview/known-issues).
+</Callout>
+
+---
+
+## Mô hình 2 — Agent Team SDK (Recommended)
+
+Agent Team SDK là kiến trúc được recommend cho production multi-agent sprints. Thay vì nhiều CLI sessions độc lập, một main session spawn các sub-agents và điều phối qua API.
+
+**Cách hoạt động:**
+
+- Một main `claude` session (Lead) chạy trong repo chính
+- Lead spawn sub-agents qua Task tool — không cần CLI session riêng
+- Agents giao tiếp qua:
+  - `SendMessage(type: "message")` — peer DMs giữa agents
+  - `SendMessage(type: "broadcast")` — thông báo khẩn cho cả team
+  - `TaskUpdate` — cập nhật trạng thái task
+  - `TaskList` — xem danh sách tasks còn lại
+
+**Điểm mạnh:**
+
+- Không có auth conflict — chỉ một API session
+- Real-time visibility: lead thấy ngay khi sub-agent update task
+- Setup đơn giản hơn: chạy `claude` một lần từ repo root
+- Sub-agents có thể claim và update tasks mà không cần commit
+
+**Hạn chế:**
+
+- Ít audit trail hơn trong git — coordination không để lại commit
+- Cần network ổn định trong suốt session (sub-agents phụ thuộc main session)
+- Một số patterns filesystem-IPC không áp dụng (ví dụ: `plans/progress.md` append)
+
+---
+
+## Khi nào dùng mô hình nào
+
+```
+Bắt đầu sprint mới?
+    ├─ Có nhiều người/session CLI riêng biệt → CÂN NHẮC filesystem-IPC
+    │   (nhưng chuẩn bị xử lý Issue 1 nếu cần >2 sessions)
+    └─ Chạy từ một máy, một Anthropic account → Agent Team SDK
+           ↓
+    Đang gặp 401 auth conflict? → Chuyển sang Agent Team SDK ngay
+    Cần offline / audit chi tiết từng commit? → Filesystem-IPC
+    Production sprint với deadline? → Agent Team SDK
+```
+
+---
+
+## Migration từ Filesystem-IPC sang Agent Team SDK
+
+Nếu đang dùng filesystem-IPC và muốn chuyển:
+
+1. Dừng các CLI sessions worker (Win 2/3/4)
+2. Từ main session (Win 1), dùng Task tool để spawn sub-agents
+3. Sub-agents đọc `AGENTS.md` để biết role và scope — cùng file, khác cách claim
+4. Coordination chuyển từ git commits sang `TaskUpdate` + `SendMessage`
+5. Filesystem coordination files (`plans/task-board-sprint-<N>.md`, `plans/progress.md`) vẫn dùng được như reference — không cần xóa
+
+<Callout kind="info">
+Sub-agents trong Agent Team SDK vẫn có thể đọc và commit file — filesystem-IPC files không bị vô hiệu hóa. Hai mô hình có thể hybrid: dùng SDK cho coordination, dùng git commits cho content changes.
+</Callout>
+
+---
+
+## Pages liên quan
+
+Các pages sau mô tả filesystem-IPC model — đây là **legacy documentation**, vẫn valid nhưng phản ánh mô hình 4-iTerm:
+
+- [Architecture](/agent-os-overview/architecture) — coordination diagram và system layers
+- [Multi-Agent Collaboration](/agent-os-overview/multi-agent-collaboration) — 4 roles, task claiming flow
+- [Communication Rules](/core-rules/communication-rules) — filesystem channels, cross-scope protocol
+- [Multi-Agent Sprint Workflow](/workflows/multi-agent-sprint-workflow) — sprint phases 1–7
+
+Khi dùng Agent Team SDK, thay thế:
+- `plans/task-board-sprint-<N>.md` claim → `TaskUpdate(status: "in_progress")`
+- Append vào `plans/progress.md` → `SendMessage` đến lead
+- `plans/cross-scope-sprint-<N>.md` request → `SendMessage(type: "message")` trực tiếp đến Win 1

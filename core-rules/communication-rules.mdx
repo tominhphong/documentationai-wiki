@@ -109,7 +109,7 @@ Worker viết rõ:
 
 <Step title="Bước 2 — Append request vào cross-scope file">
 
-Mở `plans/cross-scope-sprint-2.md`, append vào section `## Pending` theo template:
+Mở `plans/cross-scope-sprint-<N>.md` (N = sprint hiện tại), append vào section `## Pending` theo template:
 
 ```
 ### [YYYY-MM-DD HH:MM] [winN → win1] Tên ngắn gọn
@@ -136,11 +136,11 @@ Status: pending
 
 <Step title="Bước 3 — Commit request và tiếp tục làm việc">
 
-Commit file `plans/cross-scope-sprint-2.md` với message:
+Commit file `plans/cross-scope-sprint-<N>.md` với message:
 
 ```bash
-git add plans/cross-scope-sprint-2.md
-git commit -m "chore(S2-W2-03): cross-scope request communication-rules nav"
+git add plans/cross-scope-sprint-<N>.md
+git commit -m "chore(SN-W2-03): cross-scope request communication-rules nav"
 git push origin win2-framework
 ```
 
@@ -150,7 +150,7 @@ git push origin win2-framework
 
 <Step title="Bước 4 — Win 1 apply và mark applied">
 
-Win 1 đọc `plans/cross-scope-sprint-2.md`, apply patch vào file đúng scope, rồi cập nhật status:
+Win 1 đọc `plans/cross-scope-sprint-<N>.md`, apply patch vào file đúng scope, rồi cập nhật status:
 
 ```
 Status: **applied** (commit SHA: abc1234)
@@ -174,7 +174,7 @@ Worker cần check status trước lần deploy để biết nav đã được u
 Không phải mọi vấn đề đều cần escalate. Nhưng có 3 trường hợp **phải** báo cho Win 1:
 
 <Callout kind="warning">
-**Stuck trên 30 phút trên một task.** Không tiếp tục mày mò. Append `BLOCKED` tag vào `plans/cross-scope-sprint-2.md` với mô tả lỗi và những gì đã thử. Tiếp tục task khác nếu có thể.
+**Stuck trên 30 phút trên một task.** Không tiếp tục mày mò. Append `BLOCKED` tag vào `plans/cross-scope-sprint-<N>.md` với mô tả lỗi và những gì đã thử. Tiếp tục task khác nếu có thể.
 </Callout>
 
 **Trường hợp 1 — Stuck trên 30 phút**

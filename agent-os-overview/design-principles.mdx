@@ -46,7 +46,7 @@ Hệ thống multi-agent này không có real-time communication giữa các age
 
 **Mọi state change đều đi qua git commit.**
 
-Khi Win 2 hoàn thành một page, Win 1 biết bằng cách pull branch và xem git log — không phải qua notification hay API call. Khi Win 2 cần Win 1 update `documentation.json`, Win 2 append vào `plans/cross-scope-sprint-2.md` và commit — Win 1 đọc file đó lần sau.
+Khi Win 2 hoàn thành một page, Win 1 biết bằng cách pull branch và xem git log — không phải qua notification hay API call. Khi Win 2 cần Win 1 update `documentation.json`, Win 2 append vào `plans/cross-scope-sprint-<N>.md` và commit — Win 1 đọc file đó lần sau.
 
 ### Tại sao chọn kiến trúc này
 
@@ -82,7 +82,7 @@ Mỗi session bắt đầu bằng: `CLAUDE.md` (MDX gotchas, component whitelist
 </Step>
 
 <Step title="Đọc tracking files">
-`plans/task-board-sprint-2.md` (task nào đang in-progress, task nào blocked), `plans/progress.md` (những gì đã làm gần đây), `plans/cross-scope-sprint-2.md` (requests pending).
+`plans/task-board-sprint-<N>.md` (task nào đang in-progress, task nào blocked), `plans/progress.md` (những gì đã làm gần đây), `plans/cross-scope-sprint-<N>.md` (requests pending).
 </Step>
 
 <Step title="Đọc target file trước khi edit">
@@ -114,7 +114,7 @@ File ownership là thiết kế cốt lõi của hệ thống, không phải gui
 
 Khi Win 2 tạo page mới và cần thêm vào navigation (`documentation.json`), Win 2 không tự edit `documentation.json`. Thay vào đó:
 
-1. Append patch request vào `plans/cross-scope-sprint-2.md`
+1. Append patch request vào `plans/cross-scope-sprint-<N>.md`
 2. Commit và tiếp tục task tiếp theo
 3. Win 1 apply patch trong lần sync tiếp
 
@@ -172,7 +172,7 @@ Dưới đây là các anti-patterns mà Agent OS chủ động reject, kèm lý
 |----------------|-------------------|
 | "Move fast and break things" | Wiki là foundation mà agents tự-orient — instability phá trust của cả hệ thống, không chỉ của một feature |
 | "Magic numbers" (hardcoded constants) | Số liệu như sprint ID, path conventions, component whitelist phải nằm trong config hoặc docs được reference — không hardcode trong nhiều chỗ |
-| "Silent failures" | Nếu build fail, nếu agent bị stuck, nếu scope conflict xảy ra — phải append vào `plans/findings.md` hoặc `cross-scope-sprint-2.md`. Không ignore, không tiếp tục như không có gì |
+| "Silent failures" | Nếu build fail, nếu agent bị stuck, nếu scope conflict xảy ra — phải append vào `plans/findings.md` hoặc `plans/cross-scope-sprint-<N>.md`. Không ignore, không tiếp tục như không có gì |
 | "God file" (1 file làm tất cả) | Không có file nào vượt quá 400 dòng. Nếu một page quá dài, tách ra thành nhiều pages liên kết — mỗi page có 1 mục đích rõ ràng |
 | "Tribal knowledge" | Mọi quyết định thiết kế phải có trong git commit message hoặc trong wiki — không để trong conversation history hay memory của một agent cụ thể |
 | "Optimize for the happy path" | Error handling và edge cases (MDX gotchas, merge conflicts, cross-scope requests) phải được document rõ ràng, không ẩn trong footnotes |

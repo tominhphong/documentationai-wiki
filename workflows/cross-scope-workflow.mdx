@@ -56,7 +56,7 @@ Trong quá trình thực hiện task, xác định xem có cần thay đổi fil
 
 **Cách xác định:**
 
-1. Đọc task description trong `plans/task-board-sprint-2.md`
+1. Đọc task description trong `plans/task-board-sprint-<N>.md`
 2. Nếu task tạo file `.mdx` mới → **luôn** cần cross-scope request cho nav entry
 3. Kiểm tra file target có nằm trong scope của mình không:
 
@@ -108,8 +108,8 @@ git push origin win3-workflow
 **Ví dụ thực tế:**
 
 ```bash
-git add plans/cross-scope-sprint-2.md
-git commit -m "chore(S2-W3-03): cross-scope request cross-scope-workflow nav"
+git add plans/cross-scope-sprint-<N>.md
+git commit -m "chore(SN-W3-03): cross-scope request cross-scope-workflow nav"
 git push origin win3-workflow
 ```
 
@@ -225,7 +225,7 @@ Status: **applied**
 <Callout kind="info">
 Brain apply cross-scope requests theo batch — thường là khi merge worker branches vào `main`. Turnaround điển hình là **5–15 phút sau khi worker branch được merge**.
 
-Nếu request urgent hơn (ví dụ: blocker cho task tiếp theo), ghi chú trong `plans/task-board-sprint-2.md` dưới task liên quan và Brain sẽ prioritize.
+Nếu request urgent hơn (ví dụ: blocker cho task tiếp theo), ghi chú trong `plans/task-board-sprint-<N>.md` dưới task liên quan và Brain sẽ prioritize.
 </Callout>
 
 **Timeline thông thường:**
@@ -239,8 +239,8 @@ Nếu request urgent hơn (ví dụ: blocker cho task tiếp theo), ghi chú tro
 | Entry moved sang `## Applied` | T+25-35 phút |
 
 Nếu chờ quá 1 giờ mà chưa thấy entry được applied, kiểm tra:
-1. `plans/task-board-sprint-2.md` — task của mình đã có QA PASS chưa?
-2. `plans/cross-scope-sprint-2.md` — entry đã xuất hiện dưới `## Pending` chưa?
+1. `plans/task-board-sprint-<N>.md` — task của mình đã có QA PASS chưa?
+2. `plans/cross-scope-sprint-<N>.md` — entry đã xuất hiện dưới `## Pending` chưa?
 3. Nếu cả hai đều OK nhưng vẫn chưa applied, ghi note trong task-board để Brain biết.
 
 ---

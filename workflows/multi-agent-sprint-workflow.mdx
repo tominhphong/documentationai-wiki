@@ -155,6 +155,60 @@ Nếu `documentation.json` chưa được update trước khi deploy, page mới
 
 </Steps>
 
+## Plan Approval Flow
+
+Khi task description hoặc lead yêu cầu `plan_mode_required`, worker phải submit plan trước khi implement. Flow này áp dụng cho Agent Team SDK — không áp dụng cho filesystem-IPC (4-iTerm) model.
+
+<Steps>
+
+<Step title="Research và lập kế hoạch">
+
+Worker đọc task description, đọc các files liên quan trong scope, và lên kế hoạch implement. **Không chỉnh sửa bất kỳ file nào trong bước này** — chỉ đọc.
+
+Kết quả: plan rõ ràng gồm danh sách files sẽ tạo/sửa, approach, và potential risks.
+
+</Step>
+
+<Step title="Submit plan qua ExitPlanMode">
+
+Worker gửi plan đến lead bằng cách gọi `ExitPlanMode` với nội dung plan. Đây là trigger để lead review.
+
+**Nội dung plan nên gồm:**
+- Danh sách files sẽ tạo hoặc sửa
+- Approach và rationale
+- Risks hoặc dependencies
+
+Sau khi call `ExitPlanMode`, worker **dừng và chờ** — không implement.
+
+</Step>
+
+<Step title="Lead review và respond">
+
+Lead nhận plan approval request và đưa ra quyết định:
+
+| Lead response | Worker action |
+|---------------|---------------|
+| `plan_approval_response: approved` | Tiếp tục implement ngay |
+| `plan_approval_response: rejected` | Đọc feedback, revise plan, resubmit via `ExitPlanMode` |
+
+**Quy tắc:** Nếu plan bị reject **hai lần**, lead takes over task đó — worker không tiếp tục revise.
+
+</Step>
+
+<Step title="Implement sau khi approved">
+
+Sau khi nhận approval, worker tiếp tục theo Phase 3–7 của sprint workflow bình thường.
+
+</Step>
+
+</Steps>
+
+<Callout kind="info">
+Plan Approval Flow chỉ cần thiết khi task phức tạp hoặc khi lead explicitly set `plan_mode_required`. Tasks đơn giản (thêm section, fix typo, update frontmatter) không cần plan approval.
+</Callout>
+
+---
+
 ## Coordination Rules Tóm Tắt
 
 | Tình huống | Hành động |
@@ -164,3 +218,4 @@ Nếu `documentation.json` chưa được update trước khi deploy, page mới
 | Pre-commit fail | Fix trước khi push, không bypass |
 | Hai workers claim cùng task | Task có `[winN]` tag là người đã claim — người sau pick task khác |
 | Mọi 3-5 tasks | Re-read `plans/progress.md` để sync với other agents |
+| `plan_mode_required` set | Submit plan via `ExitPlanMode`, chờ approval trước khi implement |

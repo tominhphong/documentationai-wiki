@@ -21,7 +21,7 @@ Win 4 là reviewer duy nhất trong Sprint 2. Không worker nào tự review out
 
 <Step title="Bước 1 — Nhận Review Request">
 
-**Trigger:** Worker (Win 2 hoặc Win 3) đã push commit lên branch worker và đánh dấu task là `[R]` REVIEW trong `plans/task-board-sprint-2.md`.
+**Trigger:** Worker (Win 2 hoặc Win 3) đã push commit lên branch worker và đánh dấu task là `[R]` REVIEW trong `plans/task-board-sprint-<N>.md`.
 
 **Win 4 cần xác nhận 3 thứ trước khi bắt đầu:**
 
@@ -136,7 +136,7 @@ Sau khi hoàn thành cả 3 lớp validation, Win 4 đưa ra quyết định:
 
 Khi tất cả automated checks pass và manual read-through không tìm thấy vấn đề:
 
-1. Mở `plans/task-board-sprint-2.md`
+1. Mở `plans/task-board-sprint-<N>.md`
 2. Đổi `[R]` thành `[x]` cho task vừa review
 3. Append comment QA PASS vào dưới task line:
    ```
@@ -144,13 +144,13 @@ Khi tất cả automated checks pass và manual read-through không tìm thấy 
    ```
 4. Commit và push lên `win4-reference-qa`:
    ```bash
-   git add plans/task-board-sprint-2.md
-   git commit -m "chore(qa): QA PASS S2-WX-YY — pre-commit + links + manual OK"
+   git add plans/task-board-sprint-<N>.md
+   git commit -m "chore(qa): QA PASS SN-WX-YY — pre-commit + links + manual OK"
    git push origin win4-reference-qa
    ```
-5. Thông báo Brain (Opus): append note vào `plans/cross-scope-sprint-2.md` dưới `## Pending`:
+5. Thông báo Brain (Opus): append note vào `plans/cross-scope-sprint-<N>.md` dưới `## Pending`:
    ```
-   ### [YYYY-MM-DD HH:MM] [win4 → win1] QA PASS: S2-WX-YY ready to merge
+   ### [YYYY-MM-DD HH:MM] [win4 → win1] QA PASS: SN-WX-YY ready to merge
    Reason: All validation passed. Branch origin/winX-<scope> ready for merge to main.
    Status: pending
    ```
@@ -254,7 +254,7 @@ Win 4 đánh giá từng submission dựa trên 4 nhóm tiêu chí:
 | SC1 | No territory invasion | Worker chỉ tạo/sửa file trong scope được assign — xem task-board |
 | SC2 | No documentation.json edits | Worker không tự sửa `documentation.json` — phải submit cross-scope request |
 | SC3 | No scripts/ edits | Worker không sửa `scripts/` trừ khi đó là task của Win 4 |
-| SC4 | No plans/ content edits | Worker chỉ được append vào `plans/cross-scope-sprint-2.md` — không sửa các file plans khác |
+| SC4 | No plans/ content edits | Worker chỉ được append vào `plans/cross-scope-sprint-<N>.md` — không sửa các file plans khác |
 
 ---
 
@@ -310,7 +310,7 @@ Action yêu cầu:
 1. Revert thay đổi trên [out-of-scope-file]:
    git checkout origin/main -- [path/to/out-of-scope-file]
 2. Nếu thay đổi đó cần thiết, submit cross-scope request:
-   Append vào plans/cross-scope-sprint-2.md theo template trong file đó.
+   Append vào plans/cross-scope-sprint-<N>.md theo template trong file đó.
 3. Push lại và ping Win 4.
 
 Note: Nếu cross-scope change là phần bắt buộc của task, submit request — Brain sẽ apply.

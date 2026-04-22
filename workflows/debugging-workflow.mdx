@@ -152,7 +152,7 @@ Không dùng `git reset --hard` trừ khi Win 1 cho phép. Revert an toàn hơn 
 - Root cause không rõ sau 30 phút debug
 - Lỗi nằm ngoài file ownership (cần Win 1 can thiệp)
 
-Append vào `plans/cross-scope-sprint-2.md` với tag `BLOCKED` (xem Bước 4b bên dưới).
+Append vào `plans/cross-scope-sprint-<N>.md` với tag `BLOCKED` (xem Bước 4b bên dưới).
 
 </Step>
 
@@ -201,7 +201,7 @@ git push origin win3-workflow
 # [YYYY-MM-DD HH:MM] [win3] fix: resolved <error type> in <file>
 ```
 
-Sau đó **claim task tiếp theo** trong `plans/task-board-sprint-2.md` theo đúng thứ tự ưu tiên (task ID nhỏ nhất còn TODO trong scope của mình).
+Sau đó **claim task tiếp theo** trong `plans/task-board-sprint-<N>.md` theo đúng thứ tự ưu tiên (task ID nhỏ nhất còn TODO trong scope của mình).
 
 <Callout kind="info">
 Nếu debug mất hơn 15 phút, ghi vào `plans/findings.md` section "Gotchas" — giúp các agent khác và sprint sau tránh lỗi tương tự.
@@ -330,7 +330,7 @@ Escalate ngay cho Win 1 (Brain) khi gặp bất kỳ trigger nào dưới đây:
 
 **Trigger 1 — Blocked trên 30 phút**
 
-Nếu đã thử mọi cách mà vẫn không fix được sau 30 phút làm việc tập trung → không tiếp tục mày mò. Append `BLOCKED` vào `plans/cross-scope-sprint-2.md`.
+Nếu đã thử mọi cách mà vẫn không fix được sau 30 phút làm việc tập trung → không tiếp tục mày mò. Append `BLOCKED` vào `plans/cross-scope-sprint-<N>.md`.
 
 **Trigger 2 — Lỗi ngoài file ownership**
 
@@ -347,7 +347,7 @@ Nếu error message không quen và không tìm được solution sau 15 phút r
 **Cách escalate:**
 
 ```markdown
-# Append vào plans/cross-scope-sprint-2.md:
+# Append vào plans/cross-scope-sprint-<N>.md:
 
 ### [2026-04-20 14:30] [win3 → win1] BLOCKED: <mô tả ngắn>
 Reason: <mô tả lỗi và những gì đã thử>
