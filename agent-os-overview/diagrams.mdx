@@ -1,0 +1,866 @@
+---
+title: "Visual Diagrams — Agent OS Architecture"
+description: "8 inline SVG diagrams explaining multi-agent workflow, MCP, hooks, sprint lifecycle, skill taxonomy, content pipeline, and cost routing."
+last_reviewed: 2026-04-22
+data_freshness: "2026-04 (Sprint 7)"
+keywords: [diagrams, svg, agent workflow, mcp, hooks, sprint lifecycle, claude code]
+---
+
+## 1. Multi-Agent Workflow
+
+Brain (Opus) coordinates 5 Sonnet workers via the Task tool. Each worker owns a git worktree and commits independently. Brain merges after QA passes.
+
+<svg viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",maxWidth:"800px",fontFamily:"system-ui,sans-serif"}}>
+  <defs>
+    <marker id="arrow1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1d4ed8"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <!-- Brain (Opus) box -->
+  <rect x="300" y="20" width="200" height="60" rx="10" fill="#1d4ed8"/>
+  <text x="400" y="46" textAnchor="middle" fill="white" fontSize="15" fontWeight="bold">Brain (Opus)</text>
+  <text x="400" y="66" textAnchor="middle" fill="#93c5fd" fontSize="11">Lead Architect / Win 1</text>
+
+  <!-- Filesystem coordination box -->
+  <rect x="620" y="20" width="160" height="60" rx="8" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+  <text x="700" y="43" textAnchor="middle" fill="#d1d5db" fontSize="11" fontWeight="bold">plans/task-board.md</text>
+  <text x="700" y="59" textAnchor="middle" fill="#9ca3af" fontSize="10">plans/progress.md</text>
+  <text x="700" y="73" textAnchor="middle" fill="#9ca3af" fontSize="10">Filesystem IPC</text>
+
+  <!-- Arrow Brain → filesystem -->
+  <line x1="500" y1="50" x2="618" y2="50" stroke="#64748b" strokeWidth="1.5" markerEnd="url(#arrow1)" strokeDasharray="5,3"/>
+
+  <!-- 5 Worker boxes -->
+  <!-- Win 2 -->
+  <rect x="20" y="180" width="130" height="70" rx="8" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1.5"/>
+  <text x="85" y="205" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Win 2</text>
+  <text x="85" y="221" textAnchor="middle" fill="#93c5fd" fontSize="10">Sonnet 4.6</text>
+  <text x="85" y="237" textAnchor="middle" fill="#60a5fa" fontSize="10">Framework Author</text>
+
+  <!-- Win 3 -->
+  <rect x="165" y="180" width="130" height="70" rx="8" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1.5"/>
+  <text x="230" y="205" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Win 3</text>
+  <text x="230" y="221" textAnchor="middle" fill="#93c5fd" fontSize="10">Sonnet 4.6</text>
+  <text x="230" y="237" textAnchor="middle" fill="#60a5fa" fontSize="10">Workflow Writer</text>
+
+  <!-- Win 4 -->
+  <rect x="310" y="180" width="130" height="70" rx="8" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1.5"/>
+  <text x="375" y="205" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Win 4</text>
+  <text x="375" y="221" textAnchor="middle" fill="#93c5fd" fontSize="10">Sonnet 4.6</text>
+  <text x="375" y="237" textAnchor="middle" fill="#60a5fa" fontSize="10">Reference + QA</text>
+
+  <!-- Win 5 -->
+  <rect x="455" y="180" width="130" height="70" rx="8" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1.5"/>
+  <text x="520" y="205" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Win 5</text>
+  <text x="520" y="221" textAnchor="middle" fill="#93c5fd" fontSize="10">Sonnet 4.6</text>
+  <text x="520" y="237" textAnchor="middle" fill="#60a5fa" fontSize="10">Content Author</text>
+
+  <!-- Win 6 -->
+  <rect x="600" y="180" width="130" height="70" rx="8" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1.5"/>
+  <text x="665" y="205" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Win 6</text>
+  <text x="665" y="221" textAnchor="middle" fill="#93c5fd" fontSize="10">Sonnet 4.6</text>
+  <text x="665" y="237" textAnchor="middle" fill="#60a5fa" fontSize="10">Diagrams + Visual</text>
+
+  <!-- Arrows Brain → Workers -->
+  <line x1="370" y1="80" x2="100" y2="178" stroke="#1d4ed8" strokeWidth="1.5" markerEnd="url(#arrowBlue)"/>
+  <line x1="385" y1="80" x2="245" y2="178" stroke="#1d4ed8" strokeWidth="1.5" markerEnd="url(#arrowBlue)"/>
+  <line x1="400" y1="80" x2="385" y2="178" stroke="#1d4ed8" strokeWidth="1.5" markerEnd="url(#arrowBlue)"/>
+  <line x1="415" y1="80" x2="520" y2="178" stroke="#1d4ed8" strokeWidth="1.5" markerEnd="url(#arrowBlue)"/>
+  <line x1="430" y1="80" x2="655" y2="178" stroke="#1d4ed8" strokeWidth="1.5" markerEnd="url(#arrowBlue)"/>
+
+  <!-- Worktree labels -->
+  <text x="85" y="265" textAnchor="middle" fill="#6b7280" fontSize="9">worktree: win2-*</text>
+  <text x="230" y="265" textAnchor="middle" fill="#6b7280" fontSize="9">worktree: win3-*</text>
+  <text x="375" y="265" textAnchor="middle" fill="#6b7280" fontSize="9">worktree: win4-*</text>
+  <text x="520" y="265" textAnchor="middle" fill="#6b7280" fontSize="9">worktree: win5-*</text>
+  <text x="665" y="265" textAnchor="middle" fill="#6b7280" fontSize="9">worktree: win6-*</text>
+
+  <!-- Git merge flow -->
+  <rect x="180" y="340" width="180" height="50" rx="8" fill="#065f46" stroke="#10b981" strokeWidth="1.5"/>
+  <text x="270" y="361" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Win 4 QA Gate</text>
+  <text x="270" y="379" textAnchor="middle" fill="#6ee7b7" fontSize="10">pre-commit-check.sh</text>
+
+  <rect x="420" y="340" width="180" height="50" rx="8" fill="#064e3b" stroke="#10b981" strokeWidth="1.5"/>
+  <text x="510" y="361" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Brain merges → main</text>
+  <text x="510" y="379" textAnchor="middle" fill="#6ee7b7" fontSize="10">Documentation.AI deploy</text>
+
+  <!-- Worker → QA arrows -->
+  <line x1="85" y1="252" x2="215" y2="338" stroke="#64748b" strokeWidth="1" markerEnd="url(#arrow1)"/>
+  <line x1="230" y1="252" x2="248" y2="338" stroke="#64748b" strokeWidth="1" markerEnd="url(#arrow1)"/>
+  <line x1="375" y1="252" x2="305" y2="338" stroke="#64748b" strokeWidth="1" markerEnd="url(#arrow1)"/>
+  <line x1="520" y1="252" x2="360" y2="338" stroke="#64748b" strokeWidth="1" markerEnd="url(#arrow1)"/>
+  <line x1="665" y1="252" x2="360" y2="338" stroke="#64748b" strokeWidth="1" markerEnd="url(#arrow1)"/>
+
+  <!-- QA → Merge arrow -->
+  <line x1="360" y1="365" x2="418" y2="365" stroke="#10b981" strokeWidth="2" markerEnd="url(#arrowGreen)"/>
+
+  <!-- PASS label -->
+  <text x="388" y="358" textAnchor="middle" fill="#10b981" fontSize="10">PASS</text>
+
+  <!-- Legend -->
+  <text x="20" y="455" fill="#4b5563" fontSize="10">— Task dispatch (Task tool)</text>
+  <line x1="20" y1="465" x2="60" y2="465" stroke="#1d4ed8" strokeWidth="2"/>
+  <text x="70" y="469" fill="#4b5563" fontSize="10">Assign</text>
+  <line x1="130" y1="465" x2="170" y2="465" stroke="#10b981" strokeWidth="2"/>
+  <text x="180" y="469" fill="#4b5563" fontSize="10">QA + Merge</text>
+  <line x1="260" y1="465" x2="300" y2="465" stroke="#64748b" strokeWidth="1.5" strokeDasharray="4,3"/>
+  <text x="310" y="469" fill="#4b5563" fontSize="10">Filesystem IPC</text>
+</svg>
+
+**Key concepts:**
+- Brain (Opus) is the sole orchestrator — never a worker
+- Workers commit to separate git worktrees to avoid merge conflicts
+- All coordination is filesystem-based: no runtime IPC, no shared memory
+- Win 4 acts as QA gate before Brain merges to main
+
+**Why it matters:** Parallel workers multiply throughput. A 5-agent sprint completes in the time of 1 worker because each agent operates on a non-overlapping file scope.
+
+---
+
+## 2. Memory Palace Architecture
+
+The Memory Palace (AAAK spec) organizes knowledge into Wings → Rooms → Drawers → Items. This hierarchy mirrors how a human memory palace works — spatial, relational, traversable.
+
+<svg viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",maxWidth:"800px",fontFamily:"system-ui,sans-serif"}}>
+  <defs>
+    <marker id="arrow2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrow2o" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#F97316"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="22" textAnchor="middle" fill="#1e293b" fontSize="13" fontWeight="bold">AAAK Memory Palace — Hierarchy</text>
+
+  <!-- Palace (top level) -->
+  <rect x="280" y="34" width="240" height="46" rx="10" fill="#7c3aed"/>
+  <text x="400" y="54" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">Memory Palace</text>
+  <text x="400" y="72" textAnchor="middle" fill="#ddd6fe" fontSize="10">antigravity-memory-palace MCP</text>
+
+  <!-- Wings row -->
+  <rect x="60" y="120" width="160" height="44" rx="8" fill="#1d4ed8"/>
+  <text x="140" y="138" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Wing: Agent OS</text>
+  <text x="140" y="154" textAnchor="middle" fill="#bfdbfe" fontSize="10">Operating system docs</text>
+
+  <rect x="320" y="120" width="160" height="44" rx="8" fill="#1d4ed8"/>
+  <text x="400" y="138" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Wing: Realtor KB</text>
+  <text x="400" y="154" textAnchor="middle" fill="#bfdbfe" fontSize="10">Real estate knowledge</text>
+
+  <rect x="580" y="120" width="160" height="44" rx="8" fill="#1d4ed8"/>
+  <text x="660" y="138" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Wing: Projects</text>
+  <text x="660" y="154" textAnchor="middle" fill="#bfdbfe" fontSize="10">Active work context</text>
+
+  <!-- Palace → Wings -->
+  <line x1="370" y1="80" x2="175" y2="118" stroke="#94a3b8" strokeWidth="1.5" markerEnd="url(#arrow2)"/>
+  <line x1="400" y1="80" x2="400" y2="118" stroke="#94a3b8" strokeWidth="1.5" markerEnd="url(#arrow2)"/>
+  <line x1="430" y1="80" x2="625" y2="118" stroke="#94a3b8" strokeWidth="1.5" markerEnd="url(#arrow2)"/>
+
+  <!-- Rooms row (under Wing: Agent OS) -->
+  <rect x="20" y="210" width="110" height="40" rx="6" fill="#0e7490" stroke="#22d3ee" strokeWidth="1"/>
+  <text x="75" y="226" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">Room: Architecture</text>
+  <text x="75" y="242" textAnchor="middle" fill="#a5f3fc" fontSize="9">System layers</text>
+
+  <rect x="140" y="210" width="110" height="40" rx="6" fill="#0e7490" stroke="#22d3ee" strokeWidth="1"/>
+  <text x="195" y="226" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">Room: Workflows</text>
+  <text x="195" y="242" textAnchor="middle" fill="#a5f3fc" fontSize="9">How-to processes</text>
+
+  <!-- Wing → Rooms -->
+  <line x1="100" y1="164" x2="75" y2="208" stroke="#94a3b8" strokeWidth="1" markerEnd="url(#arrow2)"/>
+  <line x1="160" y1="164" x2="195" y2="208" stroke="#94a3b8" strokeWidth="1" markerEnd="url(#arrow2)"/>
+
+  <!-- Rooms row (under Wing: Realtor KB) -->
+  <rect x="285" y="210" width="110" height="40" rx="6" fill="#0e7490" stroke="#22d3ee" strokeWidth="1"/>
+  <text x="340" y="226" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">Room: Sherman TX</text>
+  <text x="340" y="242" textAnchor="middle" fill="#a5f3fc" fontSize="9">Local market data</text>
+
+  <rect x="405" y="210" width="110" height="40" rx="6" fill="#0e7490" stroke="#22d3ee" strokeWidth="1"/>
+  <text x="460" y="226" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">Room: TREC Rules</text>
+  <text x="460" y="242" textAnchor="middle" fill="#a5f3fc" fontSize="9">Compliance + legal</text>
+
+  <!-- Wing → Rooms -->
+  <line x1="370" y1="164" x2="340" y2="208" stroke="#94a3b8" strokeWidth="1" markerEnd="url(#arrow2)"/>
+  <line x1="420" y1="164" x2="460" y2="208" stroke="#94a3b8" strokeWidth="1" markerEnd="url(#arrow2)"/>
+
+  <!-- Drawers row -->
+  <rect x="20" y="295" width="100" height="36" rx="5" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+  <text x="70" y="311" textAnchor="middle" fill="#d1d5db" fontSize="10" fontWeight="bold">Drawer</text>
+  <text x="70" y="325" textAnchor="middle" fill="#9ca3af" fontSize="9">Layer definitions</text>
+
+  <rect x="130" y="295" width="100" height="36" rx="5" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+  <text x="180" y="311" textAnchor="middle" fill="#d1d5db" fontSize="10" fontWeight="bold">Drawer</text>
+  <text x="180" y="325" textAnchor="middle" fill="#9ca3af" fontSize="9">MCP servers</text>
+
+  <rect x="285" y="295" width="100" height="36" rx="5" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+  <text x="335" y="311" textAnchor="middle" fill="#d1d5db" fontSize="10" fontWeight="bold">Drawer</text>
+  <text x="335" y="325" textAnchor="middle" fill="#9ca3af" fontSize="9">Price history</text>
+
+  <rect x="395" y="295" width="100" height="36" rx="5" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+  <text x="445" y="311" textAnchor="middle" fill="#d1d5db" fontSize="10" fontWeight="bold">Drawer</text>
+  <text x="445" y="325" textAnchor="middle" fill="#9ca3af" fontSize="9">Disclosure rules</text>
+
+  <!-- Rooms → Drawers -->
+  <line x1="75" y1="250" x2="70" y2="293" stroke="#6b7280" strokeWidth="1" markerEnd="url(#arrow2)"/>
+  <line x1="100" y1="250" x2="180" y2="293" stroke="#6b7280" strokeWidth="1" markerEnd="url(#arrow2)"/>
+  <line x1="340" y1="250" x2="335" y2="293" stroke="#6b7280" strokeWidth="1" markerEnd="url(#arrow2)"/>
+  <line x1="460" y1="250" x2="445" y2="293" stroke="#6b7280" strokeWidth="1" markerEnd="url(#arrow2)"/>
+
+  <!-- Items row -->
+  <rect x="20" y="376" width="90" height="28" rx="4" fill="#1c1917" stroke="#44403c" strokeWidth="1"/>
+  <text x="65" y="395" textAnchor="middle" fill="#a8a29e" fontSize="9">Item: Layer 1 def</text>
+
+  <rect x="118" y="376" width="90" height="28" rx="4" fill="#1c1917" stroke="#44403c" strokeWidth="1"/>
+  <text x="163" y="395" textAnchor="middle" fill="#a8a29e" fontSize="9">Item: Zernio tools</text>
+
+  <rect x="285" y="376" width="90" height="28" rx="4" fill="#1c1917" stroke="#44403c" strokeWidth="1"/>
+  <text x="330" y="395" textAnchor="middle" fill="#a8a29e" fontSize="9">Item: Apr 2026 avg</text>
+
+  <rect x="383" y="376" width="100" height="28" rx="4" fill="#1c1917" stroke="#44403c" strokeWidth="1"/>
+  <text x="433" y="395" textAnchor="middle" fill="#a8a29e" fontSize="9">Item: TREC §1101</text>
+
+  <!-- Drawers → Items -->
+  <line x1="65" y1="331" x2="65" y2="374" stroke="#44403c" strokeWidth="1" markerEnd="url(#arrow2)"/>
+  <line x1="170" y1="331" x2="163" y2="374" stroke="#44403c" strokeWidth="1" markerEnd="url(#arrow2)"/>
+  <line x1="330" y1="331" x2="330" y2="374" stroke="#44403c" strokeWidth="1" markerEnd="url(#arrow2)"/>
+  <line x1="440" y1="331" x2="433" y2="374" stroke="#44403c" strokeWidth="1" markerEnd="url(#arrow2)"/>
+
+  <!-- Search annotation -->
+  <rect x="570" y="270" width="210" height="70" rx="8" fill="#fef3c7" stroke="#F97316" strokeWidth="1.5"/>
+  <text x="675" y="290" textAnchor="middle" fill="#92400e" fontSize="11" fontWeight="bold">mempalace_search(query)</text>
+  <text x="675" y="308" textAnchor="middle" fill="#78350f" fontSize="10">Traverses all Wings/Rooms</text>
+  <text x="675" y="324" textAnchor="middle" fill="#78350f" fontSize="10">Returns ranked Items</text>
+  <text x="675" y="340" textAnchor="middle" fill="#78350f" fontSize="10">with tunnel links</text>
+  <line x1="570" y1="305" x2="510" y2="305" stroke="#F97316" strokeWidth="1.5" markerEnd="url(#arrow2o)" strokeDasharray="4,3"/>
+</svg>
+
+**Key concepts:**
+- Palace → Wings → Rooms → Drawers → Items: 5-level hierarchy
+- Tunnels cross-link items between Wings (no duplication needed)
+- `mempalace_search` does hybrid semantic + keyword across all Rooms
+- AAAK spec defines strict naming conventions for each level
+
+**Why it matters:** Structured hierarchy prevents knowledge fragmentation. Agent finds the same fact in one place every time — DRY principle applied to memory.
+
+---
+
+## 3. MCP Ecosystem Flow
+
+Claude sends tool calls to MCP servers, which proxy to external APIs. Each MCP server normalizes the API response into a format Claude can use directly.
+
+<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",maxWidth:"800px",fontFamily:"system-ui,sans-serif"}}>
+  <defs>
+    <marker id="arrow3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+    </marker>
+    <marker id="arrow3r" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <!-- Claude box -->
+  <rect x="30" y="160" width="150" height="70" rx="10" fill="#1d4ed8"/>
+  <text x="105" y="188" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">Claude Desktop</text>
+  <text x="105" y="206" textAnchor="middle" fill="#bfdbfe" fontSize="10">Cowork Mode</text>
+  <text x="105" y="220" textAnchor="middle" fill="#93c5fd" fontSize="10">Mac mini M4</text>
+
+  <!-- MCP Server (middle) -->
+  <rect x="310" y="140" width="180" height="110" rx="10" fill="#7c3aed" stroke="#a78bfa" strokeWidth="1.5"/>
+  <text x="400" y="168" textAnchor="middle" fill="white" fontSize="13" fontWeight="bold">MCP Server</text>
+  <text x="400" y="186" textAnchor="middle" fill="#ddd6fe" fontSize="10">Model Context Protocol</text>
+  <text x="400" y="204" textAnchor="middle" fill="#c4b5fd" fontSize="9">Tool schema registry</text>
+  <text x="400" y="220" textAnchor="middle" fill="#c4b5fd" fontSize="9">Request normalization</text>
+  <text x="400" y="236" textAnchor="middle" fill="#c4b5fd" fontSize="9">Response formatting</text>
+
+  <!-- External APIs -->
+  <rect x="620" y="30" width="150" height="44" rx="8" fill="#065f46" stroke="#10b981" strokeWidth="1"/>
+  <text x="695" y="50" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Gmail</text>
+  <text x="695" y="66" textAnchor="middle" fill="#6ee7b7" fontSize="9">Google API</text>
+
+  <rect x="620" y="88" width="150" height="44" rx="8" fill="#0c4a6e" stroke="#38bdf8" strokeWidth="1"/>
+  <text x="695" y="108" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Cloudflare</text>
+  <text x="695" y="124" textAnchor="middle" fill="#7dd3fc" fontSize="9">Workers / R2 / D1</text>
+
+  <rect x="620" y="146" width="150" height="44" rx="8" fill="#1e1b4b" stroke="#818cf8" strokeWidth="1"/>
+  <text x="695" y="166" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Vercel</text>
+  <text x="695" y="182" textAnchor="middle" fill="#a5b4fc" fontSize="9">Deploy / Logs API</text>
+
+  <rect x="620" y="204" width="150" height="44" rx="8" fill="#4a1942" stroke="#e879f9" strokeWidth="1"/>
+  <text x="695" y="224" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Perplexity</text>
+  <text x="695" y="240" textAnchor="middle" fill="#f0abfc" fontSize="9">Search API</text>
+
+  <rect x="620" y="262" width="150" height="44" rx="8" fill="#431407" stroke="#fb923c" strokeWidth="1"/>
+  <text x="695" y="282" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">Zernio</text>
+  <text x="695" y="298" textAnchor="middle" fill="#fed7aa" fontSize="9">Social Media API</text>
+
+  <rect x="620" y="320" width="150" height="44" rx="8" fill="#14532d" stroke="#4ade80" strokeWidth="1"/>
+  <text x="695" y="340" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">HubSpot</text>
+  <text x="695" y="356" textAnchor="middle" fill="#bbf7d0" fontSize="9">CRM API</text>
+
+  <!-- Claude → MCP request -->
+  <line x1="182" y1="185" x2="308" y2="185" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow3)"/>
+  <text x="245" y="178" textAnchor="middle" fill="#475569" fontSize="10">tool call +</text>
+  <text x="245" y="191" textAnchor="middle" fill="#475569" fontSize="10">parameters</text>
+
+  <!-- MCP → Claude response -->
+  <line x1="308" y1="210" x2="182" y2="210" stroke="#10b981" strokeWidth="2" markerEnd="url(#arrow3r)"/>
+  <text x="245" y="230" textAnchor="middle" fill="#059669" fontSize="10">structured result</text>
+
+  <!-- MCP → External APIs -->
+  <line x1="490" y1="170" x2="618" y2="55" stroke="#94a3b8" strokeWidth="1.5" markerEnd="url(#arrow3)"/>
+  <line x1="490" y1="178" x2="618" y2="112" stroke="#94a3b8" strokeWidth="1.5" markerEnd="url(#arrow3)"/>
+  <line x1="490" y1="190" x2="618" y2="168" stroke="#94a3b8" strokeWidth="1.5" markerEnd="url(#arrow3)"/>
+  <line x1="490" y1="202" x2="618" y2="226" stroke="#94a3b8" strokeWidth="1.5" markerEnd="url(#arrow3)"/>
+  <line x1="490" y1="214" x2="618" y2="284" stroke="#94a3b8" strokeWidth="1.5" markerEnd="url(#arrow3)"/>
+  <line x1="490" y1="222" x2="618" y2="342" stroke="#94a3b8" strokeWidth="1.5" markerEnd="url(#arrow3)"/>
+
+  <!-- Protocol label -->
+  <text x="400" y="372" textAnchor="middle" fill="#6b7280" fontSize="10">Claude never calls external APIs directly — always via MCP protocol layer</text>
+</svg>
+
+**Key concepts:**
+- Claude only knows MCP tool names and schemas — not raw API details
+- MCP servers handle auth, rate limiting, and response normalization
+- One MCP server can proxy multiple endpoints (Zernio = 14 social platforms)
+- Tool selection priority: dedicated MCP > Chrome MCP > computer use
+
+**Why it matters:** MCP creates a stable interface. Swapping from Zernio to a different scheduler requires only updating the MCP server — Claude code stays unchanged.
+
+---
+
+## 4. Hook Pipeline Lifecycle
+
+Claude Code hooks intercept tool calls at multiple lifecycle points. The system uses hooks to enforce rules, auto-format, and inject context without modifying Claude's behavior at inference time.
+
+<svg viewBox="0 0 800 360" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",maxWidth:"800px",fontFamily:"system-ui,sans-serif"}}>
+  <defs>
+    <marker id="arrow4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+    </marker>
+    <marker id="arrow4b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ef4444"/>
+    </marker>
+  </defs>
+
+  <!-- Session lifecycle row at top -->
+  <rect x="20" y="20" width="160" height="44" rx="8" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+  <text x="100" y="40" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">SessionStart</text>
+  <text x="100" y="56" textAnchor="middle" fill="#9ca3af" fontSize="9">inject context, read plans/</text>
+
+  <rect x="620" y="20" width="160" height="44" rx="8" fill="#374151" stroke="#6b7280" strokeWidth="1"/>
+  <text x="700" y="40" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">SessionStop</text>
+  <text x="700" y="56" textAnchor="middle" fill="#9ca3af" fontSize="9">save memory, update logs</text>
+
+  <!-- SubagentStart -->
+  <rect x="320" y="20" width="160" height="44" rx="8" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1"/>
+  <text x="400" y="40" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">SubagentStart</text>
+  <text x="400" y="56" textAnchor="middle" fill="#93c5fd" fontSize="9">inject role context + scope</text>
+
+  <!-- Main pipeline -->
+  <!-- PreToolUse -->
+  <rect x="30" y="140" width="150" height="80" rx="8" fill="#7c2d12" stroke="#ea580c" strokeWidth="1.5"/>
+  <text x="105" y="163" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">PreToolUse</text>
+  <text x="105" y="180" textAnchor="middle" fill="#fed7aa" fontSize="9">Validate params</text>
+  <text x="105" y="194" textAnchor="middle" fill="#fed7aa" fontSize="9">Privacy block check</text>
+  <text x="105" y="208" textAnchor="middle" fill="#fed7aa" fontSize="9">Block or modify call</text>
+
+  <!-- Tool Execution -->
+  <rect x="310" y="140" width="180" height="80" rx="8" fill="#1d4ed8" stroke="#93c5fd" strokeWidth="1.5"/>
+  <text x="400" y="165" textAnchor="middle" fill="white" fontSize="13" fontWeight="bold">Tool Executes</text>
+  <text x="400" y="183" textAnchor="middle" fill="#bfdbfe" fontSize="9">Bash / Read / Write</text>
+  <text x="400" y="197" textAnchor="middle" fill="#bfdbfe" fontSize="9">MCP call / Edit</text>
+  <text x="400" y="211" textAnchor="middle" fill="#bfdbfe" fontSize="9">Returns result</text>
+
+  <!-- PostToolUse -->
+  <rect x="620" y="140" width="150" height="80" rx="8" fill="#064e3b" stroke="#10b981" strokeWidth="1.5"/>
+  <text x="695" y="163" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">PostToolUse</text>
+  <text x="695" y="180" textAnchor="middle" fill="#6ee7b7" fontSize="9">Auto-lint / format</text>
+  <text x="695" y="194" textAnchor="middle" fill="#6ee7b7" fontSize="9">Log tool call</text>
+  <text x="695" y="208" textAnchor="middle" fill="#6ee7b7" fontSize="9">Trigger follow-up</text>
+
+  <!-- Arrows between pipeline stages -->
+  <line x1="182" y1="180" x2="308" y2="180" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow4)"/>
+  <text x="245" y="174" textAnchor="middle" fill="#6b7280" fontSize="9">ALLOW</text>
+
+  <line x1="490" y1="180" x2="618" y2="180" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow4)"/>
+
+  <!-- Block path -->
+  <line x1="105" y1="222" x2="105" y2="280" stroke="#ef4444" strokeWidth="1.5" markerEnd="url(#arrow4b)"/>
+  <rect x="40" y="282" width="130" height="36" rx="6" fill="#450a0a" stroke="#ef4444" strokeWidth="1"/>
+  <text x="105" y="299" textAnchor="middle" fill="#fca5a5" fontSize="10" fontWeight="bold">BLOCKED</text>
+  <text x="105" y="312" textAnchor="middle" fill="#f87171" fontSize="9">AskUserQuestion</text>
+  <text x="60" y="256" fill="#ef4444" fontSize="9">BLOCK</text>
+
+  <!-- Session hooks connecting down -->
+  <line x1="100" y1="64" x2="100" y2="138" stroke="#6b7280" strokeWidth="1" strokeDasharray="4,3" markerEnd="url(#arrow4)"/>
+  <line x1="700" y1="64" x2="700" y2="138" stroke="#6b7280" strokeWidth="1" strokeDasharray="4,3" markerEnd="url(#arrow4)"/>
+  <line x1="400" y1="64" x2="400" y2="138" stroke="#3b82f6" strokeWidth="1" strokeDasharray="4,3" markerEnd="url(#arrow4)"/>
+
+  <!-- Examples column -->
+  <rect x="250" y="280" width="500" height="60" rx="8" fill="#0f172a" stroke="#1e293b" strokeWidth="1"/>
+  <text x="270" y="298" fill="#94a3b8" fontSize="10" fontWeight="bold">Hook examples in this system:</text>
+  <text x="270" y="314" fill="#64748b" fontSize="9">SubagentStart: inject plans/task-board.md + agent role into every subagent context</text>
+  <text x="270" y="328" fill="#64748b" fontSize="9">PostToolUse (Write): auto-run pre-commit-check.sh on .mdx files after save</text>
+  <text x="270" y="342" fill="#64748b" fontSize="9">PreToolUse (Read .env): trigger @@PRIVACY_PROMPT@@ → AskUserQuestion flow</text>
+</svg>
+
+**Key concepts:**
+- PreToolUse can block OR modify a tool call before execution
+- PostToolUse fires after every tool call — used for auto-linting MDX files
+- SubagentStart injects role context so subagents know their scope
+- SessionStop saves memory state between conversations
+
+**Why it matters:** Hooks automate enforcement. Instead of Claude manually running checks, PostToolUse runs `pre-commit-check.sh` automatically after every `.mdx` write.
+
+---
+
+## 5. Sprint Lifecycle
+
+A sprint moves from planning to live documentation in a deterministic 6-phase cycle. Brain orchestrates; workers execute in parallel worktrees.
+
+<svg viewBox="0 0 800 340" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",maxWidth:"800px",fontFamily:"system-ui,sans-serif"}}>
+  <defs>
+    <marker id="arrow5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+    </marker>
+    <marker id="arrow5g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <!-- Phase boxes with numbers -->
+  <!-- Phase 1: Plan -->
+  <rect x="10" y="60" width="110" height="90" rx="8" fill="#1d4ed8"/>
+  <circle cx="65" cy="82" r="14" fill="#1e40af"/>
+  <text x="65" y="87" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">1</text>
+  <text x="65" y="108" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Plan</text>
+  <text x="65" y="123" textAnchor="middle" fill="#bfdbfe" fontSize="9">Brain + Opus</text>
+  <text x="65" y="137" textAnchor="middle" fill="#bfdbfe" fontSize="9">task-board.md</text>
+
+  <!-- Arrow 1→2 -->
+  <line x1="122" y1="105" x2="138" y2="105" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow5)"/>
+
+  <!-- Phase 2: Worktrees -->
+  <rect x="140" y="60" width="110" height="90" rx="8" fill="#0e7490"/>
+  <circle cx="195" cy="82" r="14" fill="#0c4a6e"/>
+  <text x="195" y="87" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">2</text>
+  <text x="195" y="108" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Worktrees</text>
+  <text x="195" y="123" textAnchor="middle" fill="#a5f3fc" fontSize="9">git worktree add</text>
+  <text x="195" y="137" textAnchor="middle" fill="#a5f3fc" fontSize="9">win2/3/4/5/6</text>
+
+  <!-- Arrow 2→3 -->
+  <line x1="252" y1="105" x2="268" y2="105" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow5)"/>
+
+  <!-- Phase 3: Dispatch -->
+  <rect x="270" y="60" width="110" height="90" rx="8" fill="#7c3aed"/>
+  <circle cx="325" cy="82" r="14" fill="#6d28d9"/>
+  <text x="325" y="87" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">3</text>
+  <text x="325" y="108" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Dispatch</text>
+  <text x="325" y="123" textAnchor="middle" fill="#ddd6fe" fontSize="9">Task tool spawn</text>
+  <text x="325" y="137" textAnchor="middle" fill="#ddd6fe" fontSize="9">parallel agents</text>
+
+  <!-- Arrow 3→4 -->
+  <line x1="382" y1="105" x2="398" y2="105" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow5)"/>
+
+  <!-- Phase 4: Implement -->
+  <rect x="400" y="60" width="110" height="90" rx="8" fill="#b45309"/>
+  <circle cx="455" cy="82" r="14" fill="#92400e"/>
+  <text x="455" y="87" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">4</text>
+  <text x="455" y="108" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Implement</text>
+  <text x="455" y="123" textAnchor="middle" fill="#fde68a" fontSize="9">workers write</text>
+  <text x="455" y="137" textAnchor="middle" fill="#fde68a" fontSize="9">commit + push</text>
+
+  <!-- Arrow 4→5 -->
+  <line x1="512" y1="105" x2="528" y2="105" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow5)"/>
+
+  <!-- Phase 5: Validate -->
+  <rect x="530" y="60" width="110" height="90" rx="8" fill="#065f46"/>
+  <circle cx="585" cy="82" r="14" fill="#064e3b"/>
+  <text x="585" y="87" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">5</text>
+  <text x="585" y="108" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Validate</text>
+  <text x="585" y="123" textAnchor="middle" fill="#6ee7b7" fontSize="9">Win 4 QA gate</text>
+  <text x="585" y="137" textAnchor="middle" fill="#6ee7b7" fontSize="9">pre-commit-check</text>
+
+  <!-- Arrow 5→6 -->
+  <line x1="642" y1="105" x2="658" y2="105" stroke="#10b981" strokeWidth="2" markerEnd="url(#arrow5g)"/>
+
+  <!-- Phase 6: Deploy -->
+  <rect x="660" y="60" width="130" height="90" rx="8" fill="#1d4ed8"/>
+  <circle cx="725" cy="82" r="14" fill="#1e40af"/>
+  <text x="725" y="87" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">6</text>
+  <text x="725" y="108" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Deploy</text>
+  <text x="725" y="123" textAnchor="middle" fill="#bfdbfe" fontSize="9">Brain merge → main</text>
+  <text x="725" y="137" textAnchor="middle" fill="#bfdbfe" fontSize="9">DocAI autodeploy</text>
+
+  <!-- Time estimates -->
+  <text x="65" y="170" textAnchor="middle" fill="#6b7280" fontSize="9">~10 min</text>
+  <text x="195" y="170" textAnchor="middle" fill="#6b7280" fontSize="9">~5 min</text>
+  <text x="325" y="170" textAnchor="middle" fill="#6b7280" fontSize="9">~2 min</text>
+  <text x="455" y="170" textAnchor="middle" fill="#6b7280" fontSize="9">~60 min</text>
+  <text x="585" y="170" textAnchor="middle" fill="#6b7280" fontSize="9">~15 min</text>
+  <text x="725" y="170" textAnchor="middle" fill="#6b7280" fontSize="9">~2 min</text>
+
+  <!-- Parallel work band -->
+  <rect x="270" y="195" width="370" height="60" rx="6" fill="#0f172a" stroke="#334155" strokeWidth="1"/>
+  <text x="455" y="215" textAnchor="middle" fill="#94a3b8" fontSize="11" fontWeight="bold">Phases 3–4: Parallel Execution</text>
+  <text x="455" y="232" textAnchor="middle" fill="#64748b" fontSize="9">Win2 (agent-os-overview/)  |  Win3 (workflows/)  |  Win4 (help-center/ + QA)  |  Win5  |  Win6</text>
+  <text x="455" y="247" textAnchor="middle" fill="#64748b" fontSize="9">Each agent commits to own worktree — zero merge conflicts by design</text>
+
+  <!-- Feedback loop -->
+  <path d="M 585 152 Q 585 260 455 270 Q 400 275 400 152" fill="none" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="5,3" markerEnd="url(#arrow5)"/>
+  <text x="530" y="268" fill="#ef4444" fontSize="9">FAIL → worker fixes</text>
+
+  <!-- Task board legend -->
+  <rect x="10" y="220" width="240" height="100" rx="6" fill="#111827" stroke="#374151" strokeWidth="1"/>
+  <text x="20" y="238" fill="#9ca3af" fontSize="10" fontWeight="bold">Task board states:</text>
+  <text x="20" y="256" fill="#6b7280" fontSize="10">[ ] TODO</text>
+  <text x="20" y="272" fill="#F97316" fontSize="10">[&#62;] IN-PROGRESS</text>
+  <text x="20" y="288" fill="#60a5fa" fontSize="10">[R] REVIEW (Win 4 QA)</text>
+  <text x="20" y="304" fill="#10b981" fontSize="10">[x] DONE (after Brain merge)</text>
+</svg>
+
+**Key concepts:**
+- Phases 1–2 are sequential (Brain only); Phases 3–4 are parallel (all workers)
+- File ownership prevents conflicts: each worker owns distinct folders
+- QA failure loops back to Phase 4 — workers fix, not Brain
+- Total sprint time: ~90–120 min from plan to live docs
+
+**Why it matters:** Deterministic process means every sprint produces the same quality outcome regardless of which agents run it. No improvisation after Phase 1.
+
+---
+
+## 6. ClaudeKit Skill Taxonomy
+
+155+ skills organized into 12 categories across two flagship plugins: ClaudeKit Engineer (~75 skills) and ClaudeKit Marketing (~80 skills).
+
+<svg viewBox="0 0 800 440" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",maxWidth:"800px",fontFamily:"system-ui,sans-serif"}}>
+  <!-- Root -->
+  <rect x="310" y="10" width="180" height="44" rx="10" fill="#1d4ed8"/>
+  <text x="400" y="30" textAnchor="middle" fill="white" fontSize="13" fontWeight="bold">ClaudeKit Skills</text>
+  <text x="400" y="47" textAnchor="middle" fill="#bfdbfe" fontSize="10">155+ skills / 12 categories</text>
+
+  <!-- Engineer plugin -->
+  <rect x="80" y="88" width="200" height="38" rx="8" fill="#7c3aed"/>
+  <text x="180" y="103" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">ClaudeKit Engineer</text>
+  <text x="180" y="118" textAnchor="middle" fill="#ddd6fe" fontSize="9">~75 skills</text>
+
+  <!-- Marketing plugin -->
+  <rect x="520" y="88" width="200" height="38" rx="8" fill="#F97316"/>
+  <text x="620" y="103" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">ClaudeKit Marketing</text>
+  <text x="620" y="118" textAnchor="middle" fill="#fff7ed" fontSize="9">~80 skills</text>
+
+  <!-- Root → Plugins -->
+  <line x1="360" y1="54" x2="220" y2="86" stroke="#94a3b8" strokeWidth="1.5"/>
+  <line x1="440" y1="54" x2="580" y2="86" stroke="#94a3b8" strokeWidth="1.5"/>
+
+  <!-- Engineer subcategories (6 cols, 2 rows) -->
+  <!-- Row 1 -->
+  <rect x="10" y="170" width="105" height="52" rx="6" fill="#1e1b4b" stroke="#818cf8" strokeWidth="1"/>
+  <text x="62" y="188" textAnchor="middle" fill="#a5b4fc" fontSize="10" fontWeight="bold">Planning</text>
+  <text x="62" y="203" textAnchor="middle" fill="#6366f1" fontSize="9">ck-plan, cook</text>
+  <text x="62" y="216" textAnchor="middle" fill="#6366f1" fontSize="9">sequential-thinking</text>
+
+  <rect x="122" y="170" width="105" height="52" rx="6" fill="#1e1b4b" stroke="#818cf8" strokeWidth="1"/>
+  <text x="174" y="188" textAnchor="middle" fill="#a5b4fc" fontSize="10" fontWeight="bold">Dev</text>
+  <text x="174" y="203" textAnchor="middle" fill="#6366f1" fontSize="9">fix, ship, build-fix</text>
+  <text x="174" y="216" textAnchor="middle" fill="#6366f1" fontSize="9">tdd-workflow</text>
+
+  <rect x="234" y="170" width="105" height="52" rx="6" fill="#1e1b4b" stroke="#818cf8" strokeWidth="1"/>
+  <text x="286" y="188" textAnchor="middle" fill="#a5b4fc" fontSize="10" fontWeight="bold">Infra</text>
+  <text x="286" y="203" textAnchor="middle" fill="#6366f1" fontSize="9">deploy, devops</text>
+  <text x="286" y="216" textAnchor="middle" fill="#6366f1" fontSize="9">docker, pm2</text>
+
+  <!-- Row 2 -->
+  <rect x="10" y="230" width="105" height="52" rx="6" fill="#1e1b4b" stroke="#818cf8" strokeWidth="1"/>
+  <text x="62" y="248" textAnchor="middle" fill="#a5b4fc" fontSize="10" fontWeight="bold">Review</text>
+  <text x="62" y="263" textAnchor="middle" fill="#6366f1" fontSize="9">code-review</text>
+  <text x="62" y="276" textAnchor="middle" fill="#6366f1" fontSize="9">security-scan</text>
+
+  <rect x="122" y="230" width="105" height="52" rx="6" fill="#1e1b4b" stroke="#818cf8" strokeWidth="1"/>
+  <text x="174" y="248" textAnchor="middle" fill="#a5b4fc" fontSize="10" fontWeight="bold">Agents</text>
+  <text x="174" y="263" textAnchor="middle" fill="#6366f1" fontSize="9">worktree, team</text>
+  <text x="174" y="276" textAnchor="middle" fill="#6366f1" fontSize="9">orchestrate</text>
+
+  <rect x="234" y="230" width="105" height="52" rx="6" fill="#1e1b4b" stroke="#818cf8" strokeWidth="1"/>
+  <text x="286" y="248" textAnchor="middle" fill="#a5b4fc" fontSize="10" fontWeight="bold">Docs</text>
+  <text x="286" y="263" textAnchor="middle" fill="#6366f1" fontSize="9">mintlify, docs</text>
+  <text x="286" y="276" textAnchor="middle" fill="#6366f1" fontSize="9">docs-seeker</text>
+
+  <!-- Engineer → subcategories -->
+  <line x1="130" y1="126" x2="62" y2="168" stroke="#7c3aed" strokeWidth="1" strokeDasharray="3,2"/>
+  <line x1="160" y1="126" x2="174" y2="168" stroke="#7c3aed" strokeWidth="1" strokeDasharray="3,2"/>
+  <line x1="190" y1="126" x2="286" y2="168" stroke="#7c3aed" strokeWidth="1" strokeDasharray="3,2"/>
+  <line x1="130" y1="126" x2="62" y2="228" stroke="#7c3aed" strokeWidth="1" strokeDasharray="3,2"/>
+  <line x1="160" y1="126" x2="174" y2="228" stroke="#7c3aed" strokeWidth="1" strokeDasharray="3,2"/>
+  <line x1="190" y1="126" x2="286" y2="228" stroke="#7c3aed" strokeWidth="1" strokeDasharray="3,2"/>
+
+  <!-- Marketing subcategories (6 items) -->
+  <rect x="350" y="170" width="110" height="52" rx="6" fill="#431407" stroke="#fb923c" strokeWidth="1"/>
+  <text x="405" y="188" textAnchor="middle" fill="#fed7aa" fontSize="10" fontWeight="bold">Content</text>
+  <text x="405" y="203" textAnchor="middle" fill="#f97316" fontSize="9">ckm:write, blog</text>
+  <text x="405" y="216" textAnchor="middle" fill="#f97316" fontSize="9">copywriting</text>
+
+  <rect x="468" y="170" width="110" height="52" rx="6" fill="#431407" stroke="#fb923c" strokeWidth="1"/>
+  <text x="523" y="188" textAnchor="middle" fill="#fed7aa" fontSize="10" fontWeight="bold">Social</text>
+  <text x="523" y="203" textAnchor="middle" fill="#f97316" fontSize="9">ckm:social, crosspost</text>
+  <text x="523" y="216" textAnchor="middle" fill="#f97316" fontSize="9">ckm:watzup</text>
+
+  <rect x="586" y="170" width="110" height="52" rx="6" fill="#431407" stroke="#fb923c" strokeWidth="1"/>
+  <text x="641" y="188" textAnchor="middle" fill="#fed7aa" fontSize="10" fontWeight="bold">SEO</text>
+  <text x="641" y="203" textAnchor="middle" fill="#f97316" fontSize="9">ckm:seo, audit</text>
+  <text x="641" y="216" textAnchor="middle" fill="#f97316" fontSize="9">keywords, pseo</text>
+
+  <rect x="350" y="230" width="110" height="52" rx="6" fill="#431407" stroke="#fb923c" strokeWidth="1"/>
+  <text x="405" y="248" textAnchor="middle" fill="#fed7aa" fontSize="10" fontWeight="bold">Campaigns</text>
+  <text x="405" y="263" textAnchor="middle" fill="#f97316" fontSize="9">ckm:campaign</text>
+  <text x="405" y="276" textAnchor="middle" fill="#f97316" fontSize="9">email, ads</text>
+
+  <rect x="468" y="230" width="110" height="52" rx="6" fill="#431407" stroke="#fb923c" strokeWidth="1"/>
+  <text x="523" y="248" textAnchor="middle" fill="#fed7aa" fontSize="10" fontWeight="bold">Analytics</text>
+  <text x="523" y="263" textAnchor="middle" fill="#f97316" fontSize="9">ckm:analyze</text>
+  <text x="523" y="276" textAnchor="middle" fill="#f97316" fontSize="9">dashboard</text>
+
+  <rect x="586" y="230" width="110" height="52" rx="6" fill="#431407" stroke="#fb923c" strokeWidth="1"/>
+  <text x="641" y="248" textAnchor="middle" fill="#fed7aa" fontSize="10" fontWeight="bold">Video</text>
+  <text x="641" y="263" textAnchor="middle" fill="#f97316" fontSize="9">ckm:video, remotion</text>
+  <text x="641" y="276" textAnchor="middle" fill="#f97316" fontSize="9">fal-ai-media</text>
+
+  <!-- Marketing → subcategories -->
+  <line x1="590" y1="126" x2="405" y2="168" stroke="#F97316" strokeWidth="1" strokeDasharray="3,2"/>
+  <line x1="620" y1="126" x2="523" y2="168" stroke="#F97316" strokeWidth="1" strokeDasharray="3,2"/>
+  <line x1="650" y1="126" x2="641" y2="168" stroke="#F97316" strokeWidth="1" strokeDasharray="3,2"/>
+  <line x1="590" y1="126" x2="405" y2="228" stroke="#F97316" strokeWidth="1" strokeDasharray="3,2"/>
+  <line x1="620" y1="126" x2="523" y2="228" stroke="#F97316" strokeWidth="1" strokeDasharray="3,2"/>
+  <line x1="650" y1="126" x2="641" y2="228" stroke="#F97316" strokeWidth="1" strokeDasharray="3,2"/>
+
+  <!-- Discovery row -->
+  <rect x="200" y="322" width="400" height="50" rx="8" fill="#0f172a" stroke="#1e293b" strokeWidth="1"/>
+  <text x="400" y="342" textAnchor="middle" fill="#94a3b8" fontSize="11" fontWeight="bold">Skill Discovery: /find-skills &#60;domain&#62;</text>
+  <text x="400" y="360" textAnchor="middle" fill="#64748b" fontSize="10">Run before every task — surfaces top 3-5 relevant skills from the full catalog</text>
+
+  <!-- count badges -->
+  <rect x="10" y="300" width="330" height="18" rx="4" fill="#1e1b4b"/>
+  <text x="165" y="313" textAnchor="middle" fill="#818cf8" fontSize="9">Engineer: planning + dev + infra + review + agents + docs + lang-specific</text>
+
+  <rect x="350" y="300" width="346" height="18" rx="4" fill="#431407"/>
+  <text x="523" y="313" textAnchor="middle" fill="#fb923c" fontSize="9">Marketing: content + social + SEO + campaigns + analytics + video + 4 more</text>
+</svg>
+
+**Key concepts:**
+- Two plugins cover all task domains — never improvise when a skill exists
+- `find-skills` is mandatory before every task (Tools-First Principle, Rule 8)
+- Skills are chained, not used in isolation: `ckm:seo:keywords` → `ckm:write:blog` → `ckm:seo`
+- Haiku 4.5 handles ~90% of skills for cost efficiency; Sonnet for complex chains
+
+**Why it matters:** 155+ skills means the system has pre-built context for nearly every task Phong runs. Using a skill gives Claude a playbook; improvising gives Claude a blank page.
+
+---
+
+## 7. Vietnamese Content Pipeline
+
+Every piece of Vietnamese content Phong publishes flows through a 6-stage pipeline, from raw idea to scheduled post across Facebook and WhatsApp.
+
+<svg viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",maxWidth:"800px",fontFamily:"system-ui,sans-serif"}}>
+  <defs>
+    <marker id="arrow7" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+    </marker>
+    <marker id="arrow7g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <!-- Stage 1: Idea -->
+  <rect x="10" y="80" width="110" height="100" rx="8" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1.5"/>
+  <text x="65" y="105" textAnchor="middle" fill="#93c5fd" fontSize="20">&#9998;</text>
+  <text x="65" y="125" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Idea</text>
+  <text x="65" y="142" textAnchor="middle" fill="#60a5fa" fontSize="9">Phong input</text>
+  <text x="65" y="156" textAnchor="middle" fill="#60a5fa" fontSize="9">Market data</text>
+  <text x="65" y="170" textAnchor="middle" fill="#60a5fa" fontSize="9">RKB lookup</text>
+
+  <line x1="122" y1="130" x2="138" y2="130" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow7)"/>
+
+  <!-- Stage 2: Research -->
+  <rect x="140" y="80" width="110" height="100" rx="8" fill="#14532d" stroke="#22c55e" strokeWidth="1.5"/>
+  <text x="195" y="105" textAnchor="middle" fill="#86efac" fontSize="20">&#128269;</text>
+  <text x="195" y="125" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Research</text>
+  <text x="195" y="142" textAnchor="middle" fill="#4ade80" fontSize="9">Perplexity MCP</text>
+  <text x="195" y="156" textAnchor="middle" fill="#4ade80" fontSize="9">Exa semantic</text>
+  <text x="195" y="170" textAnchor="middle" fill="#4ade80" fontSize="9">RKB search</text>
+
+  <line x1="252" y1="130" x2="268" y2="130" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow7)"/>
+
+  <!-- Stage 3: Write -->
+  <rect x="270" y="80" width="110" height="100" rx="8" fill="#7c2d12" stroke="#f97316" strokeWidth="1.5"/>
+  <text x="325" y="105" textAnchor="middle" fill="#fed7aa" fontSize="20">&#128221;</text>
+  <text x="325" y="125" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Write</text>
+  <text x="325" y="142" textAnchor="middle" fill="#fdba74" fontSize="9">ckm:write skill</text>
+  <text x="325" y="156" textAnchor="middle" fill="#fdba74" fontSize="9">Full Unicode</text>
+  <text x="325" y="170" textAnchor="middle" fill="#fdba74" fontSize="9">No ASCII diacritics</text>
+
+  <line x1="382" y1="130" x2="398" y2="130" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow7)"/>
+
+  <!-- Stage 4: Review -->
+  <rect x="400" y="80" width="110" height="100" rx="8" fill="#4a1942" stroke="#e879f9" strokeWidth="1.5"/>
+  <text x="455" y="105" textAnchor="middle" fill="#f0abfc" fontSize="20">&#9989;</text>
+  <text x="455" y="125" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Review</text>
+  <text x="455" y="142" textAnchor="middle" fill="#e879f9" fontSize="9">Phong approves</text>
+  <text x="455" y="156" textAnchor="middle" fill="#e879f9" fontSize="9">TREC compliance</text>
+  <text x="455" y="170" textAnchor="middle" fill="#e879f9" fontSize="9">Brand voice check</text>
+
+  <line x1="512" y1="130" x2="528" y2="130" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrow7)"/>
+
+  <!-- Stage 5: Schedule -->
+  <rect x="530" y="80" width="110" height="100" rx="8" fill="#1e3a5f" stroke="#60a5fa" strokeWidth="1.5"/>
+  <text x="585" y="105" textAnchor="middle" fill="#93c5fd" fontSize="20">&#128197;</text>
+  <text x="585" y="125" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Schedule</text>
+  <text x="585" y="142" textAnchor="middle" fill="#60a5fa" fontSize="9">Zernio MCP</text>
+  <text x="585" y="156" textAnchor="middle" fill="#60a5fa" fontSize="9">Best time API</text>
+  <text x="585" y="170" textAnchor="middle" fill="#60a5fa" fontSize="9">Multi-account</text>
+
+  <line x1="642" y1="130" x2="658" y2="130" stroke="#10b981" strokeWidth="2" markerEnd="url(#arrow7g)"/>
+
+  <!-- Stage 6: Publish -->
+  <rect x="660" y="80" width="130" height="100" rx="8" fill="#064e3b" stroke="#10b981" strokeWidth="1.5"/>
+  <text x="725" y="105" textAnchor="middle" fill="#6ee7b7" fontSize="20">&#128276;</text>
+  <text x="725" y="125" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">Publish</text>
+  <text x="725" y="142" textAnchor="middle" fill="#6ee7b7" fontSize="9">Facebook Page</text>
+  <text x="725" y="156" textAnchor="middle" fill="#6ee7b7" fontSize="9">Instagram</text>
+  <text x="725" y="170" textAnchor="middle" fill="#6ee7b7" fontSize="9">WhatsApp Group</text>
+
+  <!-- Content types row -->
+  <rect x="10" y="215" width="780" height="60" rx="8" fill="#0f172a" stroke="#1e293b" strokeWidth="1"/>
+  <text x="400" y="233" textAnchor="middle" fill="#94a3b8" fontSize="11" fontWeight="bold">Content types flowing through this pipeline:</text>
+  <text x="145" y="254" textAnchor="middle" fill="#64748b" fontSize="10">Market Update</text>
+  <text x="145" y="268" textAnchor="middle" fill="#4b5563" fontSize="9">Weekly stats video</text>
+  <text x="305" y="254" textAnchor="middle" fill="#64748b" fontSize="10">Listing Post</text>
+  <text x="305" y="268" textAnchor="middle" fill="#4b5563" fontSize="9">New property alert</text>
+  <text x="455" y="254" textAnchor="middle" fill="#64748b" fontSize="10">Educational</text>
+  <text x="455" y="268" textAnchor="middle" fill="#4b5563" fontSize="9">Mua nhà lần đầu tips</text>
+  <text x="610" y="254" textAnchor="middle" fill="#64748b" fontSize="10">Event Invite</text>
+  <text x="610" y="268" textAnchor="middle" fill="#4b5563" fontSize="9">Open house, hội thảo</text>
+
+  <!-- Guard rail -->
+  <rect x="400" y="295" width="280" height="60" rx="6" fill="#450a0a" stroke="#ef4444" strokeWidth="1.5"/>
+  <text x="540" y="314" textAnchor="middle" fill="#fca5a5" fontSize="10" fontWeight="bold">Guard Rail: NEVER auto-publish</text>
+  <text x="540" y="330" textAnchor="middle" fill="#f87171" fontSize="9">Stage 4 Review is mandatory — Phong must approve</text>
+  <text x="540" y="344" textAnchor="middle" fill="#f87171" fontSize="9">before Zernio posts_create fires</text>
+
+  <!-- TTS branch -->
+  <rect x="10" y="295" width="240" height="60" rx="6" fill="#1c1917" stroke="#44403c" strokeWidth="1"/>
+  <text x="120" y="314" textAnchor="middle" fill="#a8a29e" fontSize="10" fontWeight="bold">Video content branch:</text>
+  <text x="120" y="330" textAnchor="middle" fill="#78716c" fontSize="9">Stage 3 → Vbee TTS (voiceover.mp3)</text>
+  <text x="120" y="344" textAnchor="middle" fill="#78716c" fontSize="9">→ Remotion render → .mp4 → Stage 4</text>
+</svg>
+
+**Key concepts:**
+- All Vietnamese text must use full Unicode diacritics — never ASCII transliteration
+- Research (Stage 2) is mandatory — never write from training data alone
+- Stage 4 Review is a hard gate — Claude cannot skip it and auto-publish
+- Video content adds a Vbee TTS + Remotion render branch between Stages 3 and 4
+
+**Why it matters:** Vietnamese content for a real estate audience carries legal (TREC) and reputational risk. The review gate protects Phong from publishing unreviewed content.
+
+---
+
+## 8. Cost-Aware LLM Routing
+
+The system routes tasks to the right model tier based on complexity, context size, and cost sensitivity. Wrong routing = overpaying for simple tasks or underperforming on complex ones.
+
+<svg viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",maxWidth:"800px",fontFamily:"system-ui,sans-serif"}}>
+  <defs>
+    <marker id="arrow8" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+    </marker>
+    <marker id="arrow8h" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#10b981"/>
+    </marker>
+    <marker id="arrow8s" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/>
+    </marker>
+    <marker id="arrow8o" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#F97316"/>
+    </marker>
+  </defs>
+
+  <!-- Task input -->
+  <rect x="310" y="10" width="180" height="44" rx="8" fill="#374151" stroke="#6b7280" strokeWidth="1.5"/>
+  <text x="400" y="30" textAnchor="middle" fill="white" fontSize="13" fontWeight="bold">Incoming Task</text>
+  <text x="400" y="47" textAnchor="middle" fill="#9ca3af" fontSize="9">Assess: complexity + context size + stakes</text>
+
+  <!-- Decision diamond -->
+  <polygon points="400,75 460,115 400,155 340,115" fill="#1e293b" stroke="#475569" strokeWidth="2"/>
+  <text x="400" y="108" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="bold">Route</text>
+  <text x="400" y="124" textAnchor="middle" fill="#64748b" fontSize="9">Decision</text>
+
+  <!-- Arrow from task to decision -->
+  <line x1="400" y1="54" x2="400" y2="73" stroke="#6b7280" strokeWidth="1.5" markerEnd="url(#arrow8)"/>
+
+  <!-- Haiku tier -->
+  <rect x="30" y="195" width="200" height="140" rx="10" fill="#064e3b" stroke="#10b981" strokeWidth="2"/>
+  <text x="130" y="218" textAnchor="middle" fill="#10b981" fontSize="14" fontWeight="bold">Haiku 4.5</text>
+  <text x="130" y="235" textAnchor="middle" fill="#6ee7b7" fontSize="10">3x cheaper than Sonnet</text>
+  <rect x="45" y="244" width="170" height="80" rx="5" fill="#022c22"/>
+  <text x="130" y="262" textAnchor="middle" fill="#4ade80" fontSize="9" fontWeight="bold">Use for:</text>
+  <text x="130" y="278" textAnchor="middle" fill="#16a34a" fontSize="9">- Frequent worker agents</text>
+  <text x="130" y="292" textAnchor="middle" fill="#16a34a" fontSize="9">- Pair programming / QA</text>
+  <text x="130" y="306" textAnchor="middle" fill="#16a34a" fontSize="9">- Single-file edits</text>
+  <text x="130" y="320" textAnchor="middle" fill="#16a34a" fontSize="9">- Ref lookups, summaries</text>
+
+  <!-- Sonnet tier -->
+  <rect x="300" y="195" width="200" height="140" rx="10" fill="#1e3a8a" stroke="#3b82f6" strokeWidth="2"/>
+  <text x="400" y="218" textAnchor="middle" fill="#60a5fa" fontSize="14" fontWeight="bold">Sonnet 4.6</text>
+  <text x="400" y="235" textAnchor="middle" fill="#93c5fd" fontSize="10">Best coding model</text>
+  <rect x="315" y="244" width="170" height="80" rx="5" fill="#0c1a4a"/>
+  <text x="400" y="262" textAnchor="middle" fill="#93c5fd" fontSize="9" fontWeight="bold">Use for:</text>
+  <text x="400" y="278" textAnchor="middle" fill="#3b82f6" fontSize="9">- Main dev work</text>
+  <text x="400" y="292" textAnchor="middle" fill="#3b82f6" fontSize="9">- Multi-file implementation</text>
+  <text x="400" y="306" textAnchor="middle" fill="#3b82f6" fontSize="9">- Orchestrating agents</text>
+  <text x="400" y="320" textAnchor="middle" fill="#3b82f6" fontSize="9">- Win 2/3/5/6 workers</text>
+
+  <!-- Opus tier -->
+  <rect x="570" y="195" width="200" height="140" rx="10" fill="#431407" stroke="#F97316" strokeWidth="2"/>
+  <text x="670" y="218" textAnchor="middle" fill="#F97316" fontSize="14" fontWeight="bold">Opus 4.5</text>
+  <text x="670" y="235" textAnchor="middle" fill="#fed7aa" fontSize="10">Deepest reasoning</text>
+  <rect x="585" y="244" width="170" height="80" rx="5" fill="#1c0a00"/>
+  <text x="670" y="262" textAnchor="middle" fill="#fdba74" fontSize="9" fontWeight="bold">Use for:</text>
+  <text x="670" y="278" textAnchor="middle" fill="#f97316" fontSize="9">- Architectural decisions</text>
+  <text x="670" y="292" textAnchor="middle" fill="#f97316" fontSize="9">- Brain / Lead Architect</text>
+  <text x="670" y="306" textAnchor="middle" fill="#f97316" fontSize="9">- Complex multi-file design</text>
+  <text x="670" y="320" textAnchor="middle" fill="#f97316" fontSize="9">- Max reasoning tasks</text>
+
+  <!-- Decision → tiers -->
+  <line x1="348" y1="115" x2="160" y2="193" stroke="#10b981" strokeWidth="2" markerEnd="url(#arrow8h)"/>
+  <text x="220" y="148" textAnchor="middle" fill="#10b981" fontSize="9">simple / routine</text>
+
+  <line x1="400" y1="155" x2="400" y2="193" stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow8s)"/>
+  <text x="430" y="180" textAnchor="middle" fill="#3b82f6" fontSize="9">standard</text>
+
+  <line x1="452" y1="115" x2="630" y2="193" stroke="#F97316" strokeWidth="2" markerEnd="url(#arrow8o)"/>
+  <text x="575" y="148" textAnchor="middle" fill="#F97316" fontSize="9">complex / critical</text>
+
+  <!-- Context window note -->
+  <rect x="30" y="355" width="380" height="44" rx="6" fill="#0f172a" stroke="#1e293b" strokeWidth="1"/>
+  <text x="220" y="374" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="bold">Context window rule:</text>
+  <text x="220" y="390" textAnchor="middle" fill="#64748b" fontSize="9">Avoid last 20% of context for refactoring or multi-file work — spin new agent</text>
+
+  <!-- Cost ratio -->
+  <rect x="430" y="355" width="340" height="44" rx="6" fill="#0f172a" stroke="#1e293b" strokeWidth="1"/>
+  <text x="600" y="374" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="bold">Cost ratio (approximate):</text>
+  <text x="600" y="390" textAnchor="middle" fill="#64748b" fontSize="9">Haiku = 1x  |  Sonnet = 3x  |  Opus = 15x+</text>
+</svg>
+
+**Key concepts:**
+- Haiku 4.5 handles ~90% of Sonnet's capability at 3x cost savings
+- Win 4 (QA/reference) runs Haiku; Win 2/3 (content authors) run Sonnet
+- Brain always runs Opus — orchestration decisions carry the highest stakes
+- Never use Opus for routine coding; never use Haiku for architectural decisions
+
+**Why it matters:** Routing to the wrong model is either wasteful (Opus for trivial tasks) or risky (Haiku for decisions that shape the entire system). Cost-aware routing keeps the system economically sustainable.
