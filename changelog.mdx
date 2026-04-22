@@ -13,6 +13,47 @@ Wiki này được xây và duy trì bởi team 4-agent (Brain + 3 workers). M�
 
 ---
 
+<Update label="2026-04-22" description="AI-First Audit Sprint — Phase 1+2 wiki hygiene + architecture reconciliation" tags={["audit", "ai-first", "agent-team", "hygiene", "architecture-decision"]}>
+## AI-First Audit Sprint summary
+
+**Theme:** Full audit của Agent OS wiki qua lens AI-agent readability + Agent Team orchestration readiness. Phase 1+2 shipped (Phase 3 queued). **Duration:** ~3h (audit + execute + 2 follow-up). **Result:** 14 files changed, 2 new pages, 2 architectures reconciled.
+
+### Scope confirm (Agent OS wiki rule)
+Audit tuân thủ scope rule locked 2026-04-22 — không add SEO/i18n/public/newcomer content. Focus duy nhất: AI Agent parse + Agent Team multi-agent collaboration.
+
+### Audit output
+Report: `plans/reports/docs-260422-1436-agent-os-ai-first-audit.md` — 10 findings ranked CRITICAL → LOW, 3-phase fix plan.
+
+### Phase 1 — Quick wins (commit `ae8dccc` partial)
+- **Glossary Win 2 scope fix:** `help-center/` → `agent-os-overview/ + core-rules/` (match AGENTS.md + CODEOWNERS). Branch `win2-content` → `win2-framework`. Win 3 branch `win3-workflows` → `win3-workflow`.
+- **Dehardcode sprint references:** 0 `sprint-2` hits còn lại trong prose across 8 files. Changelog historical entries untouched.
+
+### Phase 2 — Structural reconciliation (commit `ae8dccc`)
+- **New page:** [Architecture Decision: IPC vs SDK](/agent-os-overview/architecture-decision-ipc-vs-sdk) — decision table, strengths/limits, when-to-use tree, migration steps between filesystem-IPC model (4-iTerm) và Agent Team SDK.
+- **Legacy callout banner** added vào `multi-agent-collaboration.mdx`. Cross-link từ `known-issues.mdx` Issue 1.
+- **Plan approval flow** documented: `ExitPlanMode → plan_approval_response → proceed/revise` 4-step cycle thêm vào `multi-agent-sprint-workflow.mdx`. Coordination summary table updated với `plan_mode_required` row.
+
+### Follow-up (commit `c4c0294`)
+- **Nav entry** cho reconciliation page — Agent OS Overview group, sau Multi-Agent Collaboration.
+- **Win 4 model fix** — `AGENTS.md` Sonnet 4.6 → **Haiku 4.5** với cost-aware justification (QA + structured content, high-frequency invocation per PR, 90% Sonnet capability at 3x cost savings). Align với existing `diagrams.mdx` "Cost-Aware LLM Routing" diagram.
+
+### Validation
+- 12 files pre-commit checks PASS (Unicode, JSX collision, frontmatter, HTML comments, SVG asterisk)
+- Follow-up 2 files PASS
+- Both commits pushed to main, Mintlify auto-deploy live
+
+### Phase 3 — Queued (not this sprint)
+- `agent-team-sdk-protocol.mdx` — full SDK reference: SendMessage, TaskUpdate, TaskList, ExitPlanMode, shutdown, idle-state
+- Parallel-agent worked example page (3 agents + data handoffs + state transitions)
+- Frontmatter machine-readable metadata (`type`/`audience`/`use_case` fields)
+
+### Commits
+- `ae8dccc` docs: fix glossary + dehardcode sprints + reconcile architectures (phase 1+2)
+- `c4c0294` docs: add nav entry + fix Win 4 model to Haiku 4.5
+</Update>
+
+---
+
 <Update label="2026-04-22" description="Sprint 7 — 8 Visual SVG Diagrams for Agent OS architecture" tags={["sprint-7", "diagrams", "svg", "visual", "architecture"]}>
 ## Sprint 7 summary
 
