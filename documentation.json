@@ -44,6 +44,11 @@
                 "icon": "users"
               },
               {
+                "title": "Visual Diagrams",
+                "path": "agent-os-overview/diagrams",
+                "icon": "chart-scatter"
+              },
+              {
                 "title": "Design Principles",
                 "path": "agent-os-overview/design-principles",
                 "icon": "compass"
