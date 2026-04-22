@@ -13,6 +13,41 @@ Wiki này được xây và duy trì bởi team 4-agent (Brain + 3 workers). M�
 
 ---
 
+<Update label="2026-04-22" description="Phase 3a — Agent Team SDK Protocol page" tags={["audit", "ai-first", "agent-team", "sdk", "phase-3"]}>
+## Phase 3a summary
+
+**Theme:** Add full Agent Team SDK reference page — the primary gap identified in Phase 1+2 audit (GAP-1, GAP-4, GAP-5). **Duration:** ~30min. **Result:** 1 new page + nav entry + 3 cross-links. Commit: `<COMMIT_HASH>`.
+
+### New page: Agent Team SDK Protocol
+
+[Agent Team SDK Protocol](/agent-os-overview/agent-team-sdk-protocol) — 7 sections, reference-only (AI agent parse + execute, not tutorial):
+
+1. **Overview** — when this protocol activates vs filesystem-IPC; prerequisite config at `~/.claude/teams/{team-name}/config.json`
+2. **SDK tool reference** — SendMessage (message + broadcast), TaskCreate, TaskGet, TaskUpdate, TaskList, ExitPlanMode, shutdown_response — each with signature, parameters, when-to-call, failure modes, concrete example
+3. **Lifecycle states** — idle (normal, not disconnect), in_progress, blocked, plan_mode
+4. **Protocol flows** — Flow A (task claim + complete), Flow B (plan approval with 2-reject cap), Flow C (shutdown + requestId extraction), Flow D (conflict escalation)
+5. **Constraints** — 9 hard rules from `team-coordination-rules.md` in table form
+6. **Failure modes + recovery** — 6 scenarios with cause + recovery action
+7. **Cross-references** — IPC vs SDK decision page, multi-agent collaboration, sprint workflow
+
+### Nav
+
+Added **Agent Team SDK Protocol** entry to "Agent OS Overview" group in `documentation.json`, after `architecture-decision-ipc-vs-sdk`, before `visual-diagrams`. Icon: `plug`.
+
+### Cross-links
+
+- `architecture-decision-ipc-vs-sdk.mdx` — Callout in "Mô hình 2 — Agent Team SDK" section pointing to full tool reference
+- `multi-agent-sprint-workflow.mdx` — Callout in "Plan Approval Flow" section pointing to SDK page for tool signatures
+- `known-issues.mdx` — Issue 1 "Links" block: added SDK protocol as first link
+
+### Validation
+
+- 4/4 files pre-commit PASS (Unicode, JSX collision, frontmatter, HTML comments, SVG asterisk)
+- 59 files, 171 links, 0 broken (check-links.sh)
+</Update>
+
+---
+
 <Update label="2026-04-22" description="AI-First Audit Sprint — Phase 1+2 wiki hygiene + architecture reconciliation" tags={["audit", "ai-first", "agent-team", "hygiene", "architecture-decision"]}>
 ## AI-First Audit Sprint summary
 

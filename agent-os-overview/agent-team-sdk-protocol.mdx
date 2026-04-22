@@ -1,0 +1,289 @@
+---
+title: "Agent Team SDK Protocol"
+description: "Full reference for Agent Team SDK tools — SendMessage, TaskCreate, TaskGet, TaskUpdate, TaskList, ExitPlanMode, shutdown_response. Lifecycle states, protocol flows, constraints, failure modes."
+last_reviewed: 2026-04-22
+keywords: [agent-team, sdk, sendmessage, taskupdate, tasklist, exitplanmode, shutdown, idle, protocol, coordination]
+---
+
+<Callout kind="info">
+This page is a reference for agents operating inside an Agent Team session. Not applicable to standard subagent workflows (Task tool dispatch without team context). For when to use Agent Team SDK vs filesystem-IPC, see [Architecture Decision: IPC vs SDK](/agent-os-overview/architecture-decision-ipc-vs-sdk).
+</Callout>
+
+## Overview
+
+Agent Team SDK is the recommended architecture for multi-agent sprints. Instead of multiple independent CLI sessions coordinating via filesystem commits, a single main session spawns teammates and coordinates via SDK tools.
+
+**When this protocol activates:** You are a teammate in an Agent Team — spawned by a lead session, with a role defined in the team config.
+
+**When this does NOT apply:** Standard subagent dispatch via Task tool without team context. Use filesystem-IPC patterns (plans/task-board, progress.md) for those.
+
+**Prerequisite:** Team config at `~/.claude/teams/{team-name}/config.json`. This file lists teammates by name — use those names in all `SendMessage` calls and `TaskUpdate` `owner` fields.
+
+---
+
+## SDK Tool Reference
+
+### SendMessage
+
+Send a message to a specific teammate or broadcast to the entire team.
+
+**Peer DM (type: "message")**
+
+```
+SendMessage(
+  type: "message",
+  recipient: "{teammate-name}",   // name from team config, NOT agent ID
+  message: "{plain text content}" // no structured JSON
+)
+```
+
+- Call when: you need a specific teammate's input, to unblock, or to hand off findings.
+- Always refer to recipients by name. Never use agent IDs.
+- Include actionable findings in the message body — not just "I'm done".
+- Plain text only. Never send structured JSON status messages.
+
+**Broadcast (type: "broadcast")**
+
+```
+SendMessage(
+  type: "broadcast",
+  message: "{plain text — critical blocking issue}"
+)
+```
+
+- Call when: a blocking issue affects the entire team and needs immediate attention.
+- ONLY for critical blocking issues. Not for status updates, progress notes, or routine handoffs.
+- Excessive broadcasts degrade team focus.
+
+**After sending:** Going idle is normal. The recipient will respond when they process the message. Do not treat lack of immediate reply as an error.
+
+---
+
+### TaskList
+
+Retrieve all tasks for the current team session.
+
+```
+TaskList() → [{ id, title, status, owner, description }]
+```
+
+- Call when: starting a session (discover available tasks), after completing a task (find next unblocked work).
+- Returns all tasks regardless of status. Filter client-side for `status: "todo"` and `owner: null` or your name.
+- Claim the **lowest-ID unblocked task** first — earlier tasks set up context for later ones.
+
+---
+
+### TaskGet
+
+Read the full description of a specific task.
+
+```
+TaskGet(id: "{task-id}") → { id, title, status, owner, description, dependencies }
+```
+
+- Call when: you have claimed a task and need the full specification before starting work.
+- Always read the full task description before beginning. Task titles are summaries, not specifications.
+
+---
+
+### TaskUpdate
+
+Update the status or owner of a task.
+
+```
+TaskUpdate(
+  id: "{task-id}",
+  status: "in_progress" | "completed" | "blocked",
+  owner: "{your-name}"  // set when claiming
+)
+```
+
+- Set `status: "in_progress"` AND `owner: "{your-name}"` **before** starting work.
+- Set `status: "completed"` **before** sending completion message to lead.
+- Set `status: "blocked"` if you cannot proceed — include reason in follow-up SendMessage to lead.
+- If all tasks are blocked: notify lead and offer to help unblock.
+
+---
+
+### ExitPlanMode
+
+Submit a plan to lead for approval. Triggers a `plan_approval_response` from lead.
+
+```
+ExitPlanMode(plan: "{plan content}")
+```
+
+**Plan content should include:**
+- Files you will create or modify
+- Approach and rationale
+- Known risks or dependencies
+
+**After calling ExitPlanMode:** Stop. Do not edit any files. Wait for `plan_approval_response`.
+
+- Call when: task description has `plan_mode_required` set, or lead explicitly requests a plan.
+- Not required for simple tasks (adding a section, fixing frontmatter, minor edits).
+- If plan is rejected: revise based on feedback, resubmit via `ExitPlanMode`.
+- If plan is rejected **twice**: lead takes over the task. Do not continue revising.
+
+---
+
+### shutdown_response
+
+Respond to a shutdown request from lead or orchestrator.
+
+```
+// Extract requestId from the incoming shutdown request JSON
+shutdown_response(
+  requestId: "{extracted-requestId}",
+  action: "approve" | "reject",
+  reason: "{optional — required if rejecting}"
+)
+```
+
+- Default: approve unless mid-critical-operation.
+- Before approving: mark current task as `completed` via `TaskUpdate`.
+- If rejecting: explain concisely why (e.g., "mid-file-write, completing in 30s").
+- Extract `requestId` from the shutdown request JSON payload — do not hardcode or guess it.
+
+---
+
+## Lifecycle States
+
+| State | Meaning | How to exit |
+|-------|---------|-------------|
+| `idle` | Waiting for input — normal, not error | Incoming SendMessage wakes the agent |
+| `in_progress` | Actively working on claimed task | Complete task → TaskUpdate completed |
+| `blocked` | Cannot proceed, waiting on teammate or resource | Resolve blocker → update status back to in_progress |
+| `plan_mode` | Plan submitted via ExitPlanMode, awaiting lead approval | Receive plan_approval_response (approved or rejected) |
+
+**Idle is not disconnect.** Sending a message to an idle teammate wakes them up. Do not treat idle notifications as completion signals — check TaskList for actual task status.
+
+---
+
+## Protocol Flows
+
+### Flow A — Task Claim and Complete
+
+```
+1. TaskList()
+   → filter for status="todo", unblocked
+
+2. TaskGet(id)
+   → read full description before starting
+
+3. TaskUpdate(id, status="in_progress", owner="{your-name}")
+   → claim before touching any files
+
+4. Do work (read files, write files, validate)
+
+5. TaskUpdate(id, status="completed")
+   → BEFORE sending message to lead
+
+6. SendMessage(type="message", recipient="{lead}", message="Task {id} done. {findings}")
+```
+
+If you finish one task and have capacity, loop back to step 1.
+
+---
+
+### Flow B — Plan Approval
+
+```
+1. Receive task with plan_mode_required
+   → TaskUpdate(id, status="in_progress", owner="{your-name}")
+
+2. Research only — read files, no edits
+
+3. ExitPlanMode(plan="files: [...], approach: ..., risks: ...")
+   → STOP — wait for plan_approval_response
+
+4a. If plan_approval_response = approved:
+    → proceed to implementation (Phase 3–7 of sprint workflow)
+
+4b. If plan_approval_response = rejected (attempt 1):
+    → read feedback, revise plan, goto step 3
+
+4c. If plan_approval_response = rejected (attempt 2):
+    → TaskUpdate(id, status="blocked")
+    → SendMessage(type="message", recipient="{lead}", message="Plan rejected twice on task {id}. Lead to take over.")
+    → stop
+```
+
+---
+
+### Flow C — Shutdown
+
+```
+1. Receive shutdown request (contains JSON with requestId)
+
+2. If mid-critical-operation:
+   → finish current atomic operation (e.g., complete file write)
+   → TaskUpdate(current-task-id, status="completed")
+   → shutdown_response(requestId="{extracted}", action="reject", reason="completing file write")
+   → finish, then re-approve in next message
+
+3. If NOT mid-critical-operation:
+   → TaskUpdate(current-task-id, status="completed")  // if task is done
+   → shutdown_response(requestId="{extracted}", action="approve")
+```
+
+---
+
+### Flow D — Conflict Escalation
+
+```
+1. Detect file ownership collision
+   (you need a file owned by another teammate's glob pattern)
+
+2. SendMessage(type="message", recipient="{file-owner}", message="Need to edit {file} for task {id}. Can you do it or reassign?")
+   → wait for response
+
+3a. Teammate responds with agreement:
+    → coordinate approach, proceed
+
+3b. Teammate unresponsive OR conflict unresolved:
+    → SendMessage(type="message", recipient="{lead}", message="Ownership conflict on {file} between me and {teammate}. Task {id} blocked.")
+    → TaskUpdate(id, status="blocked")
+    → wait for lead restructuring
+```
+
+**Rule:** If ownership violation detected — STOP immediately and report to lead. Never edit a file outside your glob pattern ownership.
+
+---
+
+## Constraints
+
+These are hard rules from `~/.claude/rules/team-coordination-rules.md`.
+
+| Rule | Behavior |
+|------|----------|
+| File ownership | Each teammate owns distinct files via glob patterns. No overlapping edits. |
+| Tester file access | Tester reads implementation files. Never edits them. |
+| broadcast usage | ONLY for critical blocking issues affecting entire team. Not status updates. |
+| JSON in messages | Never send structured JSON in SendMessage body. Plain text only. |
+| Teammate references | Always use NAME (from team config), never agent ID. |
+| git safety | Never force-push from a teammate session. Commit frequently. Pull before push. |
+| Worktrees | Prefer git worktrees for implementation teams — each teammate in their own worktree. |
+| Task claim order | Claim lowest-ID unblocked task first. |
+| TaskUpdate before message | Always TaskUpdate status BEFORE sending completion message. |
+
+---
+
+## Failure Modes and Recovery
+
+| Failure | Cause | Recovery |
+|---------|-------|----------|
+| Teammate idle after message | Normal waiting state — not disconnect | Wait for response; woken by next message |
+| Plan rejected once | Plan needs revision | Read feedback, revise, resubmit via ExitPlanMode |
+| Plan rejected twice | Fundamental misalignment | Lead takes over. TaskUpdate blocked, SendMessage to lead. |
+| Same task fails 3+ times | Persistent blocker or context issue | Escalate to lead. Do NOT retry same approach. |
+| Ownership violation detected | Agent edited outside its glob scope | STOP immediately. Report to lead via SendMessage. Do not attempt to fix independently. |
+| All tasks blocked | Dependency chain stalled | Notify lead, offer to help unblock specific tasks. |
+
+---
+
+## Cross-References
+
+- [Architecture Decision: IPC vs SDK](/agent-os-overview/architecture-decision-ipc-vs-sdk) — when to use this protocol vs filesystem-IPC model
+- [Multi-Agent Collaboration](/agent-os-overview/multi-agent-collaboration) — 4-role team structure (filesystem-IPC model)
+- [Multi-Agent Sprint Workflow](/workflows/multi-agent-sprint-workflow) — sprint phases + plan-approval flow detail
