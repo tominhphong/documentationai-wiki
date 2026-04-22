@@ -1,0 +1,116 @@
+---
+title: "Phong's Personal Playbook"
+description: "How Phong To (Realtor, TREC #843757) uses Claude Code and multi-agent workflows daily to serve the Vietnamese-American community in DFW, Texas."
+last_reviewed: 2026-04-22
+data_freshness: "2026-04 (Sprint 6)"
+---
+
+# Phong's Personal Playbook
+
+## Who Is Phong?
+
+Phong To is a licensed Texas Realtor (TREC #843757) with eXp Realty, based in Sherman TX and serving the Grayson County / North DFW market. He also creates Vietnamese-language real estate content — Facebook posts, YouTube videos, and bilingual client emails — for the Vietnamese-American community across the DFW metroplex.
+
+Phong runs his entire content and knowledge-management operation solo, using Claude Code with multi-agent workflows to punch well above his weight class.
+
+Contact: phongrealtortx@gmail.com | Market: Sherman TX, Grayson County, North Texas (DFW)
+
+---
+
+## How Phong Uses Claude Code
+
+Phong's setup follows a **Brain + Workers** pattern:
+
+```
+Brain (Claude Opus — orchestrator)
+  ├── Agent 1 (Sonnet — research / content)
+  ├── Agent 2 (Sonnet — code / MDX)
+  ├── Agent 3 (Sonnet — validation / QA)
+  └── Agent 4 (Sonnet — deployment / commit)
+```
+
+Key tools in daily use:
+
+- **Claude Code (Cowork mode)** — primary interface, always-on
+- **Desktop Commander MCP** — shell bridge between Claude and Mac mini M4
+- **Zernio (Late) MCP** — social scheduling without leaving Claude
+- **Remotion 4.0** — programmatic video generation
+- **Vbee API** — Vietnamese text-to-speech
+- **Git worktrees** — parallel agent branches with zero merge conflicts
+
+The Brain (Opus model) holds the plan and delegates. Sonnet agents execute in parallel worktrees. Each agent owns distinct files — no overlap, no merge conflicts.
+
+---
+
+## 3 Case Studies
+
+### Case Study 1: Building the 107-Page Realtor Knowledge Base
+
+Phong built a 107-page Mintlify-compatible documentation site for realtors — from zero to production — in 4 sprints across one month.
+
+[Read Case Study 1](/phong-playbook/case-01-rkb-4-sprint-build)
+
+**Highlights:**
+- 12,000+ lines of MDX content
+- 5 parallel Sonnet agents + git worktrees
+- Live: https://phong-to.documentationai.com
+
+---
+
+### Case Study 2: Mortgage Compare App in One Week
+
+From idea to Cloudflare-deployed full-stack app in 7 days, using Next.js + Cloudflare D1 + R2 + Workers.
+
+[Read Case Study 2](/phong-playbook/case-02-mortgage-app-week)
+
+**Highlights:**
+- 12+ financial advisor criteria (TCO, tax 2026, rent vs buy, refinance, recast)
+- Vercel frontend + Cloudflare backend, $0/month cost
+- Live: https://mortgage-compare-app.vercel.app
+
+---
+
+### Case Study 3: Vietnamese Content Pipeline
+
+How Phong creates bilingual real estate content for the DFW Vietnamese-American community — Facebook, YouTube, email, WhatsApp — using Claude Code + Remotion + Zernio.
+
+[Read Case Study 3](/phong-playbook/case-03-vietnamese-content-pipeline)
+
+**Highlights:**
+- Remotion video + Vbee TTS + Zernio scheduling = one unified pipeline
+- Cultural adaptations: Lunar calendar, 1099 income, feng shui, family dynamics
+- Metric: community trust, not follower count
+
+---
+
+## Try This Yourself
+
+### Prerequisites
+
+1. Claude Code with Cowork mode enabled
+2. A Mac (Desktop Commander MCP) or equivalent shell bridge
+3. Git installed with worktree support (`git worktree add ...`)
+4. A documentation platform (Mintlify, Docusaurus, or similar)
+
+### Starting Template
+
+```
+# Brain prompt to kick off a new knowledge base sprint
+"You are Brain (orchestrator). Spawn 3 parallel Sonnet agents via Task tool.
+Each agent gets its own worktree. File ownership:
+  Agent 1: content/topic-a/**
+  Agent 2: content/topic-b/**
+  Agent 3: scripts/validation/**
+No agent edits another's files. Commit each worktree separately.
+Merge order: Agent 3 (validation) → Agent 1 → Agent 2 → main."
+```
+
+### Recommended Reading
+
+- [Agent OS Overview](/agent-os-overview/introduction) — the underlying framework
+- [Git Worktree Patterns](/agent-os-overview/architecture) — parallel agent setup
+- [Mintlify MDX Guide](/core-rules/content-creation-rules) — MDX component reference
+
+---
+
+*This playbook is maintained by Phong To. Last reviewed: 2026-04-22.*
