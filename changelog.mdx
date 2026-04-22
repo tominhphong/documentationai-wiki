@@ -13,6 +13,32 @@ Wiki này được xây và duy trì bởi team 4-agent (Brain + 3 workers). M�
 
 ---
 
+<Update label="2026-04-22" description="Sprint 6 — Phong's Personal Playbook (3 case studies)" tags={["sprint-6", "phong-playbook", "case-study", "real-world-usage"]}>
+## Sprint 6 summary
+
+**Theme:** Phong's Personal Playbook — 3 real-world case studies showing how Phong uses Claude Code + multi-agent workflows daily. **Duration:** ~30 phút (partial-blocked agent → Brain completed). **Result:** 4 new MDX files + nav update.
+
+### Phong's Playbook section — 848 lines
+
+- **[Overview](/phong-playbook/index)** — 116 lines — who Phong is, multi-agent pattern summary, 3 case study cards, "try yourself" guide.
+- **[Case 1: 107-Page RKB in 4 Sprints](/phong-playbook/case-01-rkb-4-sprint-build)** — 218 lines — building complete Realtor Knowledge Base (RKB) over 4 sprints April 2026. Multi-agent pattern (Brain Opus + 5 Sonnet workers + git worktrees), validation scripts, GitHub Actions CI.
+- **[Case 2: Mortgage App in One Week](/phong-playbook/case-02-mortgage-app-week)** — 237 lines — idea → Cloudflare-deployed in 7 days. Stack: Next.js 16 + React 19 + shadcn/ui → Cloudflare Worker + D1 + R2. Lesson caught via smoke test: agent contract mismatch (`inputs_json` vs `inputs`), fixed in 3 min.
+- **[Case 3: Vietnamese Content Pipeline](/phong-playbook/case-03-vietnamese-content-pipeline)** — 277 lines — workflow creating Vietnamese real estate content cho DFW community. Tools: content-viet skill, Remotion video, Zernio social MCP, Vbee Vietnamese TTS, cultural adaptations (Tết, 1099 income, feng shui).
+
+### Nav
+Added **Phong's Playbook** group to `documentation.json` (Agent OS tab) sau Agent OS Overview, trước Core Rules. 4 pages với icons: user, layers, calculator, video.
+
+### Process note — sub-agent permission fix
+Sprint 6 là sprint đầu tiên sau khi fix bug permission sub-agent (missing `approval-workflow.cjs` hook reference). Agent-playbook Write được 4 files nhưng Edit/Bash/Grep vẫn bị block → Brain take over validate + commit. Sau session, Option C applied → verified 5/5 tools working cho future sub-agents.
+
+### Validation
+- `check-frontmatter.sh` — ALL VALID
+- `check-links.sh` — 151/151 links OK (sau khi Brain fix 9 agent-hallucinated paths: `/agent-os/overview` → `/agent-os-overview/introduction`, etc.)
+- Commit `cf537ba` merged into main
+</Update>
+
+---
+
 <Update label="2026-04-21" description="Sprint 5 CLOSED — ClaudeKit Power Users" tags={["sprint-5", "closeout", "skills", "catalog"]}>
 ## Sprint 5 summary
 
