@@ -44,6 +44,11 @@
                 "icon": "users"
               },
               {
+                "title": "Architecture Decision: IPC vs SDK",
+                "path": "agent-os-overview/architecture-decision-ipc-vs-sdk",
+                "icon": "git-compare"
+              },
+              {
                 "title": "Visual Diagrams",
                 "path": "agent-os-overview/diagrams",
                 "icon": "chart-scatter"

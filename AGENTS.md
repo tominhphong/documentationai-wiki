@@ -87,7 +87,7 @@
 
 ## 📚 Win 4 — Reference & QA
 
-**Model:** Sonnet 4.6
+**Model:** Haiku 4.5 (cost-aware: structured QA + FAQ format, high-frequency invocation per PR; 90% Sonnet capability at 3x cost savings)
 **Worktree:** `../documentationai-wiki-win4` (branch: `win4-reference-qa`)
 
 ### Dual Responsibility
