@@ -13,6 +13,26 @@ Wiki này được xây và duy trì bởi team 4-agent (Brain + 3 workers). M�
 
 ---
 
+<Update label="2026-04-22" description="Fix: MDX pipe-in-attribute bug on 2 more pages + new pre-commit guard" tags={["fix", "mdx", "mintlify", "pre-commit", "hygiene"]}>
+## Fix summary
+
+**Bug:** Mintlify MDX v4 parser treats `|` inside a quoted JSX attribute string (e.g. `kind="info|warning|error"`) as a table column separator when the component appears inside a markdown table row → unclosed attribute-value → 500 on deployed page. First found and fixed in `cecf2b8` (`worker-agent-prompt.mdx:187`).
+
+**Files fixed:**
+- `help-center/troubleshooting/mdx-gotchas.mdx:125` — `` `<Callout kind="info|warning|error">` `` → `` `<Callout kind="info/warning/error">` ``
+- `workflows/review-workflow.mdx:237` — same pattern in TC4 row
+
+**New pre-commit guard:** `scripts/pre-commit-check.sh` — function `[7/7]` — regex `^\s*\|.*="[^"]*\|[^"]*"` — detects pipe inside JSX attribute string on table row lines in all `*.mdx` files. Runs on raw file (not stripped) because Mintlify parses raw content.
+
+**Regression test results:**
+- `mdx-gotchas.mdx` (pre-fix) → guard FAIL (detected line 125)
+- `review-workflow.mdx` (pre-fix) → guard FAIL (detected line 237)
+- `worker-agent-prompt.mdx` (already fixed in cecf2b8) → guard PASS
+- Both files post-fix → guard PASS, all 7 checks PASS
+
+Commit: `PLACEHOLDER`
+</Update>
+
 <Update label="2026-04-22" description="Phase 3b+3c — Parallel example + frontmatter pilot (audit complete)" tags={["audit", "ai-first", "agent-team", "example", "frontmatter", "phase-3"]}>
 ## Phase 3b+3c summary
 

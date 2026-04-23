@@ -10,7 +10,7 @@ ERRORS=0
 
 echo "=== Pre-commit check for: $TARGET ==="
 
-# NOTE: Update [X/N] counters below if adding new gotchas.
+# NOTE: Update [X/N] counters below if adding new gotchas. Current total: 7.
 
 # Strip fenced code blocks AND inline code spans before pattern-matching.
 # Docs about bad patterns (like mdx-gotchas.mdx) intentionally contain example
@@ -152,6 +152,31 @@ if [ -n "$WARN" ]; then
   echo "$WARN"
 else
   echo "PASS: No obvious ASCII Vietnamese patterns."
+fi
+
+# Gotcha 7 — Pipe inside JSX attribute string in markdown table cell
+# cecf2b8 lesson: `<Callout kind="info|warning">` inside a table cell causes
+# MDX v3/v4 parser to treat | as a column separator → unclosed attribute → 500.
+# Replace | with / inside quoted JSX attribute values when in table rows.
+# NOTE: grep runs on raw file (not strip_code_content) — Mintlify parses raw content.
+echo ""
+echo "[7/7] Checking for pipe '|' inside JSX attribute strings in table rows..."
+HITS=""
+for f in "${MDX_FILES[@]}"; do
+  # Match table row lines (starting with optional space + |) containing ="...|..."
+  MATCH=$(grep -nE '^\s*\|.*="[^"]*\|[^"]*"' "$f" || true)
+  if [ -n "$MATCH" ]; then
+    while IFS= read -r line; do
+      HITS="${HITS}${f}:${line}"$'\n'
+    done <<< "$MATCH"
+  fi
+done
+if [ -n "$HITS" ]; then
+  echo "FAIL: Found pipe '|' inside JSX attribute string in table row — replace | with / in the attribute value:"
+  echo "$HITS"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "PASS: No pipe in JSX attribute strings inside table rows."
 fi
 
 echo ""
