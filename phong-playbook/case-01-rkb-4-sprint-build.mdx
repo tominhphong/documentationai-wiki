@@ -3,6 +3,10 @@ title: "Case Study: 107-Page Realtor Knowledge Base in 4 Sprints"
 description: "How Phong built a 107-page Mintlify documentation site from scratch using Brain + 5 parallel Sonnet agents across 4 sprints in April 2026."
 last_reviewed: 2026-04-22
 data_freshness: "2026-04 (Sprint 6)"
+type: example
+audience: both
+use_case: ["execute-multi-agent-sprint-for-documentation", "set-up-git-worktrees-for-parallel-agents"]
+keywords: [case-study, mintlify, brain-workers, git-worktrees, multi-agent, documentation, sprint, mdx]
 ---
 
 # Case Study: 107-Page Realtor Knowledge Base in 4 Sprints
@@ -191,20 +195,34 @@ Follow these steps to build your own knowledge base with this pattern:
 
 <Steps>
   <Step title="Set up Mintlify repo">
-    Fork the Mintlify starter and configure `documentation.json` with your nav structure. Set up GitHub Actions with the validation scripts.
+    - Fork the Mintlify starter repo
+    - Configure `documentation.json` with your nav structure
+    - Create `.github/workflows/` directory and add validation scripts
+    - Set up GitHub Actions to run pre-commit checks on every push
   </Step>
   <Step title="Write validation scripts first">
-    Build `pre-commit-check.sh`, `check-links.sh`, and `check-frontmatter.sh` before writing a single content page. These scripts are your safety net for the entire project.
+    - Create `scripts/pre-commit-check.sh` — check MDX syntax, forbidden patterns, file size
+    - Create `scripts/check-links.sh` — validate all relative links resolve correctly
+    - Create `scripts/check-frontmatter.sh` — enforce title, description, last_reviewed, keywords
+    - Run all three locally before committing any content pages
   </Step>
   <Step title="Define file ownership">
-    Map out which topics belong to which directories. Create a glob ownership table. Never let two agents touch the same directory.
+    - List all content topics and assign each to one directory glob (e.g., `content/topic-a/**`)
+    - Create a `CODEOWNERS` file at repo root specifying glob → agent mapping
+    - Explicitly forbid overlapping directory ownership between agents
+    - Document the ownership map in `README.md` for reference
   </Step>
   <Step title="Set up git worktrees">
-    `git worktree add ../worktree-agent-1 -b agent-1-content`
-    Repeat for each parallel agent. Each agent commits only to its own worktree branch.
+    - Run `git worktree add ../worktree-agent-1 -b agent-1-content` for each parallel agent
+    - Verify each worktree has its own isolated branch: `git branch -a`
+    - Configure each agent's git config in its worktree: `git config user.name "Agent 1"` etc.
+    - Instruct each agent: commit ONLY to its worktree branch, never to main directly
   </Step>
   <Step title="Run Brain + Worker sprints">
-    Brain (Opus) holds the sprint plan. Sonnet workers execute in parallel. Brain merges after validation passes.
+    - Brain (Opus session) holds the plan, doesn't code
+    - Spawn N Sonnet workers via Task tool, each with its own worktree branch
+    - Workers execute in parallel; Brain waits for all to report completion
+    - Brain runs validation scripts on merged branches before final merge to main
   </Step>
 </Steps>
 

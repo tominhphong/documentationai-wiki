@@ -3,6 +3,10 @@ title: "Case Study: Vietnamese Real Estate Content Pipeline for DFW"
 description: "How Phong creates bilingual real estate content for the Vietnamese-American community in DFW — Facebook, YouTube, email, and WhatsApp — using Claude Code, Remotion, Zernio, and Vbee."
 last_reviewed: 2026-04-22
 data_freshness: "2026-04 (Sprint 6)"
+type: example
+audience: both
+use_case: ["create-content-pipeline-with-remotion-tts", "integrate-zernio-for-social-scheduling"]
+keywords: [case-study, vietnamese, remotion, vbee, zernio, content-pipeline, cultural-adaptation]
 ---
 
 # Case Study: Vietnamese Real Estate Content Pipeline for DFW
@@ -250,19 +254,34 @@ An early session summary noted "next step: schedule post." In the following sess
 
 <Steps>
   <Step title="Identify your audience's cultural context">
-    Before building any template, list the top 5 cultural factors that affect your audience's housing decisions. Build these into your prompt templates, not as manual additions.
+    - List 5+ cultural factors that affect your audience's housing decisions (e.g., family involvement, feng shui, number symbolism, lunar calendar, income dynamics)
+    - Document each factor with 1-2 concrete examples from your market
+    - Build these into prompt templates for content generation: include them in every call, not added manually
+    - Review and update list quarterly as cultural context shifts
   </Step>
   <Step title="Set up Remotion with the right font">
-    Install `@fontsource/your-target-language-font` before writing any scene components. Test a render with your target language text before building the full template.
+    - Install language-specific font: `npm install @fontsource/noto-sans-vietnamese` (for Vietnamese)
+    - Import font in Remotion root: `import '@fontsource/noto-sans-vietnamese'`
+    - Create a test scene with target-language text only (no English)
+    - Render test video locally: verify characters display correctly, no hollow squares or mojibake
   </Step>
   <Step title="Establish a TTS golden copy workflow">
-    Generate the voiceover MP3 once, save it as the golden copy alongside the video file. Only regenerate if the script changes — TTS APIs charge per character.
+    - Generate voiceover MP3 once from the approved script: `POST https://vbee.vn/api/v1/tts`
+    - Save MP3 as golden copy: `Content/media/YYYY-MM/<name>-voiceover.mp3`
+    - Store alongside video file with same base name for easy reference
+    - Only regenerate MP3 if script text changes; reuse for all video variants
   </Step>
   <Step title="Connect Zernio MCP to your social accounts">
-    Use `mcp__zernio__connect_get_connect_url` to link your social accounts. Test with a draft post before scheduling anything live.
+    - Call `mcp__zernio__connect_get_connect_url` in Claude to initiate OAuth flow
+    - Authenticate with each social account (Facebook, Instagram, YouTube, etc.)
+    - Test with a draft post: compose post → schedule for 1 hour from now → verify it appears in queue
+    - Do NOT schedule live posts until approval workflow is active (see Step 5)
   </Step>
   <Step title="Add explicit approval gates">
-    Any tool that publishes content publicly must have an explicit human approval step. Write this rule into your CLAUDE.md. Claude will not violate it if it is clearly stated.
+    - Write into your project's `CLAUDE.md`: "Agent MUST show draft post + scheduled time to Phong for explicit approval before calling any `mcp__zernio__*publish*` or `mcp__zernio__*schedule*` tool"
+    - Make this rule non-negotiable: "Agent will not violate this if clearly stated"
+    - Require approval in every content workflow, not just first post
+    - Document approval in commit message for audit trail
   </Step>
 </Steps>
 

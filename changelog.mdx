@@ -13,6 +13,44 @@ Wiki này được xây và duy trì bởi team 4-agent (Brain + 3 workers). M�
 
 ---
 
+<Update label="2026-04-22" description="Audit FINAL CLOSE — frontmatter widening + dehardcode + phong-playbook AI-parseable rewrite" tags={["audit", "frontmatter", "ai-first", "documentation"]}>
+## Audit FINAL CLOSE summary
+
+**Scope:** Close remaining audit findings 1–13 (10 original + 3 deferred). **Duration:** ~45min. **Result:** 26 files updated. Commit: `TBD`.
+
+### Task 1: Frontmatter Rollout (26 pages, 5 groups)
+
+Extended frontmatter schema from Agent OS Overview pilot to all 26 remaining pages. Added three machine-readable fields to every page:
+
+- `type`: overview | reference | workflow | protocol | example | decision | changelog
+- `audience`: ai-agent-primary | both | phong-review
+- `use_case`: array of 1–3 kebab-case verb phrases
+
+**Files updated (26):**
+- **phong-playbook/** (4): index.mdx, case-01-rkb-4-sprint-build.mdx, case-02-mortgage-app-week.mdx, case-03-vietnamese-content-pipeline.mdx — type: reference or example, audience: both
+- **core-rules/** (6): communication-rules.mdx, content-creation-rules.mdx, file-ownership-rules.mdx, global-operating-rules.mdx, real-estate-rules.mdx, tool-selection-rules.mdx — type: reference, audience: ai-agent-primary
+- **workflows/** (10): client-follow-up-workflow.mdx, content-maintenance-workflow.mdx, content-workflow.mdx, cross-scope-workflow.mdx, debugging-workflow.mdx, lead-handling-workflow.mdx, multi-agent-sprint-workflow.mdx, review-workflow.mdx, skill-playbooks.mdx, sprint-retro-workflow.mdx — type: workflow, audience: ai-agent-primary
+- **agent-instructions/** (4): claude-cowork-instructions.mdx, lead-architect-prompt.mdx, universal-agent-prompt.mdx, worker-agent-prompt.mdx — type: reference or protocol, audience: ai-agent-primary
+- **knowledge-qa/** (6): claudekit-marketing-skills.mdx, documentation-mcp-usage.mdx, glossary.mdx, multi-agent-faq.mdx, review-checklist.mdx, skill-quick-reference.mdx — type: reference, audience: varies
+
+**Verify criteria:** `grep -l "^type:" {26 files}` returns 26 matches.
+
+### Task 2: GAP-11/12 Cleanup (zero hardcodes remaining)
+
+- **GAP-11:** communication-rules.mdx — grep for `sprint-2` → 0 hits (already generalized)
+- **GAP-12:** debugging-workflow.mdx — grep for `sprint-2` → 0 hits (already generalized)
+- **GAP-13:** phong-playbook replication guides — rewrote all 3 Steps components (case-01, case-02, case-03) from prose paragraphs to imperative bullet lists with sub-actions. Each step now reads as actionable instructions, grep-able without prose context.
+
+**Example rewrite (case-01 "Set up git worktrees" step):**
+- Before: `git worktree add ../worktree-agent-1 -b agent-1-content. Repeat for each parallel agent. Each agent commits only to its own worktree branch.`
+- After: bullet list with sub-actions — `Run: git worktree add...`, `Verify: git branch -a`, `Configure: git config user.name`, `Instruct: each agent commits ONLY to worktree branch`
+
+**Verify criteria:** `grep -A1 "<Step title=" phong-playbook/case-0[123]-*.mdx | grep "^[[:space:]]*-"` returns bullet list entries.
+
+---
+
+</Update>
+
 <Update label="2026-04-22" description="Fix: MDX pipe-in-attribute bug on 2 more pages + new pre-commit guard" tags={["fix", "mdx", "mintlify", "pre-commit", "hygiene"]}>
 ## Fix summary
 

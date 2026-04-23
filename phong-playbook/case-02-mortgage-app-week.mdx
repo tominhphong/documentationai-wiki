@@ -3,6 +3,10 @@ title: "Case Study: Mortgage Compare App from Idea to Deploy in One Week"
 description: "How Phong built a full-stack multi-scenario mortgage comparison app using Next.js, Cloudflare D1/R2/Workers, and 4 parallel sprints — shipped in 7 days at $0/month."
 last_reviewed: 2026-04-22
 data_freshness: "2026-04 (Sprint 6)"
+type: example
+audience: both
+use_case: ["execute-multi-agent-sprint-for-app-development", "set-up-next-js-cloudflare-stack"]
+keywords: [case-study, next.js, cloudflare, multi-agent, full-stack, mortgage-calculator, d1, workers]
 ---
 
 # Case Study: Mortgage Compare App from Idea to Deploy in One Week
@@ -208,22 +212,34 @@ The Cloudflare Worker initially rejected requests from the Vercel preview URL be
 
 <Steps>
   <Step title="Scaffold Next.js with Tailwind v4 + shadcn">
-    `npx create-next-app@latest --typescript`
-    Then install Tailwind v4 and shadcn/ui per their v4 docs.
-    Verify Tailwind renders before adding any business logic.
+    - Run: `npx create-next-app@latest --typescript`
+    - Install Tailwind v4 per official docs (v4 has different config than v3)
+    - Add shadcn/ui components with `npx shadcn-ui@latest add button input`
+    - Verify Tailwind renders (e.g., test color classes) before adding business logic
   </Step>
   <Step title="Build calculator logic first, UI second">
-    Write pure TypeScript functions for every calculation. Test them with known inputs before wiring up the UI. Wrong math is worse than ugly UI.
+    - Write pure TypeScript functions in `src/lib/calculators/` (no React dependencies)
+    - Test each function with known inputs: `calcMortgagePayment({principal: 300000, ...}) → 1524.13`
+    - Verify math against external mortgage amortization tables or financial calculators
+    - Wire up UI only after all calculations pass tests
   </Step>
   <Step title="Set up Cloudflare Worker + D1">
-    `npm create cloudflare@latest`
-    Define your D1 schema in a migration file. Test locally with `wrangler d1 execute --local` before deploying.
+    - Run: `npm create cloudflare@latest` to scaffold Worker project
+    - Define D1 schema in `src/db/schema.sql` (tables, columns, types)
+    - Create migration file: `src/db/migrations/001_initial.sql`
+    - Test locally: `wrangler d1 execute local-db --file=src/db/migrations/001_initial.sql`
   </Step>
   <Step title="Define the API contract before splitting agents">
-    Write a short contract doc (even just comments) specifying request/response shapes before spawning frontend and backend agents. This prevents the inputs vs inputs_json class of bugs.
+    - Write a contract doc (TypeScript types or OpenAPI) specifying request/response shapes
+    - Example: `POST /scenarios {inputs_json: string} → {id: string, created_at: ISO8601}`
+    - Share contract with both frontend and backend agents before they start coding
+    - This prevents integration bugs like inputs vs inputs_json mismatches
   </Step>
   <Step title="Run a smoke test before calling the sprint done">
-    After both agents complete, Brain runs one end-to-end test: create a scenario via UI, save to cloud, reload page, verify scenario reloads. This catches integration bugs the unit tests miss.
+    - Brain spawns a test sequence: create scenario via UI → verify POST /scenarios succeeds → reload page → verify scenario reloads from cloud
+    - Check Network tab: confirm API calls return 200, not 400 or 500
+    - Verify data matches: input values in form → calculated results in table
+    - Only mark sprint done after smoke test passes end-to-end
   </Step>
 </Steps>
 
