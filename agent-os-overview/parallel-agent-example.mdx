@@ -1,0 +1,225 @@
+---
+title: "Parallel Agent Example — Cloudflare Worker Endpoint"
+description: "Worked example: 3-agent team (Lead + Dev + Tester + Docs) implements a Cloudflare Worker endpoint with tests and docs. Explicit state transitions, data handoffs, message payloads."
+last_reviewed: 2026-04-22
+type: example
+audience: ai-agent-primary
+use_case: ["run-parallel-agent-sprint", "understand-handoff-protocol", "execute-agent-team-scenario"]
+keywords: [parallel-agent, example, handoff, cloudflare-worker, agent-team, sendmessage, taskupdate, state-transitions]
+---
+
+<Callout kind="info">
+This is a **worked example** — not a tutorial. It shows exact tool calls, message payloads, and state transitions for a real Agent Team sprint. Read before running your first multi-agent task.
+
+For SDK tool signatures, see [Agent Team SDK Protocol](/agent-os-overview/agent-team-sdk-protocol). For sprint phases, see [Multi-Agent Sprint Workflow](/workflows/multi-agent-sprint-workflow).
+</Callout>
+
+## Scenario Setup
+
+**Goal:** Implement `POST /api/submit-lead` Cloudflare Worker endpoint with request validation, tests, and endpoint reference docs — in one parallel sprint.
+
+### Agent Roster
+
+| Agent | Role | Model | File Ownership |
+|-------|------|-------|----------------|
+| Lead | Orchestrator + merge | Opus | `plans/*`, `wrangler.toml`, `src/index.ts` (merge only) |
+| Dev | Endpoint implementation | Sonnet | `src/workers/submit-lead.ts`, `src/types/*.ts` |
+| Tester | Test suite | Sonnet | `tests/submit-lead.test.ts`, `tests/fixtures/*` |
+| Docs | Reference + changelog | Haiku | `docs/api/submit-lead.md`, `docs/changelog.md` |
+
+**No overlap** — each glob is distinct. Dev never touches `tests/`. Tester never edits `src/workers/`.
+
+### Prerequisites
+
+- Team config at `~/.claude/teams/wiki-team/config.json` listing all four agents by name
+- Git worktrees: Dev in `worktree-dev/`, Tester in `worktree-tester/`, Docs in `worktree-docs/`
+- Tasks pre-created by Lead: T-1 (endpoint), T-2 (tests), T-3 (docs)
+
+---
+
+## Timeline — State Transitions
+
+| Time | Actor | Action | Tool Call | Task State | Message |
+|------|-------|--------|-----------|------------|---------|
+| 10:00 | Lead | Creates tasks + opens sprint | `TaskCreate` x3 | T-1,T-2,T-3 → `todo` | Broadcasts: "Sprint open. Dev claim T-1, Tester claim T-2 after T-1 done, Docs claim T-3 after T-2 done." |
+| 10:01 | Dev | Discovers tasks | `TaskList()` | — | — |
+| 10:01 | Dev | Reads T-1 spec | `TaskGet("T-1")` | — | — |
+| 10:01 | Dev | Claims T-1 | `TaskUpdate("T-1", "in_progress", owner="Dev")` | T-1 → `in_progress` | — |
+| 10:02 | Lead | Sends spec to Dev | `SendMessage` | — | "Claim T-1 — spec in plans/phase-01.md, file ownership src/workers/*" |
+| 10:02 | Tester | Discovers tasks | `TaskList()` | — | Sees T-2 blocked (depends on T-1) — goes idle |
+| 10:02 | Docs | Discovers tasks | `TaskList()` | — | Sees T-3 blocked (depends on T-2) — goes idle |
+| 10:15 | Dev | Completes endpoint | — | — | — |
+| 10:15 | Dev | Marks T-1 done | `TaskUpdate("T-1", "completed")` | T-1 → `completed` | — |
+| 10:15 | Dev | Signals Tester | `SendMessage` to Tester | — | Handoff A message (see below) |
+| 10:16 | Tester | Claims T-2 | `TaskUpdate("T-2", "in_progress", owner="Tester")` | T-2 → `in_progress` | — |
+| 10:25 | Tester | Finds validation bug | — | — | — |
+| 10:25 | Tester | Signals Dev | `SendMessage` to Dev | — | Bug report (see Failure Branch) |
+| 10:26 | Dev | Re-opens T-1 | `TaskUpdate("T-1", "in_progress")` | T-1 → `in_progress` | — |
+| 10:28 | Dev | Pushes fix | — | — | — |
+| 10:28 | Dev | Re-signals Tester | `SendMessage` to Tester | — | "T-1 fix pushed — `if (!payload.email)` guard added. Re-verify." |
+| 10:28 | Dev | Marks T-1 done again | `TaskUpdate("T-1", "completed")` | T-1 → `completed` | — |
+| 10:35 | Tester | Tests pass | — | — | — |
+| 10:35 | Tester | Marks T-2 done | `TaskUpdate("T-2", "completed")` | T-2 → `completed` | — |
+| 10:35 | Tester | Signals Docs | `SendMessage` to Docs | — | Handoff B message (see below) |
+| 10:36 | Docs | Claims T-3 | `TaskUpdate("T-3", "in_progress", owner="Docs")` | T-3 → `in_progress` | — |
+| 10:45 | Docs | Marks T-3 done | `TaskUpdate("T-3", "completed")` | T-3 → `completed` | — |
+| 10:45 | Docs | Signals Lead | `SendMessage` to Lead | — | Handoff C message (see below) |
+| 10:45 | Tester | Signals Lead | `SendMessage` to Lead | — | Handoff C message (see below) |
+| 10:15 | Dev | Signals Lead | `SendMessage` to Lead | — | Handoff C message (see below) — lead buffers until all 3 received |
+| 10:46 | Lead | Receives all 3 completion signals | — | — | Begins merge sequence |
+| 10:48 | Lead | Merges + deploys | `git merge` x3 + deploy | Sprint → `complete` | — |
+
+---
+
+## Message Log
+
+Exact `SendMessage` payloads exchanged. Plain text only — no JSON.
+
+```
+[10:00] Lead → broadcast: "Sprint open. T-1=endpoint (Dev), T-2=tests (Tester, depends on T-1), T-3=docs (Docs, depends on T-2). Claim via TaskUpdate when unblocked."
+
+[10:02] Lead → Dev: "Claim task T-1 (endpoint) — spec in plans/phase-01.md. File ownership: src/workers/submit-lead.ts, src/types/lead.ts. Endpoint: POST /api/submit-lead, body: { name, email, phone?, message? }, returns 200 { id } or 400 { error }."
+
+[10:15] Dev → Tester: "Task T-1 completed. Endpoint at src/workers/submit-lead.ts. Contract: POST /api/submit-lead, body { name: string, email: string, phone?: string, message?: string }. Valid → 200 { id: string }. Missing name/email → 400 { error: 'Missing required fields' }. No test coverage yet — pick up T-2."
+
+[10:15] Dev → Lead: "Task T-1 done. Endpoint returns 200 on valid payload, 400 on missing required fields. Tester has contract — picking up T-2 next."
+
+[10:25] Tester → Dev: "Bug found in T-1 during T-2. Empty string email passes validation — { name: 'Test', email: '' } returns 200 instead of 400. Reproduction: tests/submit-lead.test.ts line 34. Need guard for empty string, not just missing field."
+
+[10:28] Dev → Tester: "T-1 fix pushed to worktree-dev branch. Added: if (!payload.email) check now catches empty string. Guard is in src/workers/submit-lead.ts lines 18-22. Pull and re-verify."
+
+[10:35] Tester → Docs: "Task T-2 completed. Test suite at tests/submit-lead.test.ts — 12 tests, all pass. Edge cases found and fixed: (1) empty string email → 400, (2) phone field optional confirmed, (3) extra fields in body are ignored silently. Note these 3 in the endpoint reference doc."
+
+[10:35] Tester → Lead: "Task T-2 done. 12 tests pass. One bug was found and fixed in T-1 (empty email guard). Docs has been handed edge cases for T-3."
+
+[10:45] Docs → Lead: "Task T-3 done. Endpoint reference at docs/api/submit-lead.md. Changelog entry at docs/changelog.md. Documented all 3 edge cases from Tester. Ready to merge."
+```
+
+---
+
+## Data Handoff Points
+
+Three concrete handoffs with format and content.
+
+### Handoff A — Dev to Tester (endpoint contract)
+
+**When:** Dev completes T-1, before Tester claims T-2.
+
+**What Dev sends:**
+- File path of the endpoint implementation
+- Route + HTTP method
+- Request body schema (field names, types, required vs optional)
+- Response shape for success and each error case
+- Explicit statement: "no test coverage yet"
+
+**Tester reads and starts:** `tests/submit-lead.test.ts` — covering valid payload, each required-field-missing case, optional fields, and edge cases.
+
+---
+
+### Handoff B — Tester to Docs (test results + edge cases)
+
+**When:** Tester completes T-2, before Docs claims T-3.
+
+**What Tester sends:**
+- Test file path
+- Total tests + pass/fail count
+- List of edge cases discovered during testing (not in original spec)
+- Any bugs found and whether they were fixed in the source
+
+**Docs reads and writes:** endpoint reference, marking edge cases with `<Note>` callouts.
+
+---
+
+### Handoff C — All workers to Lead (completion signals)
+
+**When:** Each worker finishes their task (can arrive at different times).
+
+**What each worker sends:**
+- Task ID completed
+- Primary output (file path or brief description)
+- Any caveats Lead needs for merge (e.g., "T-1 was revised once after T-2 found a bug")
+
+**Lead buffers** until all 3 signals received, then runs merge sequence.
+
+---
+
+## Failure Branch — Tester Finds Bug Mid-Sprint
+
+This is the most common failure scenario. Walk-through:
+
+**Step 1 — Tester detects failure:**
+
+Tester writes test for empty-string email → test fails → endpoint returns 200 when it should return 400. This is a Dev scope bug (src/workers/ is Dev's glob).
+
+**Step 2 — Tester reports to Dev (not Lead):**
+
+```
+Tester → Dev: "Bug in T-1 — empty string email returns 200. Repro at tests/submit-lead.test.ts:34. Need fix before I can complete T-2."
+```
+
+Tester does NOT edit `src/workers/` — that violates file ownership. Tester pauses on T-2 while waiting.
+
+**Step 3 — Dev re-opens and fixes:**
+
+```
+TaskUpdate("T-1", "in_progress")   // re-open
+```
+
+Dev applies fix, pushes to worktree branch.
+
+```
+TaskUpdate("T-1", "completed")     // close again
+SendMessage to Tester: "Fix pushed — pull and re-verify."
+```
+
+**Step 4 — Tester re-verifies:**
+
+Tester pulls Dev's branch, runs tests again. If pass → continues T-2. If still failing → repeats Step 2.
+
+**Lead is NOT involved** in this loop unless Dev cannot fix after 2 attempts, in which case Tester escalates:
+
+```
+Tester → Lead: "T-1 bug not resolved after 2 attempts. T-2 is blocked. Needs lead intervention."
+TaskUpdate("T-2", "blocked")
+```
+
+---
+
+## Completion + Merge
+
+**Lead receives three completion signals** (they may arrive out of order — that is fine).
+
+**Lead merge sequence:**
+
+```bash
+# In Lead's main worktree
+git fetch --all
+
+# Merge Dev branch first (source of truth for implementation)
+git merge worktree-dev --no-ff -m "feat: add POST /api/submit-lead endpoint"
+
+# Merge Tester branch (tests reference the implementation)
+git merge worktree-tester --no-ff -m "test: add submit-lead test suite (12 tests)"
+
+# Merge Docs branch last (references both implementation and test results)
+git merge worktree-docs --no-ff -m "docs: add submit-lead endpoint reference"
+
+# Deploy
+wrangler deploy
+```
+
+**If merge conflict:** Lead resolves directly — never asks a worker to edit outside their scope at merge time.
+
+**After deploy:** Lead broadcasts:
+
+```
+Lead → broadcast: "Sprint complete. POST /api/submit-lead live. Merge: dev + tester + docs branches all merged to main. Worktrees can be cleaned up."
+```
+
+---
+
+## Cross-References
+
+- [Agent Team SDK Protocol](/agent-os-overview/agent-team-sdk-protocol) — tool signatures for SendMessage, TaskUpdate, TaskList, ExitPlanMode
+- [Multi-Agent Sprint Workflow](/workflows/multi-agent-sprint-workflow) — sprint phases 1–7 with Win 1/2/3/4 roles
+- [Architecture Decision: IPC vs SDK](/agent-os-overview/architecture-decision-ipc-vs-sdk) — when to use Agent Team SDK vs filesystem-IPC model

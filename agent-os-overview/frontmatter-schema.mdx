@@ -1,0 +1,148 @@
+---
+title: "Frontmatter Metadata Schema"
+description: "Machine-readable frontmatter fields added to Agent OS Overview pages. Allows AI agents to filter pages by type, audience, and use_case without reading the full body."
+last_reviewed: 2026-04-22
+type: reference
+audience: ai-agent-primary
+use_case: ["apply-frontmatter-to-new-pages", "filter-pages-by-type-or-audience"]
+keywords: [frontmatter, metadata, schema, type, audience, use-case, ai-agent, machine-readable, grep]
+---
+
+## Purpose
+
+Standard frontmatter fields (`title`, `description`, `last_reviewed`, `keywords`) require an agent to read page bodies to determine relevance. The extended schema adds three fields that allow agents to pre-filter pages via grep before reading:
+
+- **`type`** — what kind of content the page contains
+- **`audience`** — who the primary reader is
+- **`use_case`** — concrete tasks the page supports
+
+This is a **pilot** — applied to Agent OS Overview group only. Other groups may adopt after validation.
+
+---
+
+## Schema Definition
+
+### `type`
+
+What kind of content this page contains.
+
+| Value | Meaning | Example pages |
+|-------|---------|---------------|
+| `overview` | High-level orientation, no deep detail | introduction.mdx, architecture.mdx |
+| `reference` | Lookup table, catalog, or spec | components-and-tools.mdx, who-phong-is.mdx |
+| `workflow` | Step-by-step process to execute | multi-agent-collaboration.mdx |
+| `protocol` | Rules + tool signatures for a specific interaction model | agent-team-sdk-protocol.mdx |
+| `example` | Worked scenario with concrete inputs/outputs | parallel-agent-example.mdx |
+| `decision` | Architecture or design decision with rationale | architecture-decision-ipc-vs-sdk.mdx |
+| `changelog` | History of changes | changelog.mdx |
+
+**Format:** string, one value only.
+
+---
+
+### `audience`
+
+Who this page is primarily written for.
+
+| Value | Meaning |
+|-------|---------|
+| `ai-agent-primary` | Written for AI agents to parse and execute. Phong may review but is not the primary reader. |
+| `both` | Relevant to both AI agents and Phong equally. High-level orientation or decision content. |
+| `phong-review` | Written primarily for Phong's review. AI agents can read but are not the target. |
+
+**Format:** string, one value only.
+
+---
+
+### `use_case`
+
+Concrete tasks a reader would perform using this page.
+
+**Format:** array of strings, 1–3 items. Use kebab-case verb phrases.
+
+**Examples:**
+
+```yaml
+use_case: ["run-parallel-agent-sprint"]
+use_case: ["understand-user-context", "set-language-and-tone"]
+use_case: ["apply-frontmatter-to-new-pages", "filter-pages-by-type-or-audience"]
+```
+
+Write use cases as what the agent *does*, not what the page *is*:
+- Good: `"execute-task-claim-flow"`
+- Bad: `"task-claim-documentation"`
+
+---
+
+## Example Frontmatter Block
+
+```yaml
+---
+title: "Agent Team SDK Protocol"
+description: "Full reference for Agent Team SDK tools..."
+last_reviewed: 2026-04-22
+type: protocol
+audience: ai-agent-primary
+use_case: ["execute-sendmessage-flow", "handle-shutdown-request", "submit-plan-for-approval"]
+keywords: [agent-team, sdk, sendmessage, taskupdate, ...]
+---
+```
+
+**IMPORTANT:** New fields are ADDED to existing frontmatter. Never remove `title`, `description`, `last_reviewed`, or `keywords`.
+
+---
+
+## How AI Agents Use This Schema
+
+### Grep pattern: find all protocol pages
+
+```bash
+grep -rl "^type: protocol" /path/to/wiki/
+```
+
+### Grep pattern: find pages for a specific use case
+
+```bash
+grep -rl "run-parallel-agent-sprint" /path/to/wiki/
+```
+
+### Grep pattern: find all ai-agent-primary pages
+
+```bash
+grep -rl "^audience: ai-agent-primary" /path/to/wiki/
+```
+
+### Decision logic
+
+Before reading a page body, an agent can:
+
+1. Grep `type:` to filter for the right kind of content (e.g., only `protocol` pages when looking for tool signatures)
+2. Grep `use_case:` to find pages that directly support the current task
+3. Grep `audience:` to skip `phong-review` pages during autonomous sprints
+
+This reduces context usage — agents read only pages relevant to their current task.
+
+---
+
+## Applying This Schema to New Pages
+
+When creating a new page in `agent-os-overview/`:
+
+1. Pick the closest `type` value from the table above
+2. Set `audience` based on who will primarily read the page
+3. Write 1–3 `use_case` values as kebab-case verb phrases
+4. Add all three fields after `keywords:` in the frontmatter block
+5. Do not overwrite or remove existing frontmatter fields
+
+---
+
+## Rollout Status
+
+| Group | Status |
+|-------|--------|
+| Agent OS Overview | Pilot — all 13 pages updated (2026-04-22) |
+| Core Rules | Not yet |
+| Workflows | Not yet |
+| Agent Instructions | Not yet |
+| Knowledge & QA | Not yet |
+| Phong's Playbook | Not yet |

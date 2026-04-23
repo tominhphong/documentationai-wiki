@@ -2,6 +2,9 @@
 title: "Agent Team SDK Protocol"
 description: "Full reference for Agent Team SDK tools — SendMessage, TaskCreate, TaskGet, TaskUpdate, TaskList, ExitPlanMode, shutdown_response. Lifecycle states, protocol flows, constraints, failure modes."
 last_reviewed: 2026-04-22
+type: protocol
+audience: ai-agent-primary
+use_case: ["execute-sendmessage-flow", "handle-shutdown-request", "submit-plan-for-approval"]
 keywords: [agent-team, sdk, sendmessage, taskupdate, tasklist, exitplanmode, shutdown, idle, protocol, coordination]
 ---
 
@@ -287,3 +290,4 @@ These are hard rules from `~/.claude/rules/team-coordination-rules.md`.
 - [Architecture Decision: IPC vs SDK](/agent-os-overview/architecture-decision-ipc-vs-sdk) — when to use this protocol vs filesystem-IPC model
 - [Multi-Agent Collaboration](/agent-os-overview/multi-agent-collaboration) — 4-role team structure (filesystem-IPC model)
 - [Multi-Agent Sprint Workflow](/workflows/multi-agent-sprint-workflow) — sprint phases + plan-approval flow detail
+- [Parallel Agent Example](/agent-os-overview/parallel-agent-example) — worked 4-agent scenario with exact tool calls, message payloads, and handoffs

@@ -54,6 +54,11 @@
                 "icon": "plug"
               },
               {
+                "title": "Parallel Agent Example",
+                "path": "agent-os-overview/parallel-agent-example",
+                "icon": "git-fork"
+              },
+              {
                 "title": "Visual Diagrams",
                 "path": "agent-os-overview/diagrams",
                 "icon": "chart-scatter"
@@ -72,6 +77,11 @@
                 "title": "Engineer Skills Catalog",
                 "path": "agent-os-overview/claudekit-engineer-skills",
                 "icon": "wrench"
+              },
+              {
+                "title": "Frontmatter Schema",
+                "path": "agent-os-overview/frontmatter-schema",
+                "icon": "file-code"
               }
             ]
           },

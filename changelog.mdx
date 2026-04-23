@@ -13,6 +13,75 @@ Wiki này được xây và duy trì bởi team 4-agent (Brain + 3 workers). M�
 
 ---
 
+<Update label="2026-04-22" description="Phase 3b+3c — Parallel example + frontmatter pilot (audit complete)" tags={["audit", "ai-first", "agent-team", "example", "frontmatter", "phase-3"]}>
+## Phase 3b+3c summary
+
+**Theme:** Final sprint of AI-First audit — add worked parallel example page + apply machine-readable frontmatter metadata pilot to Agent OS Overview group. **Duration:** ~30min. **Result:** 2 new pages + 15 files updated. Commit: `TBD`.
+
+### Phase 3b — Parallel Agent Example
+
+New page: [Parallel Agent Example](/agent-os-overview/parallel-agent-example) — worked 4-agent scenario (Lead + Dev + Tester + Docs) implementing a Cloudflare Worker endpoint.
+
+7 sections — executable from page alone, no external lookups needed:
+
+1. **Scenario setup** — goal statement, file ownership globs per agent (no overlap), prerequisites
+2. **Timeline** — state transitions table: Time / Actor / Action / Tool Call / Task State / Message sent — from `TaskCreate` through `git merge + deploy`
+3. **Message log** — exact `SendMessage` payloads (plain text, all 7 messages in sequence)
+4. **Data handoff points** — 3 concrete handoffs: Dev→Tester (endpoint contract), Tester→Docs (test results + edge cases), All→Lead (completion signals)
+5. **Failure branch** — mid-sprint bug found by Tester: report → Dev re-opens T-1 → fix → re-verify. Lead not involved unless 2+ attempts fail.
+6. **Completion + merge** — Lead buffers 3 signals, runs `git merge` x3 sequence, deploys, broadcasts
+7. **Cross-references** — SDK Protocol, Sprint Workflow, IPC vs SDK decision
+
+Nav entry added: "Parallel Agent Example" (icon: `git-fork`) after Agent Team SDK Protocol, before Visual Diagrams.
+
+Cross-links added:
+- `agent-team-sdk-protocol.mdx` cross-references section: link to parallel example
+- `multi-agent-sprint-workflow.mdx` coordination summary: Callout linking to parallel example
+
+### Phase 3c — Frontmatter Metadata Pilot (Agent OS Overview only)
+
+New page: [Frontmatter Schema](/agent-os-overview/frontmatter-schema) — defines `type`, `audience`, `use_case` schema with allowed values, grep examples, and rollout status.
+
+Applied to **13/13 Agent OS Overview pages** — all existing frontmatter fields preserved, 3 new fields added:
+
+| Page | type | audience | use_case count |
+|------|------|----------|----------------|
+| introduction.mdx | overview | both | 2 |
+| who-phong-is.mdx | reference | ai-agent-primary | 3 |
+| architecture.mdx | overview | both | 2 |
+| components-and-tools.mdx | reference | ai-agent-primary | 2 |
+| multi-agent-collaboration.mdx | workflow | ai-agent-primary | 2 |
+| architecture-decision-ipc-vs-sdk.mdx | decision | ai-agent-primary | 2 |
+| agent-team-sdk-protocol.mdx | protocol | ai-agent-primary | 3 |
+| parallel-agent-example.mdx | example | ai-agent-primary | 3 |
+| diagrams.mdx | reference | both | 2 |
+| design-principles.mdx | reference | both | 2 |
+| known-issues.mdx | reference | ai-agent-primary | 2 |
+| claudekit-engineer-skills.mdx | reference | ai-agent-primary | 2 |
+| frontmatter-schema.mdx | reference | ai-agent-primary | 2 |
+
+Nav entry added: "Frontmatter Schema" (icon: `file-code`) at end of Agent OS Overview group.
+
+### Agent OS Wiki Audit — COMPLETE
+
+All 10 findings from `plans/reports/docs-260422-1436-agent-os-ai-first-audit.md` addressed:
+
+| Finding | Description | Phase | Status |
+|---------|-------------|-------|--------|
+| GAP-1 | Agent Team SDK protocol not documented | 3a | CLOSED |
+| GAP-2 | Glossary Win 2 scope error | 1 | CLOSED |
+| GAP-3 | Two conflicting architecture models | 2 | CLOSED |
+| GAP-4 | Plan approval flow missing | 3a | CLOSED |
+| GAP-5 | Shutdown/idle behavior not documented | 3a | CLOSED |
+| GAP-6 | No concrete parallel-agent example | 3b | CLOSED |
+| GAP-7 | Frontmatter missing type/audience/use_case | 3c | CLOSED (pilot) |
+| GAP-8 | File conflict vs task conflict not distinguished | 1 | CLOSED |
+| GAP-9 | Glossary branch field inconsistent | 1 | CLOSED |
+| GAP-10 | architecture.mdx sprint-specific file reference | 1 | CLOSED |
+</Update>
+
+---
+
 <Update label="2026-04-22" description="Phase 3a — Agent Team SDK Protocol page" tags={["audit", "ai-first", "agent-team", "sdk", "phase-3"]}>
 ## Phase 3a summary
 
