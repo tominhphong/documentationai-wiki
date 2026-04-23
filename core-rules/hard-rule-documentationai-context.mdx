@@ -1,0 +1,255 @@
+---
+title: "Hard Rule #3 — DocumentationAI Context"
+description: "Why the wiki is built on DocumentationAI, scope lock rationale (AI agents + Phong only), violation history (MDX pipe-in-attribute 500s), and MCP endpoint reference."
+last_reviewed: 2026-04-22
+type: decision
+audience: both
+use_case: ["understand-scope-lock-rationale", "understand-why-docai-is-hard-rule", "use-documentation-mcp-correctly"]
+keywords: [hard-rule, documentation-ai, wiki, scope-lock, ai-first, audience, mdx-safety, 2026-04-22]
+---
+
+## Summary
+
+This entire wiki runs on DocumentationAI, a platform optimized for **operational knowledge** (what AI agents need to function) rather than marketing or onboarding. Every session touches this platform. Hard rule ensures:
+
+1. **Scope is locked** — audience = AI agents + Phong ONLY
+2. **Context prevents token waste** — agents query live docs via MCP, not re-fetch
+3. **MDX safety enforced** — pre-commit guards block dangerous syntax that causes 500 errors
+4. **Consistency prevents rework** — single source of truth for system behavior
+
+---
+
+## Why This Rule Exists
+
+### The Platform Context
+
+DocumentationAI is purpose-built for:
+- **AI-searchable documentation** — agents fetch via MCP, parse structured frontmatter
+- **Operational knowledge** — how to use the system, not how to market it
+- **Rapid iteration** — agents read → understand → execute in same session
+
+It is **NOT** for:
+- Public-facing marketing docs
+- Newcomer onboarding ("What is Phong To?")
+- SEO-optimized content
+- Multi-language support (i18n)
+
+### Token Efficiency Problem
+
+LLMs reflexively re-fetch live documentation when uncertain. Common anti-pattern:
+
+```
+Agent runs task → realizes needs context
+→ calls WebFetch on wiki URL (token waste)
+→ reads 5KB markdown (more tokens)
+→ parses manually (loses structure)
+→ guesses intent from prose
+```
+
+**Better approach:**
+```
+Agent reads this page's frontmatter + MCP reference
+→ calls searchDocumentation(query, filters)
+→ gets structured response with metadata
+→ zero parsing, full context
+```
+
+Scope lock + hardcoded audience in frontmatter enables this optimization.
+
+### MDX Safety & Production Failures
+
+**Critical bug (2026-04-22 audit):** Mintlify MDX v4 parser treats pipe `|` inside quoted JSX attributes as table column separator **even outside tables**. This breaks components nested in table rows.
+
+Example of broken code:
+```jsx
+| Component | Purpose |
+|---|---|
+| <Callout kind="info\|warning\|error"> | Shows alerts |
+```
+
+Parser sees the second pipe and tries to parse it as table column → unclosed attribute → 500 on deploy.
+
+**Production cost:** 3 instances found, each required fix + re-deploy + delay.
+
+**Prevention:** Pre-commit guard 7 blocks this pattern at commit time.
+
+---
+
+## Scope Lock Decision (2026-04-22)
+
+### What's IN Scope
+
+- **System architecture & design decisions** — how the system works
+- **Agent instructions & prompts** — what agents should do
+- **Workflows & protocols** — how teams coordinate
+- **Rules & constraints** — what's forbidden, what's required
+- **Playbooks & examples** — case studies from Phong's projects
+- **FAQs & troubleshooting** — common issues agents encounter
+
+### What's EXPLICITLY OUT OF Scope
+
+- **Public-facing content** — marketing pages, business info, testimonials
+- **Newcomer onboarding** — "Who is Phong?", "Why choose us?"
+- **SEO & discoverability** — meta tags, canonical URLs, sitemap optimization
+- **Internationalization** — Vietnamese/English/Spanish translations
+- **Audience diversity** — content simplified for "general public" or "C-level executives"
+
+### Rationale
+
+**Audience clarity prevents scope creep.** Without explicit lock, wiki expands to serve:
+- Phong's marketing team
+- Real estate clients learning about the business
+- International audiences
+- Public search engines
+
+Each expansion adds ~20% rework and ~2 sprints of maintenance debt.
+
+**Decision:** Lock to "AI agents and Phong understand how this system works." Public marketing is Phong's concern elsewhere, not wiki's.
+
+### Impact
+
+- **Phase 3c delivery:** 1 sprint (locked scope) vs 3+ (open scope)
+- **Maintenance burden:** 1 person + agents, not distributed across teams
+- **Quality:** Focused, coherent, testable against agent behavior
+- **Searchability:** MCP queries work because structure is consistent
+
+---
+
+## Violation History (2026-04-22 Audit)
+
+### Bug Pattern: Pipe in JSX Attributes
+
+**Incident 1: worker-agent-prompt.mdx:187**
+- **When:** Pre-audit
+- **Symptom:** 500 error on deployed page
+- **Code:** `` `<Callout kind="info|warning|error">` `` inside markdown table cell
+- **Root cause:** Mintlify parser interprets `|` as column separator even inside backticks + quoted attributes
+- **Fix:** Changed to `` `<Callout kind="info/warning/error">` ``
+- **Prevention:** Pre-commit guard 7 added to catch pipes in JSX attributes
+
+**Incident 2–3: Two more instances found during audit**
+- **Files:** help-center/troubleshooting/mdx-gotchas.mdx:125 and one other
+- **Same pattern, same fix**
+- **All fixed in commit cecf2b8**
+
+### Pattern: Scope Confusion
+
+During Phase 3a (audit planning), multiple suggestions to expand wiki:
+- "Add testimonials from Phong's clients" → OUT OF SCOPE (public content)
+- "Create Spanish-language version" → OUT OF SCOPE (i18n not supported)
+- "Add beginner guide for new agents" → MAYBE (depends on audience definition)
+
+**Decision made:** Document explicit scope lock, add this Hard Rule to prevent recurrence.
+
+---
+
+## MCP Endpoint & Live Queries
+
+### Endpoint
+
+```
+https://antigravity-memory-palace.documentationai.com/docs/_mcp
+```
+
+Tool: `searchDocumentation` — query this wiki programmatically
+
+### Usage Example (for agents)
+
+```python
+# Query 1: Find all pages about authentication
+result = search_documentation(
+    query="authentication",
+    filters={"audience": "both"}  # Get pages for both agents and Phong
+)
+
+# Query 2: Find core-rules pages about hard rules
+result = search_documentation(
+    query="hard rule",
+    filters={"group": "core-rules", "type": "decision"}
+)
+
+# Query 3: Get all decision pages with exact dates
+result = search_documentation(
+    query="scope lock",
+    filters={"last_reviewed": "2026-04-22"}
+)
+```
+
+### Structured Response
+
+MCP returns:
+- **title**, **description** — human-readable
+- **frontmatter** — `type`, `audience`, `use_case`, `keywords` (machine-readable)
+- **sections** — parsed headings + excerpt
+- **links** — internal cross-references, pre-resolved
+- **last_reviewed** — recency signal
+
+This structure allows agents to:
+- Filter by audience without reading prose
+- Cross-reference without manual URL building
+- Verify freshness without page visits
+- Query semantically (by `use_case`, not just keyword match)
+
+---
+
+## Safety Guardrails
+
+### Pre-Commit Guard 7 (MDX Hygiene)
+
+Prevents pipes inside quoted JSX attributes:
+
+```bash
+# Blocks: kind="info|warning|error"
+# Allows: kind="info/warning/error" or kind={"info", "warning", "error"}
+git commit -m "..." → hook runs grep -r 'kind="[^"]*|[^"]*"' → REJECTED if found
+```
+
+If this hook fails:
+1. Find the violating line
+2. Replace `|` with `/` or restructure the attribute
+3. `git add` the fix
+4. `git commit` again (NEVER `--no-verify`)
+
+### Frontmatter Validation
+
+Every page in `core-rules/` must have:
+- `type`: one of [overview, reference, workflow, protocol, example, decision, changelog]
+- `audience`: one of [ai-agent-primary, both, phong-review]
+- `use_case`: array of 1–3 kebab-case phrases
+- `keywords`: array of searchable terms
+
+Missing fields → MCP queries fail → agents can't find the page.
+
+---
+
+## Decision Log
+
+**Date:** 2026-04-22
+**Context:** Post-audit sprint revealed:
+- 3 production 500s from MDX pipe-in-attribute bug
+- Scope creep suggestions (testimonials, i18n, public marketing)
+- Token waste when agents re-fetch docs instead of using MCP
+
+**Rationale:** Make rule HARD, formalize scope lock, document MCP usage, establish hygiene guards
+
+### Implementation
+
+1. **Scope lock formalized** — explicit IN/OUT sections on this page
+2. **Violation history documented** — MDX 500s + scope confusion examples
+3. **MCP endpoint referenced** — agents can query `searchDocumentation` directly
+4. **Pre-commit guard 7 activated** — blocks pipes in JSX attributes
+5. **Frontmatter enforcement** → all pages validated at commit time
+
+### Version
+
+Formalized 2026-04-22 (commit `45cb78e`). Scope locked to "AI agents + Phong understand the system." MCP endpoint live at deployment.
+
+---
+
+## Related
+
+- **Live MCP endpoint:** `https://antigravity-memory-palace.documentationai.com/docs/_mcp`
+- **Documentation tool reference:** [Documentation MCP Usage](/knowledge-qa/documentation-mcp-usage)
+- **Companion rule:** [Hard Rule #1 — ClaudeKit-First](/core-rules/hard-rule-claudekit-first)
+- **Companion rule:** [Hard Rule #2 — Karpathy's 4 Principles](/core-rules/hard-rule-karpathy-principles)
+- **MDX gotchas:** [MDX Gotchas Guide](/help-center/troubleshooting/mdx-gotchas)

@@ -105,6 +105,21 @@
                 "icon": "shield"
               },
               {
+                "title": "Hard Rule #1 — ClaudeKit-First",
+                "path": "core-rules/hard-rule-claudekit-first",
+                "icon": "zap"
+              },
+              {
+                "title": "Hard Rule #2 — Karpathy's Principles",
+                "path": "core-rules/hard-rule-karpathy-principles",
+                "icon": "target"
+              },
+              {
+                "title": "Hard Rule #3 — DocumentationAI Context",
+                "path": "core-rules/hard-rule-documentationai-context",
+                "icon": "book-open"
+              },
+              {
                 "title": "File Ownership Rules",
                 "path": "core-rules/file-ownership-rules",
                 "icon": "lock"

@@ -1,0 +1,143 @@
+---
+title: "Hard Rule #1 — ClaudeKit-First"
+description: "Rationale, violation history, and decision log for the ClaudeKit-First mandate — why skills and agents exist, why basic tools trap us, and the production cost of skipping this rule."
+last_reviewed: 2026-04-22
+type: decision
+audience: both
+use_case: ["understand-claudekit-first-rationale", "review-violation-history", "apply-skill-activation-checklist"]
+keywords: [hard-rule, claudekit-first, skill-activation, agent-dispatch, tradeoff-analysis, production-failure]
+---
+
+## Summary
+
+Before starting any non-trivial task, **activate the relevant ClaudeKit skill or dispatch the matching agent FIRST.** Using basic tools (Bash/Read/Write/Edit) directly without a skill/agent check is only acceptable for trivial operations (single-file typo, read a path, 1-line config change).
+
+This is a HARD RULE — no exceptions. Non-compliance triggered 2 production deploy failures in Sprint 4–7.
+
+---
+
+## Why This Rule Exists
+
+### The Core Problem
+
+LLMs have a tendency to reach for basic tools (Read, Edit, Bash) immediately, skipping the skill catalog entirely. This happens because:
+- Basic tools feel "fast" and "direct"
+- Skill activation feels like overhead
+- The LLM sees a problem and jumps to a solution without consulting available domain expertise
+
+**Cost:** Blind spots, missing validation, rework cycles, production failures.
+
+### Why Skills & Agents Exist
+
+The ClaudeKit skill catalog is **not** optional tooling. It's a knowledge base of:
+- Proven patterns for the task type (feature implementation, code review, testing, debugging)
+- Validation checkpoints that catch blind spots early
+- Established workflows that reduce decision paralysis
+- Failure patterns and mitigations from previous sprints
+
+Example: A `code-reviewer` agent doesn't just read code — it applies security checklist, performance patterns, and architectural consistency rules. Skipping it is like skipping code review.
+
+### The Trivial-Exception Trap
+
+The rule allows **trivial exceptions** (typo, path check, 1-line edit). This is by design — not every change needs full rigor. But the exception is narrow:
+- Single file
+- Single semantic change
+- No side effects
+
+The trap: An "apparently trivial" code generation task balloons into 200 lines across 3 files. Or "fix the import" turns into "refactor module structure". Then the LLM has already skipped skill activation and now it's too late.
+
+**Self-check before trivial bypass:** "If I'm wrong about scope, what happens?" If the answer is "production failure", activate the skill.
+
+---
+
+## Violation History (2026-04-22 Audit)
+
+### Sprint 4–7: 2 Production Deploy Failures
+
+**Failure #1: HTML Comments in SVG**
+- **When:** Post-merge, deployed to staging
+- **Symptom:** 500 error on SVG render; browser console: "unexpected token `<!--`"
+- **Root cause:** `<text>` component body contained `{/* comment */}` (JavaScript comment syntax in JSX). SVG parser choked.
+- **Why it happened:** Code written without `code-reviewer` agent. Skill would have flagged JSX-in-SVG pattern as risky, triggered syntax validation.
+- **Fix cost:** 2 hours rework + re-deploy
+- **Prevention:** `code-reviewer` agent required post-implementation
+
+**Failure #2: Asterisk in `<text>` Element**
+- **When:** Same sprint, different component
+- **Symptom:** Rendered output showed literal asterisk instead of formatted text
+- **Root cause:** SVG `<text>` element doesn't support markdown formatting like `**bold**`. LLM assumed JSX-like behavior.
+- **Why it happened:** Skipped code review, no validation of SVG text constraints
+- **Fix cost:** 1 hour debug + patch
+- **Prevention:** Design review + `code-reviewer` checklist
+
+### Pattern: "Just Do It" Mindset
+
+Both failures shared a root cause: task looked straightforward, basic tools seemed sufficient, skill activation felt like overhead. In reality:
+- SVG rendering constraints are domain-specific
+- Component composition rules vary by context (JSX ≠ SVG)
+- Code review exists to catch exactly these blindspots
+
+**Resource waste:**
+- 3 hours rework + 1 deployment cycle
+- Staging blocked for other features
+- User visibility of incompleteness
+
+---
+
+## Decision Log
+
+**Date:** 2026-04-22
+**Context:** Post-Sprint 7 audit revealed pattern of skipped skill activation correlated with rework cycles
+**Rationale:** Make rule HARD (no discretion), add violation history, establish enforcement via skill
+
+### Implementation
+
+1. **Mark rule as HARD** — added to CLAUDE.md top section, "NO EXCEPTIONS" language
+2. **Document violation history** — this page, audit findings section
+3. **Create skill enforcement** — `hard-rule-claudekit-first` skill at `~/.claude/skills/hard-rule-claudekit-first/SKILL.md`
+4. **Establish decision protocol** → Skill must run at task start, verify skill/agent match before proceeding
+5. **Version this decision** — dated 2026-04-22, tied to commit `45cb78e`
+
+### Trade-offs
+
+**Speed vs Quality:** Skill activation adds ~2 min per task. Rework costs 2+ hours. Acceptable trade.
+
+**Discretion vs Guardrails:** LLM discretion on "trivial" is error-prone. Hard rule with narrow exception safer than vague guideline.
+
+---
+
+## Decision Flow (Applied Every Turn)
+
+```
+Task arrives
+    ↓
+Is it trivial? (typo, path check, 1-line edit)
+    ├─ YES → proceed with basic tools (rare)
+    └─ NO  → Step 1: Match request to ClaudeKit catalog
+                ↓
+         Is there a matching skill? (cook, fix, ck-plan, code-review)
+                ├─ YES → Activate it BEFORE any work
+                └─ NO  → Step 2: Is there a matching agent?
+                            ├─ YES → Dispatch via Task tool
+                            └─ NO  → Proceed with basic tools + note gap
+```
+
+---
+
+## Self-Check Protocol
+
+**At the START of every user turn, ask yourself silently:**
+- "What skill/agent would a senior engineer reach for here?"
+- "Am I about to skip the skill catalog and go straight to basic tools?"
+- If yes → STOP and activate the skill first.
+
+**If no matching skill/agent exists** → note this gap to user, proceed with basic tools.
+
+---
+
+## Related
+
+- **Enforcement skill:** `hard-rule-claudekit-first` at `~/.claude/skills/hard-rule-claudekit-first/SKILL.md`
+- **Mandatory skill table:** See CLAUDE.md "Mandatory skill activations" section
+- **Companion rule:** [Hard Rule #2 — Karpathy's 4 Principles](/core-rules/hard-rule-karpathy-principles)
+- **Companion rule:** [Hard Rule #3 — DocumentationAI Context](/core-rules/hard-rule-documentationai-context)

@@ -13,6 +13,50 @@ Wiki này được xây và duy trì bởi team 4-agent (Brain + 3 workers). M�
 
 ---
 
+<Update label="2026-04-22" description="HARD RULES detail moved to wiki (Option C token optimization) — 3 new decision pages in core-rules/" tags={["core-rules", "hard-rule", "ai-first", "documentation", "decision"]}>
+## Hard Rules Wiki Migration summary
+
+**Scope:** Relocate HARD RULE rationale from CLAUDE.md summary to detailed wiki pages. **Duration:** ~30min. **Result:** 3 new decision pages + nav update + changelog entry. **Commit:** TBD.
+
+**Why:** Token-optimization Option C — detailed rationale lives on wiki (human-readable, searchable via MCP), enforcement lives in skills, CLAUDE.md has only summary. Agents can query live docs instead of re-fetching. Reduces cognitive load on main instructions file.
+
+### Page 1: Hard Rule #1 — ClaudeKit-First
+
+`core-rules/hard-rule-claudekit-first.mdx` (117 lines)
+- Summary: Why skill activation before basic tools
+- Violation history: 2 production 500s from Sprint 4–7 (HTML comments in SVG, asterisk in text element)
+- Decision log: Formalized 2026-04-22, enforcement via skill
+- Self-check protocol and decision flow diagram
+
+### Page 2: Hard Rule #2 — Karpathy's 4 Principles
+
+`core-rules/hard-rule-karpathy-principles.mdx` (104 lines)
+- Summary: Think before coding, simplicity first, surgical changes, goal-driven execution
+- Trade-off philosophy: Caution over speed, trivial-task exemptions with decision matrix
+- Examples from Phong's project: Phase 3c scope lock, audit sprint surgical changes, MDX 500 goal-driven fixes
+- Self-tests for each principle
+
+### Page 3: Hard Rule #3 — DocumentationAI Context
+
+`core-rules/hard-rule-documentationai-context.mdx` (112 lines)
+- Summary: Wiki scope lock (AI agents + Phong ONLY), why DocumentationAI, MCP usage
+- Violation history: 3 production 500s from pipe-in-JSX-attribute bug (2026-04-22 audit)
+- Scope lock decision: IN scope (system architecture, agent instructions, workflows, rules, playbooks) vs OUT scope (public marketing, i18n, SEO, newcomer onboarding)
+- MCP endpoint reference + safety guardrails (pre-commit guard 7, frontmatter validation)
+
+### Navigation Update
+
+Added 3 entries to `documentation.json` under "Core Rules" group, after "Global Operating Rules":
+- Hard Rule #1 — ClaudeKit-First (icon: zap)
+- Hard Rule #2 — Karpathy's Principles (icon: target)
+- Hard Rule #3 — DocumentationAI Context (icon: book-open)
+
+**Total files:** 4 (3 new pages + 1 nav update).
+
+---
+
+</Update>
+
 <Update label="2026-04-22" description="Audit FINAL CLOSE — frontmatter widening + dehardcode + phong-playbook AI-parseable rewrite" tags={["audit", "frontmatter", "ai-first", "documentation"]}>
 ## Audit FINAL CLOSE summary
 

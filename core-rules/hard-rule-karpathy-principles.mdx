@@ -1,0 +1,206 @@
+---
+title: "Hard Rule #2 — Karpathy's 4 Principles"
+description: "Think before coding, simplicity first, surgical changes, goal-driven execution. Rationale, trade-offs, and decision log for Andrej Karpathy's core principles adapted for this system."
+last_reviewed: 2026-04-22
+type: decision
+audience: both
+use_case: ["understand-karpathy-principles", "apply-principle-self-tests", "review-tradeoff-philosophy"]
+keywords: [hard-rule, karpathy, simplicity, surgical, goal-driven, principles, thinking, quality]
+---
+
+## Summary
+
+Four principles that govern how we write code, make changes, and approach problems:
+
+1. **Think Before Coding** — Don't assume. Surface tradeoffs. Clarify ambiguity before implementing.
+2. **Simplicity First** — Minimum code that solves the problem. No speculative features.
+3. **Surgical Changes** — Touch only what you must. Match existing style. Don't refactor adjacent code.
+4. **Goal-Driven Execution** — Define success criteria. Loop until verified.
+
+These principles bias toward **caution over speed**, reducing costly mistakes on non-trivial work.
+
+---
+
+## Principle 1 — Think Before Coding
+
+**Core:** Don't assume. Don't hide confusion. Surface tradeoffs.
+
+### Mandatory Actions
+
+- State assumptions explicitly. If uncertain → ask, don't guess
+- Present multiple interpretations when ambiguity exists. Don't pick silently.
+- Push back when a simpler approach exists. Say so.
+- Stop when confused. Name what's unclear, ask for clarification.
+
+### Why It Matters
+
+LLMs generate code fast. Too fast — we sometimes skip the "understand the problem" step. 20 minutes of thinking saves 2 hours of rework.
+
+### Self-Test
+
+Before writing code:
+- Can you explain the problem in one sentence? If no, you don't understand it yet.
+- Did you list 2+ possible approaches? If no, you haven't thought critically.
+- Can you describe the tradeoff you chose? If no, you chose by accident.
+
+---
+
+## Principle 2 — Simplicity First
+
+**Core:** Minimum code that solves the problem. Nothing speculative.
+
+### Mandatory Actions
+
+- No features beyond what was asked
+- No abstractions for single-use code
+- No "flexibility" or "configurability" that wasn't requested
+- No error handling for impossible scenarios
+- If 200 lines could be 50, rewrite it
+- Match existing code style, even if you'd do it differently
+
+### Why It Matters
+
+Extra code is extra bugs, extra testing, extra maintenance. The best code is code you didn't write.
+
+Example from Phong's project: Phase 3c was a pilot wiki migration, not a public-facing SEO rewrite. Scope stayed locked to "what agents need to understand the system" — no docs on marketing pages, no i18n, no SEO metadata. Result: delivered in 1 sprint instead of 3+.
+
+### Self-Test
+
+**Would a senior engineer call this overcomplicated?** If yes → simplify.
+
+**Can I delete 20 lines without breaking functionality?** If yes → delete them.
+
+**Does this code handle scenarios that can't happen?** If yes → remove the handling.
+
+---
+
+## Principle 3 — Surgical Changes
+
+**Core:** Touch only what you must. Clean up only your own mess.
+
+### Mandatory Actions
+
+- Don't "improve" adjacent code, comments, or formatting
+- Don't refactor things that aren't broken
+- Match existing style, even if you'd do it differently
+- If you notice unrelated dead code → mention it, don't delete it
+- Remove imports/variables/functions that YOUR changes made unused
+- Don't remove pre-existing dead code unless asked
+
+### Why It Matters
+
+Large, diffuse changes are hard to review. Small, focused changes are verifiable.
+
+Example from audit sprint (2026-04-22): When adding frontmatter to 26 pages, we only touched frontmatter. We didn't "clean up" formatting, didn't "improve" organization, didn't rewrite prose. Each commit: one change, one purpose.
+
+### Self-Test
+
+**Every changed line traces directly to the user's request?** If no, undo.
+
+**Can the reviewer understand why this line changed?** If no, it's probably unnecessary.
+
+---
+
+## Principle 4 — Goal-Driven Execution
+
+**Core:** Define success criteria. Loop until verified.
+
+Transform imperative tasks into verifiable goals:
+
+| Instead of... | Transform to... |
+|---|---|
+| "Add validation" | "Write tests for invalid inputs, then make them pass" |
+| "Fix the bug" | "Write a test that reproduces it, then make it pass" |
+| "Refactor X" | "Ensure tests pass before and after" |
+| "Update docs" | "Verify all code examples compile, all links resolve" |
+
+### Why It Matters
+
+Weak success criteria require constant clarification. Strong criteria let the session loop independently.
+
+Example from Phong's project: Instead of "migrate wiki to new frontmatter", we defined: "All 26 pages have `type`, `audience`, `use_case` in frontmatter. Verify: `grep -l "^type:" {26 files}` returns 26 matches."
+
+### Self-Test
+
+**Could someone else verify completion without talking to you?** If no, success criteria are too vague.
+
+**Did you state the verification method before starting?** If no, you don't have a goal yet.
+
+---
+
+## Trade-Off Philosophy
+
+These principles **bias toward caution over speed.** For trivial tasks (typo, one-liner) use judgment — not every change needs full rigor.
+
+Goal: Reduce costly mistakes on non-trivial work, not slow trivial tasks.
+
+### Decision Matrix
+
+| Task Type | Rigor Level | Why |
+|---|---|---|
+| Typo fix, 1-line config | Minimal — basic tools OK | Low risk, quick verification |
+| Single-file edit, one semantic change | Medium — think + verify | Confined scope, easy to review |
+| Multi-file feature, cross-boundary logic | High — all 4 principles | High blast radius, easy to miss |
+| Refactoring, architectural change | Maximum — all 4 + review | Affects entire subsystem |
+
+---
+
+## Examples from Phong's Project
+
+### Simplicity Example — Phase 3c Scope Lock
+
+**Scenario:** Wiki migration started with scope creep: "Make it SEO-friendly", "Add public user onboarding", "i18n for Spanish/Vietnamese".
+
+**Karpathy principle applied:** Simplicity First + Goal-Driven.
+
+**Decision:** Locked scope to "AI agents + Phong understand the system". No marketing docs, no SEO, no i18n.
+
+**Result:** Delivered 1 sprint vs 3+ estimated. Quality higher because we didn't dilute focus.
+
+### Surgical Example — Audit Sprint (2026-04-22)
+
+**Scenario:** Adding frontmatter to 26 pages. Temptation to "fix" broken links, "improve" prose, "reorganize" sections.
+
+**Karpathy principle applied:** Surgical Changes.
+
+**Decision:** Touch ONLY frontmatter. 26 commits, 1 purpose each.
+
+**Result:** Zero accidental breakage, easy-to-review diffs, no rework cycles.
+
+### Goal-Driven Example — MDX 500 Fixes
+
+**Scenario:** Found bug: pipe `|` in JSX attributes breaks Mintlify parser inside table rows.
+
+**Karpathy principle applied:** Goal-Driven Execution.
+
+**Decision:** Defined goal: "Zero pipes inside quoted JSX attributes. Verify: `grep -n 'kind=".*|.*"' {files}` returns 0 hits."
+
+**Result:** Can verify completion programmatically, no ambiguity about "done".
+
+---
+
+## Decision Log
+
+**Date:** 2026-04-22
+**Source:** Andrej Karpathy's plugins/andrej-karpathy-skills/README.md, adapted for this system
+**Rationale:** LLM failure modes addressed: over-engineering, assumption errors, scope creep, unclear completion
+
+### Implementation
+
+1. **Principles formalized in CLAUDE.md** — Hard Rule #2 section
+2. **Self-tests added** — each principle includes measurable checklist
+3. **Examples from Phong's work** — removed abstraction, made concrete
+4. **Tied to ClaudeKit enforcement** — code-review agent uses these as baseline
+
+### Version
+
+Formalized 2026-04-22 (commit `45cb78e`). Trade-off philosophy updated to reflect "caution over speed" bias with explicit decision matrix.
+
+---
+
+## Related
+
+- **Enforcement skill:** `hard-rule-karpathy-principles` at `~/.claude/skills/hard-rule-karpathy-principles/SKILL.md`
+- **Companion rule:** [Hard Rule #1 — ClaudeKit-First](/core-rules/hard-rule-claudekit-first)
+- **Companion rule:** [Hard Rule #3 — DocumentationAI Context](/core-rules/hard-rule-documentationai-context)
+- **Code quality enforcement:** See [Code Review Standards](/knowledge-qa/review-checklist) for checklist integration
