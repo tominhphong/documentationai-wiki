@@ -218,24 +218,207 @@ Agent OS tuân theo nguyên lý "mỗi máy, một vai trò chuyên môn" — kh
 
 ## Sync Mechanism
 
-Phần này sẽ mô tả cơ chế đồng bộ state (`~/Shared Workspace/`) giữa các thiết bị.
+Hệ thống Agent OS lưu trữ state chia sẻ trong `~/Shared Workspace/` — file tracking, brand guidelines, compliance rules, và task progress. Cơ chế sync đảm bảo 3 thiết bị thấy state mới nhất mà không có conflict hoặc mất dữ liệu.
 
-<Callout kind="warning">
-Cơ chế sync đang chờ quyết định kiến trúc AD-2 (options: git private repo / iCloud Drive / Tailscale+rsync / NAS "Seoul" mount). Section này bỏ trống cho đến khi chốt.
+### Decision
+
+Sync mechanism được chốt **2026-04-24**: **GitHub private repo (Option A)**.
+
+- **Repository:** `phong-shared-workspace` (private) trên GitHub
+- **Status:** Kiến trúc quyết định, implementation backlog
+
+### Rationale
+
+GitHub private repo được chọn vì:
+
+1. **Explicit version control** — mỗi thay đổi có commit message + diff rõ ràng, thuận tiện audit trail khi cần review lịch sử.
+2. **Cross-platform** — Mac + Windows + Linux đều hỗ trợ git CLI. UM790 (Windows) không bị "locked out" như iCloud.
+3. **Zero infrastructure cost** — GitHub free tier đủ cho text-heavy workspace (không lưu binary media lớn).
+4. **Phong đã quen flow** — account + SSH keys đã setup, 3 máy authenticated. Không cần học tool mới.
+5. **Reliability + history** — Git history bảo toàn, có thể revert nếu cần. Trade-off: latency cao hơn iCloud (manual `git pull/push` thay vì real-time) — chấp nhận, có thể tự động hóa ở sprint sau.
+
+### Architecture
+
+Cơ chế hoạt động như sau:
+
+**Repository structure:**
+```
+phong-shared-workspace/ (private GitHub repo)
+├── findings.md               # Architectural decisions, device specs
+├── task_plan.md             # Sprint roadmap, task list
+├── progress.md              # Append-only activity log
+├── brand.md                 # Voice, messaging, platforms
+├── compliance.md            # TREC, Fair Housing rules
+├── .gitignore               # Block: *.env, *.key, credentials.json
+└── (other shared files)
+```
+
+**Workflow trên từng máy:**
+
+1. **Session start** — Trước khi task bắt đầu: `cd ~/Shared\ Workspace && git pull` lấy state mới nhất.
+2. **Session work** — Agent đọc/ghi files cần thiết (findings.md, task_plan.md, etc.). Phong làm việc bình thường.
+3. **Session end** — Sau khi task xong: `git add . && git commit -m "..."` (có thể tự động qua cron + pre-commit hook). Rồi `git push origin main`.
+
+**Conflict resolution:**
+
+- Nếu 2 máy push cùng file, GitHub reject push thứ 2. Máy đó phải `git pull --rebase` rồi resolve conflict (thường merge tự động nếu không edit cùng line).
+- Mac Studio (Lead device) là source of truth khi conflict — Phong resolve manual trên Mac Studio rồi push.
+- Không cho phép force-push để tránh overwrite — mỗi change phải explicit commit + merge.
+
+**Secret handling:**
+
+- `.gitignore` block `*.env`, `*.key`, `credentials.json`, `secrets/` — không commit secrets vào repo.
+- Sensitive files (API keys, auth tokens) lưu local trên từng máy + add vào `.gitignore` nếu cần chia sẻ (dùng 1password / bitwarden shared vault thay).
+
+<Steps>
+<Step title="Tạo GitHub private repo">
+Phong trên GitHub tạo repo mới `tominhphong/phong-shared-workspace` (hoặc tên tương tự), set **Private**. KHÔNG enable Issues hay Actions ban đầu (YAGNI).
+</Step>
+<Step title="Init local repo trên Mac Studio">
+```bash
+cd ~/"Shared Workspace"
+git init
+git config user.email "phong@..."
+git config user.name "Phong To"
+git remote add origin git@github.com:tominhphong/phong-shared-workspace.git
+
+# Tạo .gitignore
+cat > .gitignore << 'EOF'
+*.env
+*.key
+credentials.json
+secrets/
+.DS_Store
+EOF
+
+git add -A
+git commit -m "Initial commit: shared workspace baseline"
+git branch -M main
+git push -u origin main
+```
+</Step>
+<Step title="Clone trên Mac mini + UM790">
+Trên Mac mini M4 và UM790 (hoặc bất kỳ máy khác):
+```bash
+rm -rf ~/"Shared Workspace"  # Backup old local copy nếu cần
+git clone git@github.com:tominhphong/phong-shared-workspace.git ~/"Shared Workspace"
+cd ~/"Shared Workspace"
+```
+
+SSH key authentication — dùng key đã setup trong GitHub account (xem https://github.com/settings/keys).
+</Step>
+<Step title="(Optional, Sprint sau) Wrapper script cho auto-sync">
+Tạo script `~/.local/bin/sw-sync`:
+```bash
+#!/bin/bash
+cd ~/"Shared Workspace" && git pull && git status
+```
+
+Cron job trên từng máy (10 phút 1 lần):
+```bash
+*/10 * * * * ~/.local/bin/sw-sync >> ~/.sw-sync.log 2>&1
+```
+
+(Backlog task riêng — không trong Sprint 10 scope.)
+</Step>
+</Steps>
+
+### Failure Modes
+
+| Scenario | Likelihood | Mitigation |
+|----------|-----------|------------|
+| Conflict giữa 2 máy push cùng file | Low (hiếm nếu coordinate tốt) | `git pull --rebase` trên máy đó, resolve manual, push lại |
+| GitHub down | Hiếm (~1h/năm) | Local state vẫn work; sync khi GitHub up (qua LAN nếu 3 máy cùng nhà) |
+| Forgotten pull → stale read | Medium (nếu quên script tự động) | Wrapper script bắt buộc `git pull` trước mỗi session (Sprint sau) |
+| Secret committed vô tình | Low (có .gitignore) | `git filter-branch` hoặc GitHub secret rotation; không để lọt |
+| Network lag khi push | Low (chỉ text files) | Retry sau 5s; log warning nếu push fail |
+
+<Callout kind="info">
+Section này document decision + architecture. **Implementation thực tế** (tạo repo, init, clone, wrapper script) là backlog task riêng — sẽ thực thi ở sprint follow-up.
 </Callout>
 
 ## Failure Modes & Fallback
 
-Phần này mô tả hành vi hệ thống khi 1 trong 3 thiết bị offline, và fallback plan cho từng kịch bản.
+Hệ thống Agent OS là phân tán — mỗi máy có thể fail độc lập. Section này mô tả hành vi khi thiết bị offline và fallback strategy tương ứng.
 
-<Callout kind="info">
-Chi tiết sẽ được bổ sung ở Sprint 9+ sau khi hoàn tất testing failure scenarios.
+<Callout kind="warning">
+Nội dung section này dựa **design-time reasoning**, chưa qua testing thực tế. Khi có incident thực, sẽ revise dựa empirical data và logs.
 </Callout>
+
+### Failure Scenarios
+
+| Scenario | Severity | Effect | Fallback |
+|----------|----------|--------|----------|
+| **Mac Studio offline** | High | Không interactive work được; Opus orchestrator down | Mac mini chạy Sonnet 4.6 fallback cho urgent task; Phong dùng Claude.ai web hoặc iPhone tạm thời |
+| **Mac mini M4 offline** | Medium | Scheduled cron jobs fail; GoClaw gateway xuống | Mac Studio chạy task manual; restart Mac mini qua Tailscale SSH + `sudo shutdown -r` hoặc Wake-on-LAN nếu cần |
+| **UM790 offline** | Low | Hidemium / Boxphone tasks pause | Không có fallback — wait until máy lên (Windows-only, không thay thế được) |
+| **Tailscale mesh down** (cả 3 máy) | High | Cross-device communication fail | LAN fallback nếu 3 máy cùng nhà (dùng LAN IP 192.168.8.x trực tiếp); nếu Phong ở remote → chờ Tailscale khôi phục (rất hiếm) |
+| **Internet down** | Medium | SaaS APIs fail (Claude API, R2, Late, HubSpot) | Local tasks (code, file processing, research) vẫn chạy được; defer SaaS-dependent tasks đến khi Internet lên |
+| **NAS Seoul offline** | Low | Media/backup access fail | Không block agent work; defer NAS-dependent tasks (photo batch, backup) |
+
+### Fallback Priority Logic
+
+Khi 1 device fail, hệ thống tuân theo quy tắc:
+
+1. **Graceful degrade** — task critical reroute sang máy còn online nếu có. Task non-critical defer (không cancel).
+   - Ví dụ: "write report" (critical) reroute Mac mini Sonnet nếu Mac Studio offline. "Archive old logs" defer.
+
+2. **Notify Phong** qua iMessage hoặc email nếu Mac Studio offline >30 phút liên tiếp.
+   - Message format: `"[Agent OS] Mac Studio offline since HH:MM. Switched to Mac mini Sonnet fallback. [Reconnect/Resume]"`
+   - Giúp Phong biết system vẫn chạy hoặc có issue cần handle.
+
+3. **Auto-retry không block session** — nếu task fail ở máy primary, không block session. Thử lại sau N giây (5–10s). Sau 3 retry fail → ghi log + notify.
+   - Ví dụ: task gọi GoClaw ở Mac mini fail → log warning, thử lại sau 10s, nếu vẫn fail → defer task + notify Phong.
+
+4. **Log mọi fallback** để Phong review sau.
+   - Log entry: `[2026-04-24 10:45:30] FALLBACK Mac Studio offline; task 'generate-report' rerouted to Mac mini`
+   - Log file: `~/Shared Workspace/logs/fallback.log` (push qua git sync).
 
 ## Observability
 
-Phần này mô tả cách theo dõi health của từng thiết bị (CPU, memory, agent status) và kênh alert khi có sự cố.
+Hệ thống phân tán cần monitoring để biết máy nào health, agent nào đang chạy, và khi nào cần alert. Section này mô tả current state (bây giờ) và target state (backlog).
+
+### Current State (2026-04-24)
+
+Monitoring hiện tại tối thiểu:
+
+- **Tailscale dashboard** (`status.tailscale.com`) — chỉ check online/offline status từng máy
+- **macOS Activity Monitor** / **Windows Task Manager** — kiểm tra CPU/RAM thủ công trên từng máy
+- **Documentation.AI dashboard** — build status sau mỗi wiki push
+- **Shared Workspace pull before session** — xem `progress.md` để detect agent crash (no update >1h = suspect)
+
+**Limitations:** Không có centralized monitoring, không có auto-alert, không có metrics dashboard, không có log aggregation.
+
+### Target State (Backlog)
+
+Monitoring backlog — sẽ setup khi Phong ready đầu tư thời gian:
+
+| Metric | Tool dự kiến | Device source | Purpose |
+|--------|--------------|---------------|---------|
+| CPU / RAM / Disk usage | Prometheus `node_exporter` | Mac Studio, Mac mini, UM790 | Detect resource bottleneck, capacity planning |
+| Agent process status | Custom healthcheck endpoint (`/health`) | Mac Studio, Mac mini | Alert nếu Claude Desktop hoặc GoClaw daemon die |
+| Tailscale connectivity | `tailscale ping` cron check | Any (broadcast ping) | Detect network partition hoặc DNS fail |
+| Task queue depth | GoClaw metrics endpoint (`/metrics`) | Mac mini | Monitor job backlog, detect queue stuck |
+| Wiki deploy status | Documentation.AI webhook | (cloud) | Alert on build failure hoặc deploy error |
+| Alert channel | Pushover hoặc iMessage integration | Phong phone | Delivery mechanism (low-latency push notification) |
+
+**Setup estimate:**
+- Prometheus + Grafana: 4–6 giờ (deploy on Mac mini, configure scrapers, build dashboards)
+- node_exporter on 3 máy: 1 giờ (install + systemd/launchd setup)
+- Alerting wire (Pushover / iMessage): 2 giờ (API integration)
+- **Total: ~7–9 giờ**, phù hợp cho sprint riêng hoặc Q2 milestone
+
+### Logging Strategy
+
+**Local logs** (mỗi máy giữ riêng):
+- `~/.local/share/claude/debug.log` — Claude Desktop activity (đọc từ `$HOME/.local/share`)
+- `/var/log/goclaw.log` — GoClaw daemon (Mac mini)
+- `~/Shared Workspace/logs/fallback.log` — device fallback events (shared qua git)
+
+**Log aggregation** (backlog):
+- Ship logs tới centralized server (VPS hoặc Loki instance) khi có monitoring setup
+- Current: KHÔNG aggregate — Phong SSHs vào máy và reads local logs nếu cần debug
 
 <Callout kind="info">
-Chi tiết sẽ được bổ sung ở Sprint 9+ sau khi setup monitoring infrastructure (Prometheus, Grafana, hoặc tương đương).
+Setup monitoring infrastructure (Prometheus, Grafana, alerting) là backlog task riêng — **không commit timeline**. Phong sẽ tạo sprint dedicated khi ready. Section này cung cấp roadmap để Phong define ROI + scope.
 </Callout>
