@@ -95,19 +95,126 @@ Tất cả hostname (system + Tailscale) và IP (LAN + Tailscale) đã được 
 
 ## Network Topology
 
-Phần này mô tả cách 3 thiết bị kết nối với nhau qua Tailscale mesh network, LAN nội bộ, và internet.
+Ba thiết bị kết nối với nhau qua ba tầng mạng: LAN nội bộ cho giao tiếp trực tiếp khi ở cùng router, Tailscale mesh overlay cho cross-network reliability, và Internet cho truy cập SaaS. Mỗi tầng có latency và use case riêng — hệ thống tự động chọn route tối ưu dựa trên context.
+
+### LAN nội bộ (192.168.8.0/24)
+
+Ba thiết bị và NAS Seoul đều kết nối trực tiếp với router ASUS cùng dải subnet. Đây là con đường nhanh nhất (latency thấp) khi tất cả cùng ở nhà.
+
+- **Mac Studio:** LAN IP chưa xác nhận (xem `ifconfig en0`)
+- **Mac mini M4:** `192.168.8.107`
+- **UM790:** `192.168.8.174`
+- **NAS Seoul:** `192.168.8.114`
+- **Gateway:** `192.168.8.1` (router ASUS)
+
+Khi Phong làm việc từ Mac Studio tại nhà và cần gọi task tới Mac mini (ví dụ: trigger GoClaw), hệ thống preferred dùng LAN IP trực tiếp để giảm latency. Tuy nhiên, nếu không xác định được LAN route (hoặc Phong đang ở coffeeshop), automatic fallback sang Tailscale.
+
+### Tailscale mesh (100.64.0.0/10)
+
+Overlay WireGuard encryption che phủ toàn bộ 4 node. Mỗi máy có Tailscale IP tĩnh trong CGNAT range, và MagicDNS tự động resolve hostname thành Tailscale IP — không cần hardcode IP trong script.
+
+- **Mac Studio:** `100.98.44.123` (`phongs-mac-studio`)
+- **Mac mini M4:** `100.98.146.85` (`phongrealtortxs-mac-mini`)
+- **UM790:** `100.71.136.88` (`minisforum`)
+- **NAS Seoul:** `100.88.222.69` (`seoul`)
+
+Tailscale hoạt động xuyên mạng — Phong ở nhà, coffeeshop, hoặc khách sạn đều có thể reach các thiết bị qua MagicDNS hostname. Ví dụ: script trên Mac Studio chỉ cần gọi `ssh phongrealtortxs-mac-mini.tail<REDACTED>` thay vì hardcode `192.168.8.107` (địa chỉ LAN có thể thay đổi nếu DHCP renew). Tất cả lưu lượng Tailscale được encrypt — an toàn cho data nhạy cảm.
+
+### Internet (SaaS)
+
+Ba thiết bị truy cập Internet qua ISP để gọi tới external services:
+
+- **Claude API** — Opus, Sonnet inference
+- **Cloudflare R2** — media hosting
+- **Late API (Zernio)** — social media scheduling
+- **HubSpot** — CRM
+- **Documentation.AI** — wiki hosting + MCP endpoint
+
+Lưu lượng SaaS đi qua WAN từ router, không đi qua Tailscale (vì SaaS services ngoài tailnet). Phong có thể hạn chế WAN traffic bằng firewall rules trên router nếu cần, nhưng hiện tại không có giới hạn.
+
+### Sơ đồ mạng
+
+```
+┌──────────────────────────────────────────┐
+│        Internet (ISP · WAN)              │
+│ Claude API · R2 · Late · HubSpot · Docs  │
+└────────────────┬─────────────────────────┘
+                 │
+    ┌────────────▼──────────────┐
+    │  Router ASUS (192.168.8.1)│
+    └────────────┬──────────────┘
+                 │ LAN: 192.168.8.0/24
+    ┌────────────┼──────────────┬───────────┬───────────┐
+    │            │              │           │           │
+┌───▼────┐  ┌───▼────┐  ┌─────▼──┐  ┌────▼─────┐  ┌───▼────┐
+│Mac     │  │Mac     │  │UM790   │  │NAS Seoul │  │iPhone  │
+│Studio  │  │mini M4 │  │        │  │          │  │(Phong) │
+│.???    │  │.107    │  │.174    │  │.114      │  │not used│
+└───┬────┘  └───┬────┘  └─────┬──┘  └────┬─────┘  └────────┘
+    │          │              │           │
+    └──────────┼──────────────┼───────────┘
+               │ Tailscale overlay (CGNAT 100.64.0.0/10)
+               │ WireGuard encrypted, MagicDNS enabled
+               │
+       100.98.44.123  100.98.146.85  100.71.136.88  100.88.222.69
+       phongs-mac-    phongrealtortxs minisforum      seoul
+       studio         -mac-mini
+```
+
+### Routing quy tắc
+
+**Ưu tiên 1 — LAN nội bộ:** Nếu source và destination cùng dải `192.168.8.0/24`, dùng LAN IP trực tiếp (latency thấp, không qua Tailscale). Ví dụ: Mac mini gọi NAS Seoul qua `192.168.8.114` nhanh hơn qua Tailscale.
+
+**Ưu tiên 2 — Tailscale MagicDNS:** Nếu source và destination không cùng LAN, hoặc LAN route không khả dụng, fallback sang Tailscale MagicDNS. Script không cần biết LAN hay Tailscale — chỉ cần resolve hostname qua DNS tự động chọn best path.
+
+**Ưu tiên 3 — Internet (SaaS only):** External services (Claude API, R2, etc.) không có Tailscale IP — chỉ có Internet public IP. Traffic ra Internet luôn qua ISP.
+
+### Firewall & ACL
+
+Tailscale tailnet của Phong (user `windcvs@`) mặc định cho phép all-to-all communication — tất cả 4 node đều có thể reach nhau. Nếu Phong muốn hạn chế (ví dụ: UM790 chỉ accept SSH từ Mac Studio), có thể cấu hình ACL trong Tailscale console — nhưng hiện tại không cần. Không expose Tailscale IP ra public Internet — MagicDNS chỉ resolve trong tailnet.
 
 <Callout kind="info">
-Nội dung chi tiết của section này sẽ được bổ sung ở Sprint 9+ sau khi 3 máy hoàn tất setup Tailscale và lấy đủ dữ liệu topology (CIDR ranges, firewall rules, latency metrics).
+LAN IP của Mac Studio chưa xác nhận (04/24). Khi xác nhận, update bảng LAN subsection ở trên. Tailscale IP của cả 4 node đã stable từ 04/24.
 </Callout>
 
 ## Role Allocation
 
-Phần này mô tả chi tiết loại task nào chạy trên máy nào, và quy tắc routing khi có task xuyên thiết bị.
+Agent OS tuân theo nguyên lý "mỗi máy, một vai trò chuyên môn" — không có máy chủ trung tâm, mà mỗi thiết bị tối ưu cho loại task của nó. Mac Studio là bộ não, Mac mini là worker 24/7, UM790 xử lý Windows-only. Phong tại Mac Studio gửi directive, hệ thống dispatch task tới máy phù hợp qua Tailscale RPC.
 
-<Callout kind="info">
-Nội dung chi tiết sẽ được bổ sung ở Sprint 9+ sau khi hoàn tất kiến trúc task dispatcher logic giữa các thiết bị.
-</Callout>
+### Task-type matrix
+
+| Loại task | Mac Studio | Mac mini M4 | UM790 |
+|-----------|-----------|-------------|-------|
+| Interactive editing (code, docs, browse) | ✅ primary | ❌ | ❌ |
+| Opus orchestration / planning | ✅ primary | ⚠️ fallback Sonnet | ❌ |
+| Scheduled cron jobs (nightly, hourly) | ❌ | ✅ primary | ❌ |
+| Long-running agents (không tương tác) | ⚠️ OK | ✅ primary | ❌ |
+| GoClaw AI agent gateway | ❌ | ✅ primary | ❌ |
+| Media processing (FFmpeg, ImageMagick) | ✅ primary | ⚠️ OK | ❌ |
+| Windows-only apps (Hidemium, Boxphone) | ❌ | ❌ | ✅ primary |
+
+**Ký hiệu:**
+- **✅ primary** — thiết bị được ưu tiên cho task này, đã setup đầy đủ
+- **⚠️ fallback / OK** — có thể chạy nhưng không ideal (latency cao, spec thấp, hoặc offline)
+- **❌** — không support hoặc không nên chạy
+
+### Routing quy tắc
+
+**Phong ngồi tại Mac Studio → interactive task bắt đầu tại đây.** Claude Desktop ở Mac Studio trong chế độ Cowork Max 20x chạy Opus 4.7 làm orchestrator. Phong gửi yêu cầu ("write unit test cho auth.ts"), Claude quyết định local hay dispatch tới máy khác.
+
+**Task schedule / long-running → dispatch tới Mac mini M4 via Tailscale.** Nếu task là "nightly report generation" hoặc "monitor GoClaw gateway", Mac Studio gửi job qua HTTP/SSH tới Mac mini (qua `phongrealtortxs-mac-mini.tail<REDACTED>` MagicDNS), Mac mini xử lý 24/7 không cần tương tác từ Phong.
+
+**Windows-only task → từ Mac Studio/mini gửi job tới UM790.** Nếu cần chạy Hidemium hoặc Boxphone, Mac Studio hoặc Mac mini SSH qua Tailscale tới `minisforum` execute, kết quả (logs, screenshot) trả về qua Tailscale.
+
+**Nếu Mac Studio offline (hiếm) → Mac mini fallback chạy Sonnet thay Opus.** Mac mini có 16GB RAM + Docker, có thể chạy Sonnet 4.6 inference local (không Opus — cần spec cao hơn). Phong không ở Mac Studio, nhưng system vẫn hoạt động — pending task queue ở Mac mini đợi Mac Studio online, hoặc execute low-priority task qua Sonnet.
+
+### Kênh giao tiếp cross-device
+
+**Shared state:** `~/Shared Workspace/` — truy cập bởi tất cả 3 thiết bị qua Tailscale mount (mechanism chưa chốt — xem §4 Sync Mechanism). File tracking, task status, brand/compliance guidelines đều lưu ở đây để mỗi agent thấy state mới nhất.
+
+**RPC (gọi hàm từ xa):** HTTP hoặc SSH qua Tailscale MagicDNS hostname. Ví dụ: Mac Studio chạy `curl https://phongrealtortxs-mac-mini.tail<REDACTED>/api/schedule-job -X POST -d '{...}'` để trigger cron task ở Mac mini. Hoặc `ssh minisforum 'hidemium-cli run-profile ...'` để exec task ở UM790.
+
+**Events (không có message bus):** Hiện tại không có centralized event queue (YAGNI — thêm khi cần). Nếu task ở Mac mini hoàn thành, nó update file ở `~/Shared Workspace/results/` — Mac Studio poll file đó hoặc dùng `fswatch` để detect change.
 
 ## Sync Mechanism
 
