@@ -1,0 +1,131 @@
+---
+title: "Multi-Device Topology"
+description: "Bản đồ 3 thiết bị cấu thành Agent OS của Phong — vai trò, spec, và mối quan hệ mạng giữa Mac Studio, Mac mini M4, và UM790."
+last_reviewed: 2026-04-24
+type: overview
+audience: both
+use_case: ["orient-to-multi-device-setup", "identify-device-roles"]
+keywords: [multi-device, topology, mac-studio, mac-mini, um790, tailscale, đa-thiết-bị, hạ-tầng]
+---
+
+Hệ thống Agent OS của Phong chạy trên 3 thiết bị vật lý, mỗi máy một vai trò chuyên biệt. Chúng nối với nhau qua Tailscale mesh network và LAN nội bộ, tạo thành một cơ sở hạ tầng phân tán mà Claude Desktop + agents có thể điều hành từ bất kỳ nơi nào. Trang này liệt kê từng thiết bị, topology mạng, và phân chia trách nhiệm.
+
+## Device Inventory
+
+Agent OS hoạt động theo nguyên lý "mỗi máy, một vai trò" — không có máy chủ trung tâm, mà mỗi thiết bị chuyên môn hóa để làm việc hiệu quả nhất cho loại task của nó. Dưới đây là bảng tóm tắt:
+
+| Thiết bị | Hostname | Spec | Vai trò chính | Tailscale IP |
+|----------|----------|------|---------------|--------------|
+| Mac Studio | `PhongsMacStudio` | 36GB RAM / 512GB SSD | Brain + editing — Opus orchestrator, Claude Code CLI chính | TBD |
+| Mac mini M4 | TBD | 16GB RAM / 256GB SSD | VPS 24/7 — agents scheduled/long-running, AI agent gateway | TBD |
+| UM790 | TBD | Windows, 32GB RAM / 1TB SSD | Chạy phần mềm Win-only (Hidemium anti-detect, Boxphone farm) | TBD |
+
+### Mac Studio — Trung tâm điều phối
+
+Đây là bộ não chính của Agent OS. Phong ngồi trực tiếp tại Mac Studio để điều hành công việc hàng ngày.
+
+**Vai trò:**
+- Chạy Claude Desktop ở chế độ Cowork Max 20x — Opus 4.7 làm orchestrator cho toàn bộ hệ thống
+- Chạy Claude Code CLI, ClaudeKit plugins, và các tools cần latency thấp (web browser, code editor, file manager)
+- Làm nơi Phong thao tác trực tiếp khi cần kiểm soát tay hoặc quyết định nhanh
+- Quản lý research, planning, và strategic thinking
+
+**Software stack:**
+- Claude Desktop + Cowork mode
+- Claude Code CLI với shell sandbox
+- ClaudeKit Engineer + Marketing plugins
+- Homebrew toolchain (Git, Node.js, Python, Docker CLI)
+- Tailscale client
+
+**Ghi chú:**
+- Spec 36GB RAM cho phép chạy song song nhiều Claude sessions + browser tabs + IDE
+- Tailscale IP sẽ được điền sau khi setup mesh network hoàn tất (Sprint 9)
+
+### Mac mini M4 — VPS 24/7
+
+Mac mini là "worker 24/7" không cần tương tác. Nó chạy các agent lâu dài, scheduled tasks, và đóng vai trò AI agent gateway cho các máy khác.
+
+**Vai trò:**
+- Host GoClaw (Glow + ClaudeKit Workflow wrapper) — API gateway để các agents từ Mac Studio hoặc UM790 gọi long-running tasks
+- Chạy cron jobs và scheduled workflows (ví dụ: daily report generation, batch processing, monitoring)
+- Xử lý các tasks không cần interactivity (background inference, file sync, log aggregation)
+- Làm backup executor nếu Mac Studio offline
+
+**Software stack:**
+- Docker + docker-compose
+- Tailscale client (kết nối vào mesh)
+- GoClaw service (bao gồm Claude API client, task queue)
+- Git client (pull private repos)
+- Time-sync tools (cron, systemd timers)
+
+**Ghi chú:**
+- Spec 16GB RAM đủ cho 1–2 concurrent Sonnet-4.6 instances + GoClaw daemon
+- Hostname và Tailscale IP TBD
+
+### UM790 — Windows execution
+
+UM790 là máy chạy Windows dành cho phần mềm chỉ tồn tại trên nền Windows — không cần hoặc không nên virtualize.
+
+**Vai trò:**
+- Chạy Hidemium anti-detect browser (cloud botting, multi-account automation)
+- Chạy Boxphone farm — giả lập điện thoại ảo để test app, automation, hoặc cloud phone services
+- Dự phòng: nếu cần Windows-only tools tương lai (VBA macros, proprietary software, etc.)
+
+**Spec cao:**
+- 32GB RAM (chạy song song nhiều Boxphone instances + Hidemium profiles)
+- 1TB SSD (lưu trữ VM images, browser profiles)
+
+**Software stack:**
+- Windows 11 Pro
+- Hidemium browser
+- Boxphone manager
+- Tailscale client (kết nối vào mesh)
+- Optional: Synergy/KVM client để chia sẻ keyboard/mouse từ Mac Studio
+
+**Ghi chú:**
+- Hostname và Tailscale IP TBD
+- UM790 không chạy Claude Desktop — không cần. Thay vào đó, Mac mini/Mac Studio gửi task via Tailscale RPC
+
+<Callout kind="info">
+Các giá trị TBD sẽ được điền trong Sprint 9+ sau khi Phong hoàn tất cài đặt Tailscale mesh network trên 3 máy và lấy được hostnames cuối cùng + IP assignments.
+</Callout>
+
+## Network Topology
+
+Phần này mô tả cách 3 thiết bị kết nối với nhau qua Tailscale mesh network, LAN nội bộ, và internet.
+
+<Callout kind="info">
+Nội dung chi tiết của section này sẽ được bổ sung ở Sprint 9+ sau khi 3 máy hoàn tất setup Tailscale và lấy đủ dữ liệu topology (CIDR ranges, firewall rules, latency metrics).
+</Callout>
+
+## Role Allocation
+
+Phần này mô tả chi tiết loại task nào chạy trên máy nào, và quy tắc routing khi có task xuyên thiết bị.
+
+<Callout kind="info">
+Nội dung chi tiết sẽ được bổ sung ở Sprint 9+ sau khi hoàn tất kiến trúc task dispatcher logic giữa các thiết bị.
+</Callout>
+
+## Sync Mechanism
+
+Phần này sẽ mô tả cơ chế đồng bộ state (`~/Shared Workspace/`) giữa các thiết bị.
+
+<Callout kind="warning">
+Cơ chế sync đang chờ quyết định kiến trúc AD-2 (options: git private repo / iCloud Drive / Tailscale+rsync / NAS "Seoul" mount). Section này bỏ trống cho đến khi chốt.
+</Callout>
+
+## Failure Modes & Fallback
+
+Phần này mô tả hành vi hệ thống khi 1 trong 3 thiết bị offline, và fallback plan cho từng kịch bản.
+
+<Callout kind="info">
+Chi tiết sẽ được bổ sung ở Sprint 9+ sau khi hoàn tất testing failure scenarios.
+</Callout>
+
+## Observability
+
+Phần này mô tả cách theo dõi health của từng thiết bị (CPU, memory, agent status) và kênh alert khi có sự cố.
+
+<Callout kind="info">
+Chi tiết sẽ được bổ sung ở Sprint 9+ sau khi setup monitoring infrastructure (Prometheus, Grafana, hoặc tương đương).
+</Callout>
