@@ -13,6 +13,31 @@ Wiki này được xây và duy trì bởi team 4-agent (Brain + 3 workers). M�
 
 ---
 
+<Update label="2026-04-24" description="Fix pre-commit check 7 false-positive + resolve system hostnames via mDNS" tags={["sprint-8", "pre-commit-check", "mdns", "bug-fix"]}>
+## Bug fix + system hostnames resolved
+
+**Scope:** (1) Fix pre-commit check 7 false-positive. (2) Resolve system hostnames cho Mac mini M4 + UM790 + Seoul NAS qua mDNS Bonjour reverse-lookup. **Commit:** TBD.
+
+### (1) Pre-commit check 7 — false-positive fix
+
+Check 7 (pipe in JSX attribute) không strip fenced code blocks trước khi grep → flag false-positive ở `core-rules/hard-rule-documentationai-context.mdx:67`. Line đó nằm INSIDE ```jsx code fence (Mintlify render safe, không parse như JSX). Fix: chạy `strip_code_content` trước grep — align với các check khác. Comment outdated ("grep runs on raw file — Mintlify parses raw content") được viết lại.
+
+### (2) System hostnames resolved qua mDNS
+
+Reverse-lookup 3 LAN IPs qua `dns-sd -Q`:
+
+| IP | Hostname | Device |
+|----|----------|--------|
+| `192.168.8.107` | `phongrertxsMini` | Mac mini M4 |
+| `192.168.8.174` | `Minisforum` | UM790 |
+| `192.168.8.114` | `Seoul` | NAS |
+
+`agent-os-overview/multi-device-topology.mdx` §1 prose subsections được update (thay "chưa xác nhận" bằng giá trị thật + thêm LAN IP). Final Callout reworded (tất cả hostname + IP đã xác nhận, không còn TBD). `~/Shared Workspace/findings.md` synced.
+
+</Update>
+
+---
+
 <Update label="2026-04-24" description="Sprint 8 follow-up — multi-device-topology TBDs filled sau khi Mac Studio join tailnet" tags={["sprint-8", "multi-device-topology", "tailscale", "follow-up"]}>
 ## Sprint 8 follow-up — Tailscale IPs confirmed
 

@@ -158,13 +158,15 @@ fi
 # cecf2b8 lesson: `<Callout kind="info|warning">` inside a table cell causes
 # MDX v3/v4 parser to treat | as a column separator → unclosed attribute → 500.
 # Replace | with / inside quoted JSX attribute values when in table rows.
-# NOTE: grep runs on raw file (not strip_code_content) — Mintlify parses raw content.
+# NOTE: strip fenced code blocks first — docs about THIS bug legitimately contain
+# the pattern inside ```jsx examples (see core-rules/hard-rule-documentationai-context.mdx).
+# Mintlify does NOT parse fenced code as MDX, so those are safe.
 echo ""
 echo "[7/7] Checking for pipe '|' inside JSX attribute strings in table rows..."
 HITS=""
 for f in "${MDX_FILES[@]}"; do
   # Match table row lines (starting with optional space + |) containing ="...|..."
-  MATCH=$(grep -nE '^\s*\|.*="[^"]*\|[^"]*"' "$f" || true)
+  MATCH=$(strip_code_content "$f" | grep -nE '^\s*\|.*="[^"]*\|[^"]*"' || true)
   if [ -n "$MATCH" ]; then
     while IFS= read -r line; do
       HITS="${HITS}${f}:${line}"$'\n'
