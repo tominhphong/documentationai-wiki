@@ -34,6 +34,11 @@
                 "icon": "git-branch"
               },
               {
+                "title": "Multi-Device Topology",
+                "path": "agent-os-overview/multi-device-topology",
+                "icon": "network"
+              },
+              {
                 "title": "Components and Tools",
                 "path": "agent-os-overview/components-and-tools",
                 "icon": "wrench"
