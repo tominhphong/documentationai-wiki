@@ -1,0 +1,277 @@
+---
+title: "Phong RealtyAPI MCP — Tool Reference"
+description: "Reference for the 12 tools exposed by phong-realtyapi-mcp — wrapping Zillow data via RealtyAPI with Supabase-backed key rotation across 10 accounts."
+icon: "home"
+last_reviewed: "2026-04-25"
+type: reference
+audience: ai-agent-primary
+use_case: ["look-up-property", "search-listings", "consult-customer", "rotate-api-key"]
+keywords: [phong-realtyapi, zillow, realtyapi, real-estate, mcp, sherman-tx, key-rotation]
+---
+
+## Overview
+
+`phong-realtyapi` is an MCP server that wraps RealtyAPI (Zillow data provider) for use during real estate consulting. It exposes 12 tools backed by Supabase-managed key rotation across 10 accounts (250 monthly requests each, 2,400 total safe usage).
+
+**Server name:** `phong-realtyapi`
+**Transport:** stdio (single-user local)
+**Source:** `~/Projects/phong-realtyapi-mcp/`
+**Endpoints wrapped:** 23 of 35 RealtyAPI endpoints (12 skipped per YAGNI — autocomplete, polygon search, off-market, owner info, etc.)
+
+<Callout kind="info">
+Tool name format in Claude Desktop/Code: `mcp__phong-realtyapi__<tool>`. The `phong-realtyapi` prefix comes from the server namespace, so individual tool names drop any redundant prefix.
+</Callout>
+
+---
+
+## When to use which tool
+
+| Customer asks... | Use tool |
+|---|---|
+| "Tell me about 123 Main St" | `get_property` |
+| "Find homes 3bd 2ba under 400k in Sherman TX" | `search_listings` (mode=ai or address) |
+| "What did this home sell for before?" | `property_price_history` |
+| "Comparable homes for valuation" | `property_comps` (mode=comparable) |
+| "Show me the photos" | `property_media` (type=images) |
+| "Zestimate trend over time" | `property_media` (type=charts) |
+| "How safe is this neighborhood?" | `neighborhood_info` |
+| "What's the market like in Sherman?" | `market_overview` |
+| "Apartment complex info" | `get_apartment` |
+| "Mortgage rates today" | `mortgage_rates` |
+| "Who is this agent?" | `agent_lookup` |
+
+---
+
+## Tool catalog
+
+### `health_check`
+
+**Purpose:** Ping RealtyAPI's `/myping` endpoint to verify the API is reachable and the current key is valid.
+
+**Args:** none
+
+**Returns:** `{ ok, status, data, key_used, rotated, elapsed_ms }`
+
+**Use when:** validating MCP server setup, debugging key issues, smoke test.
+
+---
+
+### `keys_status`
+
+**Purpose:** Show the status of all RealtyAPI keys in the rotation pool — used / threshold / active flag / disabled reason.
+
+**Args:** none
+
+**Returns:** `{ summary: { keys_total, keys_active, requests_used_this_period, requests_remaining_until_threshold }, keys: [...] }`
+
+**Use when:** checking remaining monthly quota, diagnosing "no available keys" errors, verifying setup after seeding.
+
+<Callout kind="info">
+This is a snapshot at read time, not a live counter. Under parallel load, the number may lag actual usage by a few seconds.
+</Callout>
+
+---
+
+### `get_property`
+
+**Purpose:** Look up a single Zillow property by address, ZPID, or URL.
+
+**Args:**
+- `address` (string, optional) — full address, e.g. "723 Sagebrush Trl, Sherman, TX 75092"
+- `zpid` (string or number, optional) — Zillow Property ID, e.g. `458467052` (any `_zpid` suffix is auto-stripped)
+- `url` (string, optional) — full `https://www.zillow.com/homedetails/...` URL
+- `detail` (`"full"` or `"basic"`, default `"full"`) — full returns rich data (photos, zestimate, tax, schools, around 150KB); basic returns a smaller summary
+
+Exactly one of `{address, zpid, url}` must be provided.
+
+**Use when:** customer mentions a specific property, you need price/specs/photos.
+
+**Do not use when:** searching multiple properties (use `search_listings` instead).
+
+---
+
+### `property_comps`
+
+**Purpose:** Find comparable / similar / nearby homes for valuation, expanding options, or browsing neighborhood.
+
+**Args:**
+- One of `{zpid, url, address, lotid}` (lotid only for `similar` and `nearby`, not `comparable`)
+- `mode` (required): `"comparable"` | `"similar"` | `"nearby"`
+
+**Use when:** justifying offer pricing (comparable), expanding options (similar), browsing neighborhood (nearby).
+
+<Callout kind="warning">
+**Known limitation:** the `/comparable_homes` endpoint masks actual sold prices — all `RECENTLY_SOLD` comps return `price: 0`. To get real sold numbers, chain to `property_price_history` per ZPID.
+</Callout>
+
+---
+
+### `property_media`
+
+**Purpose:** Fetch a property's photos OR time-series chart data (zestimate history, tax history, etc.).
+
+**Args:**
+- One of `{zpid, url, address}`
+- `type` (required): `"images"` or `"charts"`
+- `chart` (required when `type="charts"`): `"zestimate_history"` | `"rent_zestimate_history"` | `"listing_price"` | `"zestimate_percent_change"` | `"tax_assessment"` | `"tax_paid"`
+- `recent_first` (boolean, default `true`) — charts only
+
+**Use when:** showing photos to a customer, or visualizing price/tax trends.
+
+---
+
+### `search_listings`
+
+**Purpose:** Search Zillow listings by address, URL, MLS ID, coordinates, or AI prompt.
+
+**Args:**
+- `mode` (required): `"address"` | `"url"` | `"mls"` | `"coords"` | `"ai"`
+- `query` (required for non-coords): primary value (location string / search URL / mlsid / AI prompt)
+- `latitude`, `longitude` (required for `coords`), `radius` (optional)
+- Common filters (pass-through): `page`, `sortOrder`, `listingStatus`, `bed_min`, `bed_max`, `bathrooms`, `homeType`, `maxHOA`, `listingType`, `listingTypeOptions`
+- `slim` (boolean, default `true`) — slim mode returns essential fields per result; pass `false` for raw response
+
+<Callout kind="warning">
+Raw search responses are 100KB to 600KB and exceed the MCP context budget. Slim mode is on by default and extracts: `zpid`, `address`, `price`, `bedrooms`, `bathrooms`, `livingArea`, `homeStatus`, `homeType`, `yearBuilt`, `daysOnZillow`, `lat/lng`, `hdpUrl`, `primary_photo`. Only set `slim=false` when paginating to a single result for deeper inspection.
+</Callout>
+
+**Use when:** customer wants homes matching criteria.
+
+---
+
+### `property_price_history`
+
+**Purpose:** Fetch a property's sales price history and/or tax history.
+
+**Args:**
+- One of `{zpid, url, address}`
+- `kind` (`"sales"` | `"tax"` | `"both"`, default `"both"`) — `"both"` makes 2 API calls (1 quota each)
+
+**Use when:** justifying offer pricing, showing appreciation trends, tax burden context.
+
+---
+
+### `neighborhood_info`
+
+**Purpose:** Property-level neighborhood quality data — climate risks (flood, fire, wind, heat, air quality) and walk/transit/bike scores.
+
+**Args:**
+- One of `{zpid, url, address}`
+- `kind` (`"climate"` | `"walk_transit_bike"` | `"both"`, default `"both"`) — 2 calls if `"both"`
+
+**Use when:** customer asks about neighborhood quality, climate risks, walkability.
+
+---
+
+### `market_overview`
+
+**Purpose:** Market trend analytics for an area (city, state, ZIP) — housing-for-sale or rental market.
+
+**Args:**
+- `location` (required): area, e.g. "Sherman, TX" or "75092"
+- `type` (required): `"sale"` | `"rent"`
+- `home_type` (optional filter)
+- `bedroom_type` (rental only): `"All_Bedrooms"` | `"Studio"` | `"1_Bedroom"` | etc.
+- `exclude_rentalMarketTrends`, `exclude_neighborhoods_zhvi` (sale only, boolean): trim payload
+
+**Use when:** "How is the market in Sherman?" or "Average rent in Austin for a 2-bedroom?".
+
+<Callout kind="info">
+**Backend typo gotcha:** the rental endpoint expects `bedrooom_type` with three o's. The tool maps `bedroom_type` (clean) to `bedrooom_type` (typo) internally, so use the clean spelling.
+</Callout>
+
+---
+
+### `get_apartment`
+
+**Purpose:** Look up apartment complex details on Zillow.
+
+**Args:** exactly one of:
+- `lotid` (1 quota call) — if you already have the lot ID
+- `apt_url` (1 quota call) — apartment URL like `https://www.zillow.com/apartments/<city-state>/<slug>/<id>/`
+- `address` (2 quota calls) — building address; auto-resolves lotid first
+- `slim` (boolean, default `true`) — slim returns name, address, contact, description, structured amenities, floor plan count, photo count
+
+<Callout kind="warning">
+Raw apartment responses are around 500KB and exceed context budget. Slim mode is on by default. The address path costs 2 quota calls because it chains `lotid_from_address` then `apartment_details`.
+</Callout>
+
+---
+
+### `mortgage_rates`
+
+**Purpose:** Fetch the current US mortgage rates published by Zillow.
+
+**Args:** none
+
+**Returns:** rate table with 18+ products: 10/15/20/25/30 year FHA, Conforming, VA, Jumbo, plus 7/6 and 10/6 ARMs.
+
+**Use when:** customer asks "what is the mortgage rate today?" or for affordability quick checks.
+
+**Do not use when:** customer needs a personalized quote — these are market-average rates only.
+
+---
+
+### `agent_lookup`
+
+**Purpose:** Fetch a Zillow agent's profile, current listings, and reviews.
+
+**Args:**
+- Identification:
+  - `username` or `agent_link` — required for `details` section
+  - `zuid` — required for `for_sale`, `for_rent`, `reviews` sections
+- `include` (array, default `["details"]`): any of `"details"`, `"for_sale"`, `"for_rent"`, `"reviews"`
+- `page` (int, default 1): pagination
+- `sortby` (reviews only): `"newest_first"` | `"oldest_first"` | `"highest_rating"` | `"lowest_rating"`
+
+Each section requested = 1 quota call. Sections requested without their required identifier are skipped with a `skipped` note.
+
+<Callout kind="info">
+**Team-mate caveat:** when an agent is the principal of a team (e.g. "The Antigua Team"), the reviews section may include reviews of team-mates rolled up under the principal's profile. Filter by `reviewee.encodedZuid` if you need only the named agent's reviews.
+</Callout>
+
+---
+
+## Architecture & operations
+
+### Key rotation
+
+The MCP server picks the least-used active key from a Supabase pool of 10 accounts on every API call, using `pick_next_realtyapi_key()` with `ORDER BY current_cycle_used ASC` and `FOR UPDATE SKIP LOCKED`. Spread is even by design.
+
+- **2xx response** — increments `current_cycle_used` for the chosen key, writes audit row.
+- **401 / 403** — disables the key (`is_active = false`), retries once with another key.
+- **5xx** — logs the error, does NOT increment usage (failed call is not a quota burn).
+- **Network timeout** — logs error, returns failure to caller, does NOT burn quota.
+
+### ZPID gotcha
+
+Zillow ZPIDs in URLs appear with a `_zpid` suffix (e.g. `458467052_zpid`). RealtyAPI's `/byzpid` endpoint returns HTTP 500 (or worse, silent 200 with empty data) when the suffix is included. The MCP client strips this suffix automatically on any param whose name matches `/zpid/i`, so callers may pass either form.
+
+### Quota math
+
+- Pool capacity: 10 keys times 250 monthly = 2,500 total monthly requests
+- Safe usage threshold: 240 per key = 2,400 safe usage (10 buffer per key)
+- Reset day per key: 23rd or 24th of the month
+- Cycle reset: handled by `reset_cycle_if_needed()` stored function on every key pick
+
+### Slim mode rationale
+
+Two endpoints return responses that exceed the MCP context budget (around 25K tokens or 100KB max per tool result):
+
+- `/apartment_details` returns around 500KB raw (includes all units, photos, floor plans).
+- `/search/byaiprompt` and other `/search/*` endpoints return around 200KB raw (20 results with full nested photo arrays).
+
+`get_apartment` and `search_listings` default to `slim=true`, which extracts essentials only. Use `slim=false` only when you need a single deep inspection and have paginated to a small page size.
+
+---
+
+## Related
+
+- **Repo:** `~/Projects/phong-realtyapi-mcp/`
+- **Plan:** `~/Claude Workspace/plans/260425-0938-phong-realtyapi-mcp/plan.md`
+- **Phase 3 design:** `~/Claude Workspace/plans/260425-0938-phong-realtyapi-mcp/phase-03-consolidated-tools.md`
+- **Test reports:**
+  - P0 round (5 tools): `plans/reports/test-report-260425-1158-phase3-p0-tools.md`
+  - Final (12 tools): `plans/reports/test-report-260425-1248-phase3-complete.md`
+- **Endpoint docs (35):** `~/Claude Workspace/plans/260424-2047-realtyapi-endpoints/`
+- **Companion:** [Tool Selection Rules](/core-rules/tool-selection-rules) for picking among MCP servers.

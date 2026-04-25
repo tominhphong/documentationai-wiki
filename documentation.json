@@ -266,6 +266,11 @@
                 "title": "Skill Quick Reference",
                 "path": "knowledge-qa/skill-quick-reference",
                 "icon": "bookmark"
+              },
+              {
+                "title": "Phong RealtyAPI MCP",
+                "path": "knowledge-qa/phong-realtyapi-tool-reference",
+                "icon": "home"
               }
             ]
           }
