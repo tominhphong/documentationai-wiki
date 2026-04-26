@@ -273,30 +273,20 @@
                 "icon": "home"
               }
             ]
-          }
-        ]
-      },
-      {
-        "tab": "Help Center",
-        "icon": "help-circle",
-        "pages": [
-          {
-            "title": "Help Center",
-            "path": "help-center",
-            "icon": "home"
           },
           {
-            "group": "Troubleshooting",
+            "group": "Troubleshooting (Build Lessons)",
             "icon": "alert-triangle",
-            "expandable": false,
             "pages": [
               {
-                "title": "Page Missing in Sidebar",
-                "path": "help-center/troubleshooting/install-error"
+                "title": "Install Error Troubleshooting",
+                "path": "help-center/troubleshooting/install-error",
+                "icon": "triangle-alert"
               },
               {
                 "title": "MDX Gotchas",
-                "path": "help-center/troubleshooting/mdx-gotchas"
+                "path": "help-center/troubleshooting/mdx-gotchas",
+                "icon": "file-warning"
               }
             ]
           }
