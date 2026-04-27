@@ -1,28 +1,37 @@
 ---
 title: "Documentation MCP Usage"
-description: "Hướng dẫn agent cách search và sử dụng hai site Documentation.AI — RKB (kiến thức bất động sản) và Agent OS (quy trình vận hành)."
-last_reviewed: 2026-04-20
+description: "Hướng dẫn agent cách search và sử dụng ba site Documentation.AI — Agent OS (vận hành), RKB (kiến thức bất động sản), Realtor OS (framework reference)."
+last_reviewed: 2026-04-26
 type: reference
 audience: ai-agent-primary
 use_case: ["search-documentation-mcp", "fetch-knowledge-base-content"]
-keywords: [mcp, documentation-ai, antigravity-memory-palace, search, reindex]
+keywords: [mcp, documentation-ai, antigravity-memory-palace, phong-to, realtor-os, search, reindex, sister-sites]
 ---
 
-## Hai site Documentation.AI
+## Ba site Documentation.AI
 
-Phong có **hai site** trên Documentation.AI, mỗi site phục vụ mục đích khác nhau:
+Phong có **ba site** trên Documentation.AI, mỗi site phục vụ mục đích khác nhau:
 
 | Site | URL | MCP Endpoint | Nội dung |
 |---|---|---|---|
-| **RKB** (Realtor Knowledge Base) | phong-to.documentationai.com | `https://phong-to.documentationai.com/_mcp` | Kiến thức bất động sản: scripts, SOP, thị trường, luật Texas |
 | **Agent OS** | antigravity-memory-palace.documentationai.com | `https://antigravity-memory-palace.documentationai.com/_mcp` | Hệ điều hành agent: rules, workflows, instructions |
+| **RKB** (Realtor Knowledge Base) | phong-to.documentationai.com | `https://phong-to.documentationai.com/_mcp` | Kiến thức bất động sản: scripts, SOP, thị trường, luật Texas |
+| **Realtor OS Wiki** | realtor-os.documentationai.com | `https://realtor-os.documentationai.com/_mcp` | Technical reference cho open-source framework `claude-code-real-estate-framework` |
 
 <Callout kind="info">
-Hai site này BỔ SUNG cho nhau. RKB chứa kiến thức chuyên ngành (what to do), Agent OS chứa quy trình vận hành (how to do it).
+Ba site BỔ SUNG cho nhau. Agent OS = quy trình vận hành (how Phong works). RKB = kiến thức chuyên ngành (what to do for clients). Realtor OS = framework reference (how the underlying tooling works).
 </Callout>
 
 
 ## Khi nào search site nào
+
+### Search Agent OS khi
+
+- Cần biết luật vận hành (Global Rules, RE Rules, Content Rules)
+- Cần workflow cụ thể (Content, Lead Handling, Client Follow-Up)
+- Cần hiểu Phong là ai, làm gì, ưu tiên gì
+- Cần biết cách chọn tool/MCP server
+- Cần agent instructions (Cowork mode, Universal Prompt)
 
 ### Search RKB khi
 
@@ -34,17 +43,18 @@ Hai site này BỔ SUNG cho nhau. RKB chứa kiến thức chuyên ngành (what 
 - Câu hỏi về luật Texas, TREC, Fair Housing
 - Tư vấn tài chính: commission eXp, thuế, kế toán
 
-### Search Agent OS khi
+### Search Realtor OS Wiki khi
 
-- Cần biết luật vận hành (Global Rules, RE Rules, Content Rules)
-- Cần workflow cụ thể (Content, Lead Handling, Client Follow-Up)
-- Cần hiểu Phong là ai, làm gì, ưu tiên gì
-- Cần biết cách chọn tool/MCP server
-- Cần agent instructions (Cowork mode, Universal Prompt)
+- Câu hỏi về internals của framework `claude-code-real-estate-framework` (upstream: `puzzled-mushroom911/claude-code-real-estate-framework`)
+- Cần technical reference cho framework components, workflows, MCP/Python tools đi kèm framework
+- Cần biết cấu trúc 4-agent multi-session của framework gốc
+- Phân biệt: Realtor OS document framework AS-IS; Agent OS document Phong customize ra sao
 
-### Search CẢ HAI khi
+### Search NHIỀU site khi
 
-- Task phức tạp cần cả kiến thức lẫn quy trình (ví dụ: viết email follow-up cho buyer đang trong option period → RKB cho nội dung, Agent OS cho tone/format)
+- Task phức tạp cần kết hợp (ví dụ: viết email follow-up cho buyer đang trong option period → RKB cho nội dung domain, Agent OS cho tone/format/workflow)
+- Câu hỏi liên quan đến framework + rules vận hành → Realtor OS + Agent OS
+- Khi 1 site không trả lời thỏa đáng → thử site liên quan kế tiếp
 
 
 ## Cách search qua MCP

@@ -54,11 +54,33 @@ Agent OS document ba lớp thông tin chính:
 
 ## Site này KHÔNG chứa gì
 
-**Không chứa kiến thức bất động sản.** Quy trình mua bán nhà, scripts tư vấn khách hàng, và market data nằm trong Realtor Knowledge Base — một site riêng trên Documentation.AI. Agent OS chỉ document cách agents truy cập và sử dụng Knowledge Base đó.
+**Không chứa kiến thức bất động sản.** Quy trình mua bán nhà, scripts tư vấn khách hàng, và market data nằm trong Realtor Knowledge Base (RKB) — một site riêng trên Documentation.AI. Agent OS chỉ document cách agents truy cập và sử dụng Knowledge Base đó.
+
+**Không chứa technical reference của framework `claude-code-real-estate-framework`.** Reference framework đó nằm trong **Realtor OS Wiki** — site riêng. Agent OS chỉ document cách Phong customize và áp dụng framework, không document framework nội tại.
 
 **Không chứa nội dung marketing đã tạo.** Bài đăng, video, hình ảnh nằm trong thư mục Content trên máy. Site này chỉ document quy trình tạo content và pipeline sản xuất.
 
 **Không chứa dữ liệu khách hàng.** Thông tin khách hàng nằm trong HubSpot CRM. Site này chỉ document cách agents tương tác với CRM.
+
+
+## Sister Sites — Hệ Sinh Thái 3 Documentation.AI
+
+<Callout kind="alert" collapsed="false">
+**Đọc bắt buộc cho mọi agent.** Agent OS không đứng một mình — nó là 1 trong 3 site Documentation.AI bổ sung cho nhau. Agent phải biết khi nào search site nào.
+</Callout>
+
+| Site | URL | MCP Endpoint | Vai trò |
+|---|---|---|---|
+| **Agent OS** (site này) | antigravity-memory-palace.documentationai.com | `https://antigravity-memory-palace.documentationai.com/_mcp` | Rules, workflows, agent instructions — meta-layer vận hành |
+| **RKB** (Realtor Knowledge Base) | phong-to.documentationai.com | `https://phong-to.documentationai.com/_mcp` | Domain knowledge bất động sản — sales/marketing/legal/transaction |
+| **Realtor OS Wiki** | realtor-os.documentationai.com | `https://realtor-os.documentationai.com/_mcp` | Technical reference cho open-source `claude-code-real-estate-framework` |
+
+**Quy tắc routing:**
+- Câu hỏi về **rules / workflows / agent instructions** → search Agent OS (site này)
+- Câu hỏi về **real estate domain** (TREC, scripts, SOP, market) → search RKB (mandatory cho mọi RE task)
+- Câu hỏi về **framework internals** (`claude-code-real-estate-framework`) → search Realtor OS Wiki
+
+Chi tiết decision tree + tips search xem [Documentation MCP Usage](/knowledge-qa/documentation-mcp-usage).
 
 
 ## Cách AI agents sử dụng site này

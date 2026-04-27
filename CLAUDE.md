@@ -12,7 +12,12 @@
 
 This wiki is NOT a Realtor KB (that's `documentationai-documentation`). This is the **meta-layer** — documenting the **Agent OS** itself: rules, workflows, agent prompts, tool usage, FAQ. Audience: Phong + teammates + AI agents reading the wiki to self-orient.
 
-**Sister repo:** `tominhphong/documentationai-documentation` (Realtor KB — DO NOT confuse).
+**Sister repos (3-site Documentation.AI ecosystem):**
+- `tominhphong/documentationai-wiki` → **Agent OS** at antigravity-memory-palace.documentationai.com (this repo — meta-layer)
+- `tominhphong/documentationai-documentation` → **RKB** at phong-to.documentationai.com (real estate domain knowledge)
+- `tominhphong/documentationai-guide` → **Realtor OS Wiki** at realtor-os.documentationai.com (technical reference for `claude-code-real-estate-framework`)
+
+DO NOT confuse the 3. Routing rules: see `knowledge-qa/documentation-mcp-usage.mdx`.
 
 ---
 
